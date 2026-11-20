@@ -76,10 +76,15 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ error: 'Internal server error', details: err?.message });
 });
 
-app.listen(PORT, () => {
-  console.log(`=========================================`);
-  console.log(`  WORKCREW BACKEND REST API IS RUNNING  `);
-  console.log(`  Port: http://localhost:${PORT}        `);
-  console.log(`=========================================`);
-  initializeFacialRecognitionIndex();
-});
+export { app };
+export default app;
+
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`=========================================`);
+    console.log(`  WORKCREW BACKEND REST API IS RUNNING  `);
+    console.log(`  Port: http://localhost:${PORT}        `);
+    console.log(`=========================================`);
+    initializeFacialRecognitionIndex();
+  });
+}
