@@ -1,0 +1,18 @@
+{
+  "name": "Go_Repireo Crew - Workforce Management Platform",
+  "short_name": "GoRepireo",
+  "description": "Centralized workforce management platform for field workers, teams, and GPS attendance",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#1725a3",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
