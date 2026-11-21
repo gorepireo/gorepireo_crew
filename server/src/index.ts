@@ -76,7 +76,6 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ error: 'Internal server error', details: err?.message });
 });
 
-export { app };
 export default app;
 
 if (!process.env.VERCEL) {
