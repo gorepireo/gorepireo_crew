@@ -17,6 +17,7 @@ import leaveRoutes from './routes/leaves';
 import workEvidenceRoutes from './routes/workEvidence';
 import recognitionRoutes, { initializeFacialRecognitionIndex } from './routes/recognition';
 import { ensureUploadDirs } from './utils/fileStorage';
+import { db } from './db';
 
 dotenv.config();
 ensureUploadDirs();
@@ -51,6 +52,16 @@ app.get('/api/health', (req, res) => {
     version: '1.0.0',
     timestamp: new Date().toISOString(),
   });
+});
+
+// Ensure Turso database is fully hydrated from cloud before handling requests
+app.use(async (_req, _res, next) => {
+  try {
+    await db.ready();
+  } catch (err: any) {
+    console.warn('[SERVER] db ready error:', err?.message);
+  }
+  next();
 });
 
 // Mount modular REST routes

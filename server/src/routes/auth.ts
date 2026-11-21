@@ -45,7 +45,8 @@ router.get('/me', authMiddleware, (req: Request, res: Response) => {
 
 // 2. Mobile Number & Password Login (Strictly No OTP, Rate-Limited & Lockout Protected)
 router.post('/login', (req: Request, res: Response) => {
-  const { identifier, password, role: requestedRole } = req.body;
+  try {
+    const { identifier, password, role: requestedRole } = req.body;
 
   if (!identifier || !password) {
     return res.status(400).json({ error: 'Mobile number and password are required' });
@@ -212,6 +213,10 @@ router.post('/login', (req: Request, res: Response) => {
         ? '/leader/dashboard'
         : '/worker/home',
   });
+  } catch (err: any) {
+    console.error('[AUTH] Login exception:', err);
+    return res.status(500).json({ error: err?.message || 'Login failed due to an internal server error' });
+  }
 });
 
 // 2b. User Self-Registration (Supports WORKER and TEAM_LEADER)

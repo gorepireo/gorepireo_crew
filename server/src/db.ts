@@ -43,8 +43,12 @@ export interface DatabaseSchema {
   settings: OrganizationSettings;
 }
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
+const DATA_DIR = process.env.VERCEL ? path.join('/tmp', 'data') : path.join(__dirname, '..', 'data');
 const DB_FILE = path.join(DATA_DIR, 'store.json');
+
+const DEFAULT_TURSO_URL = 'libsql://gorepireo-workcrew-gorepireo.aws-ap-south-1.turso.io';
+const DEFAULT_TURSO_TOKEN =
+  'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJnaWQiOiJlNzQ5NGZiZC05MzFmLTRlM2ItYTU5Ni1iOWJhZjUwNmRkNzUiLCJpYXQiOjE3OTUwMjAxNTUsImtpZCI6IjJxR3Brck5QRVJ4Zkp6T1oyMXRvVVpwbmNBREtsbEszY3lqUHJvMzFvWjQiLCJyaWQiOiIxYjE5OGUwYS01MjU3LTQxNjEtODYwMC1kMzQwNzMxMzU1YzgifQ.5t4_WGiQNWUg9I68knvCAYP-JxQIw-LxmI_Pv8qyn_wqOFl03O4fwkpzboojtqoRbgrCW9WfkAsblQsCLpPCCA';
 
 const INITIAL_SETTINGS: OrganizationSettings = {
   orgName: 'Go_Repireo Crew',
@@ -934,11 +938,13 @@ function getSeedData(): DatabaseSchema {
 class DatabaseService {
   private data: DatabaseSchema;
   private tursoClient: Client | null = null;
+  private readyPromise: Promise<void> | null = null;
 
   constructor() {
     this.ensureDataDir();
     this.data = this.loadData();
-    if (process.env.TURSO_DATABASE_URL) {
+    const effectiveTursoUrl = process.env.TURSO_DATABASE_URL || DEFAULT_TURSO_URL;
+    if (effectiveTursoUrl) {
       // In 100% online cloud database mode, initialize empty so only real Turso tables exist
       this.data.users = [];
       this.data.workers = [];
@@ -954,12 +960,18 @@ class DatabaseService {
       this.data.activityLogs = [];
       this.data.passwordResetRequests = [];
     }
-    this.initTurso();
+    this.readyPromise = this.initTurso();
   }
 
-  private initTurso() {
-    const tursoUrl = process.env.TURSO_DATABASE_URL;
-    const tursoToken = process.env.TURSO_AUTH_TOKEN;
+  public async ready(): Promise<void> {
+    if (this.readyPromise) {
+      await this.readyPromise;
+    }
+  }
+
+  private async initTurso(): Promise<void> {
+    const tursoUrl = process.env.TURSO_DATABASE_URL || DEFAULT_TURSO_URL;
+    const tursoToken = process.env.TURSO_AUTH_TOKEN || DEFAULT_TURSO_TOKEN;
     if (tursoUrl && tursoToken) {
       try {
         this.tursoClient = createClient({
@@ -970,7 +982,7 @@ class DatabaseService {
         // Ensure location photo columns exist
         this.tursoClient.execute('ALTER TABLE locations ADD COLUMN photoURL TEXT').catch(() => {});
         this.tursoClient.execute('ALTER TABLE locations ADD COLUMN googleDriveFileId TEXT').catch(() => {});
-        this.syncFromTurso();
+        await this.syncFromTurso();
       } catch (err: any) {
         console.warn('[TURSO] Could not initialize cloud database client:', err.message);
       }
@@ -1264,8 +1276,12 @@ class DatabaseService {
   }
 
   private ensureDataDir() {
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
+    try {
+      if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+      }
+    } catch (_err) {
+      // In readonly serverless environments (e.g. Vercel), disk writes are skipped
     }
   }
 
@@ -1290,7 +1306,7 @@ class DatabaseService {
   }
 
   private saveData(data: DatabaseSchema) {
-    if (process.env.TURSO_DATABASE_URL) {
+    if (process.env.TURSO_DATABASE_URL || DEFAULT_TURSO_URL || process.env.VERCEL) {
       // 100% Online Cloud Database mode - Zero local disk writes
       return;
     }
