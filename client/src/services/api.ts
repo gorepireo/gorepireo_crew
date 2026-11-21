@@ -16,6 +16,8 @@ import {
   UserRole,
 } from '../types';
 
+const API_BASE = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+
 class ApiService {
   private getHeaders(): HeadersInit {
     const token = localStorage.getItem('workcrew_token');
@@ -40,7 +42,8 @@ class ApiService {
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const res = await fetch(endpoint, {
+    const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`;
+    const res = await fetch(url, {
       ...options,
       headers: {
         ...this.getHeaders(),
