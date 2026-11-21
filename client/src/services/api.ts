@@ -52,8 +52,22 @@ class ApiService {
     });
 
     if (!res.ok) {
-      const errorData = await res.json().catch(() => ({ error: res.statusText }));
-      throw new Error(errorData.error || `HTTP ${res.status}: ${res.statusText}`);
+      let errorMsg = '';
+      try {
+        const errorData = await res.json();
+        errorMsg = errorData.error || errorData.message || errorData.details || '';
+      } catch {
+        try {
+          const rawText = await res.text();
+          // Extract title or body text if it's HTML, or use raw text
+          const titleMatch = rawText.match(/<title>([^<]+)<\/title>/i);
+          errorMsg = titleMatch ? titleMatch[1] : rawText.slice(0, 200).trim();
+        } catch {
+          errorMsg = res.statusText;
+        }
+      }
+      console.error(`[API ERROR] ${options.method || 'GET'} ${url} -> HTTP ${res.status}:`, errorMsg);
+      throw new Error(errorMsg || `HTTP ${res.status}: Server Error`);
     }
 
     return res.json();

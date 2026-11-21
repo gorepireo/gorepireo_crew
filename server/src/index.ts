@@ -89,7 +89,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 export default app;
 
-if (!process.env.VERCEL) {
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
   app.listen(PORT, () => {
     console.log(`=========================================`);
     console.log(`  WORKCREW BACKEND REST API IS RUNNING  `);
