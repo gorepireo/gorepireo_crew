@@ -24,22 +24,9 @@
       }
     },
     {
-      "source": "/assets/(.*)",
-      "destination": {
-        "service": "client"
-      }
-    },
-    {
-      "source": "/(.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp|json|js|css|woff|woff2|ttf|map))",
-      "destination": {
-        "service": "client"
-      }
-    },
-    {
       "source": "/(.*)",
       "destination": {
-        "service": "client",
-        "path": "/index.html"
+        "service": "client"
       }
     }
   ]
