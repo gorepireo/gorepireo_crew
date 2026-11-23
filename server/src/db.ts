@@ -3,7 +3,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 dotenv.config();
 import bcrypt from 'bcryptjs';
-import { createClient, Client } from '@libsql/client';
+import { createClient, Client } from '@libsql/client/web';
 import {
   User,
   UserRole,
@@ -965,7 +965,14 @@ class DatabaseService {
 
   public async ready(): Promise<void> {
     if (this.readyPromise) {
-      await this.readyPromise;
+      try {
+        await Promise.race([
+          this.readyPromise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Turso connection timeout')), 3500)),
+        ]);
+      } catch (err: any) {
+        console.warn('[DB] ready() timeout or notice, proceeding:', err?.message);
+      }
     }
   }
 
@@ -980,9 +987,6 @@ class DatabaseService {
           authToken: tursoToken,
         });
         console.log('[TURSO] Active client connected to:', tursoUrl);
-        // Ensure location photo columns exist
-        this.tursoClient.execute('ALTER TABLE locations ADD COLUMN photoURL TEXT').catch(() => {});
-        this.tursoClient.execute('ALTER TABLE locations ADD COLUMN googleDriveFileId TEXT').catch(() => {});
         await this.syncFromTurso();
       } catch (err: any) {
         console.warn('[TURSO] Could not initialize cloud database client:', err.message);

@@ -87,14 +87,14 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ error: 'Internal server error', details: err?.message });
 });
 
-// Ensure app is callable in any module system (ESM default and CommonJS module.exports)
-(app as any).default = app;
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = app;
-}
+// Export app cleanly as default export for Vercel Serverless / ESM
 export default app;
 
-if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
+const isDirectRun =
+  (typeof require !== 'undefined' && require.main === module) ||
+  (process.env.NODE_ENV !== 'production' && !process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME);
+
+if (isDirectRun) {
   app.listen(PORT, () => {
     console.log(`=========================================`);
     console.log(`  WORKCREW BACKEND REST API IS RUNNING  `);
