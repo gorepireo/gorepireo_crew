@@ -98,6 +98,10 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 (app as any).default = app;
 (app as any).app = app;
 
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = app;
+}
+
 const isServerless = Boolean(
   process.env.VERCEL ||
   process.env.AWS_LAMBDA_FUNCTION_NAME ||
@@ -121,4 +125,4 @@ if (!isServerless) {
   }
 }
 
-export = app;
+export default app;

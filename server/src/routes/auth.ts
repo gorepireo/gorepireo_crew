@@ -46,14 +46,16 @@ router.get('/me', authMiddleware, (req: Request, res: Response) => {
 // 2. Mobile Number & Password Login (Strictly No OTP, Rate-Limited & Lockout Protected)
 router.post('/login', (req: Request, res: Response) => {
   try {
-    const { identifier, password, role: requestedRole } = req.body;
+    const rawIdentifier = req.body.identifier || req.body.phone || req.body.mobile || req.body.email || '';
+    const identifier = typeof rawIdentifier === 'string' ? rawIdentifier.trim() : String(rawIdentifier).trim();
+    const { password, role: requestedRole } = req.body;
 
   if (!identifier || !password) {
     return res.status(400).json({ error: 'Mobile number and password are required' });
   }
 
   // Find all user accounts matching normalized mobile or email identifier
-  const matchingUsers = db.getUsersByEmailOrPhone(identifier.trim());
+  const matchingUsers = db.getUsersByEmailOrPhone(identifier);
   if (!matchingUsers || matchingUsers.length === 0) {
     return res.status(401).json({ error: 'Invalid mobile number or password.' });
   }
