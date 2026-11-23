@@ -10,6 +10,28 @@
       "framework": "express"
     }
   },
+  "redirects": [
+    {
+      "source": "/login",
+      "destination": "/#/login",
+      "permanent": false
+    },
+    {
+      "source": "/worker/(.*)",
+      "destination": "/#/worker/$1",
+      "permanent": false
+    },
+    {
+      "source": "/leader/(.*)",
+      "destination": "/#/leader/$1",
+      "permanent": false
+    },
+    {
+      "source": "/admin/(.*)",
+      "destination": "/#/admin/$1",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -24,22 +46,9 @@
       }
     },
     {
-      "source": "/assets/(.*)",
-      "destination": {
-        "service": "client"
-      }
-    },
-    {
-      "source": "/:file.:ext",
-      "destination": {
-        "service": "client"
-      }
-    },
-    {
       "source": "/(.*)",
       "destination": {
-        "service": "client",
-        "path": "/index.html"
+        "service": "client"
       }
     }
   ]

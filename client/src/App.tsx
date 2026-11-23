@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { LoginPage } from './pages/auth/LoginPage';
@@ -174,7 +174,7 @@ export const App: React.FC = () => {
     <ErrorBoundary>
       <AuthProvider>
         <LanguageProvider>
-          <BrowserRouter>
+          <HashRouter>
           <Routes>
             <Route path="/" element={<RootRedirect />} />
             <Route path="/login" element={<LoginPage />} />
@@ -244,7 +244,7 @@ export const App: React.FC = () => {
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </BrowserRouter>
+        </HashRouter>
       </LanguageProvider>
     </AuthProvider>
   </ErrorBoundary>
