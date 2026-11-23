@@ -87,19 +87,31 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ error: 'Internal server error', details: err?.message });
 });
 
-// Export app cleanly as default export for Vercel Serverless / ESM
-export default app;
+// Attach self-references so app is callable via default or named import in any bundler
+(app as any).default = app;
+(app as any).app = app;
 
-const isDirectRun =
-  (typeof require !== 'undefined' && require.main === module) ||
-  (process.env.NODE_ENV !== 'production' && !process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME);
+const isServerless = Boolean(
+  process.env.VERCEL ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  process.env.LAMBDA_TASK_ROOT ||
+  process.env.NOW_REGION
+);
 
-if (isDirectRun) {
-  app.listen(PORT, () => {
-    console.log(`=========================================`);
-    console.log(`  WORKCREW BACKEND REST API IS RUNNING  `);
-    console.log(`  Port: http://localhost:${PORT}        `);
-    console.log(`=========================================`);
-    initializeFacialRecognitionIndex();
-  });
+if (!isServerless) {
+  const isDirectRun =
+    (typeof require !== 'undefined' && require.main === module) ||
+    (process.argv[1] && (process.argv[1].endsWith('index.ts') || process.argv[1].endsWith('index.js')));
+
+  if (isDirectRun) {
+    app.listen(PORT, () => {
+      console.log(`=========================================`);
+      console.log(`  WORKCREW BACKEND REST API IS RUNNING  `);
+      console.log(`  Port: http://localhost:${PORT}        `);
+      console.log(`=========================================`);
+      initializeFacialRecognitionIndex();
+    });
+  }
 }
+
+export = app;
