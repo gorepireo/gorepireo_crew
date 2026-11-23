@@ -43,10 +43,10 @@ export interface DatabaseSchema {
   settings: OrganizationSettings;
 }
 
-const DATA_DIR = process.env.VERCEL ? path.join('/tmp', 'data') : path.join(__dirname, '..', 'data');
+const DATA_DIR = process.env.VERCEL ? path.join('/tmp', 'data') : path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'store.json');
 
-const DEFAULT_TURSO_URL = 'libsql://gorepireo-workcrew-gorepireo.aws-ap-south-1.turso.io';
+const DEFAULT_TURSO_URL = 'https://gorepireo-workcrew-gorepireo.aws-ap-south-1.turso.io';
 const DEFAULT_TURSO_TOKEN =
   'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJnaWQiOiJlNzQ5NGZiZC05MzFmLTRlM2ItYTU5Ni1iOWJhZjUwNmRkNzUiLCJpYXQiOjE3OTUwMjAxNTUsImtpZCI6IjJxR3Brck5QRVJ4Zkp6T1oyMXRvVVpwbmNBREtsbEszY3lqUHJvMzFvWjQiLCJyaWQiOiIxYjE5OGUwYS01MjU3LTQxNjEtODYwMC1kMzQwNzMxMzU1YzgifQ.5t4_WGiQNWUg9I68knvCAYP-JxQIw-LxmI_Pv8qyn_wqOFl03O4fwkpzboojtqoRbgrCW9WfkAsblQsCLpPCCA';
 
@@ -970,7 +970,10 @@ class DatabaseService {
   }
 
   private async initTurso(): Promise<void> {
-    const tursoUrl = process.env.TURSO_DATABASE_URL || DEFAULT_TURSO_URL;
+    let tursoUrl = process.env.TURSO_DATABASE_URL || DEFAULT_TURSO_URL;
+    if (tursoUrl && tursoUrl.startsWith('libsql://')) {
+      tursoUrl = tursoUrl.replace('libsql://', 'https://');
+    }
     const tursoToken = process.env.TURSO_AUTH_TOKEN || DEFAULT_TURSO_TOKEN;
     if (tursoUrl && tursoToken) {
       try {
@@ -978,7 +981,7 @@ class DatabaseService {
           url: tursoUrl,
           authToken: tursoToken,
         });
-        console.log('[TURSO] Active client connected to:', tursoUrl);
+        console.log('[TURSO] Active client connected via HTTPS to:', tursoUrl);
         // Ensure location photo columns exist
         this.tursoClient.execute('ALTER TABLE locations ADD COLUMN photoURL TEXT').catch(() => {});
         this.tursoClient.execute('ALTER TABLE locations ADD COLUMN googleDriveFileId TEXT').catch(() => {});

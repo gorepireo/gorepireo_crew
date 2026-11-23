@@ -14,14 +14,8 @@
     {
       "source": "/api/(.*)",
       "destination": {
-        "service": "server"
-      }
-    },
-    {
-      "source": "/((?!assets/|.*[a-zA-Z0-9]\\.[a-zA-Z0-9]+$).*)",
-      "destination": {
-        "service": "client",
-        "path": "/index.html"
+        "service": "server",
+        "path": "/api/$1"
       }
     },
     {
