@@ -1,10 +1,8 @@
-const express = require('express');
+const raw = require('./dist/index.js');
+const app = (raw && raw.default) || raw;
 
-const app = express();
-
-app.get(['/api/health', '/health'], (req, res) => {
-  res.json({ status: 'ok', msg: 'hello from simple express', vercel: process.env.VERCEL });
-});
+if (app && typeof app === 'function') {
+  app.default = app;
+}
 
 module.exports = app;
-module.exports.default = app;
