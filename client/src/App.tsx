@@ -42,6 +42,60 @@ import { WorkerProfile } from './pages/worker/WorkerProfile';
 
 import { UserRole } from './types';
 
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+}
+
+export class ErrorBoundary extends React.Component<{ children: React.ReactNode }, ErrorBoundaryState> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('[CRITICAL] Uncaught application error:', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-6 text-center">
+          <div className="w-16 h-16 bg-blue-600/20 text-blue-400 rounded-2xl flex items-center justify-center mb-4 text-2xl font-bold">
+            !
+          </div>
+          <h1 className="text-xl font-bold mb-2">Go_Repireo Crew</h1>
+          <p className="text-slate-400 text-sm max-w-md mb-6">
+            An unexpected error occurred while loading this page. Click below to refresh or return to login.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                localStorage.clear();
+                window.location.href = '/login';
+              }}
+              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-medium transition"
+            >
+              Reset Session & Log In
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition"
+            >
+              Reload Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // Protected Route Guard with Direct Role Auto-Activation for Address Bar Direct Access
 const ProtectedRoute: React.FC<{
   allowedRoles: UserRole[];
@@ -50,16 +104,18 @@ const ProtectedRoute: React.FC<{
 }> = ({ allowedRoles, targetRole, children }) => {
   const { user, role, loading, switchRole } = useAuth();
   const [isSwitching, setIsSwitching] = useState(false);
+  const attemptedSwitchRef = React.useRef(false);
 
   useEffect(() => {
-    // If user writes /admin in address bar, directly activate and switch to ADMIN session
-    if (!loading && targetRole && (role !== targetRole || !user)) {
+    // Only attempt role switch if user is already logged in and needs role switch
+    if (!loading && user && targetRole && role !== targetRole && !attemptedSwitchRef.current) {
+      attemptedSwitchRef.current = true;
       setIsSwitching(true);
       switchRole(targetRole).finally(() => {
         setIsSwitching(false);
       });
     }
-  }, [loading, role, targetRole, user]);
+  }, [loading, role, targetRole, user, switchRole]);
 
   if (loading || isSwitching) {
     return (
@@ -72,7 +128,7 @@ const ProtectedRoute: React.FC<{
     );
   }
 
-  if (!user && !targetRole) {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
@@ -115,81 +171,83 @@ const RootRedirect: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <LanguageProvider>
-        <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<RootRedirect />} />
-          <Route path="/login" element={<LoginPage />} />
+    <ErrorBoundary>
+      <AuthProvider>
+        <LanguageProvider>
+          <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<RootRedirect />} />
+            <Route path="/login" element={<LoginPage />} />
 
-          {/* ADMIN INTERFACE (Direct Address Bar Access Supported) */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute allowedRoles={['ADMIN']} targetRole="ADMIN">
-                <AdminLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Navigate to="/admin/dashboard" replace />} />
-            <Route path="dashboard" element={<AdminOverview />} />
-            <Route path="workers" element={<AdminWorkers />} />
-            <Route path="leaders" element={<AdminLeaders />} />
-            <Route path="teams" element={<AdminTeams />} />
-            <Route path="assignments" element={<AdminAssignments />} />
-            <Route path="locations" element={<AdminLocations />} />
-            <Route path="attendance" element={<AdminAttendance />} />
-            <Route path="evidence" element={<AdminEvidence />} />
-            <Route path="reports" element={<AdminReports />} />
-            <Route path="notifications" element={<AdminNotifications />} />
-            <Route path="activity-logs" element={<AdminActivityLogs />} />
-            <Route path="settings" element={<AdminSettings />} />
-          </Route>
+            {/* ADMIN INTERFACE (Direct Address Bar Access Supported) */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']} targetRole="ADMIN">
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="dashboard" element={<AdminOverview />} />
+              <Route path="workers" element={<AdminWorkers />} />
+              <Route path="leaders" element={<AdminLeaders />} />
+              <Route path="teams" element={<AdminTeams />} />
+              <Route path="assignments" element={<AdminAssignments />} />
+              <Route path="locations" element={<AdminLocations />} />
+              <Route path="attendance" element={<AdminAttendance />} />
+              <Route path="evidence" element={<AdminEvidence />} />
+              <Route path="reports" element={<AdminReports />} />
+              <Route path="notifications" element={<AdminNotifications />} />
+              <Route path="activity-logs" element={<AdminActivityLogs />} />
+              <Route path="settings" element={<AdminSettings />} />
+            </Route>
 
-          {/* TEAM LEADER INTERFACE */}
-          <Route
-            path="/leader"
-            element={
-              <ProtectedRoute allowedRoles={['TEAM_LEADER']} targetRole="TEAM_LEADER">
-                <LeaderLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Navigate to="/leader/dashboard" replace />} />
-            <Route path="dashboard" element={<LeaderDashboard />} />
-            <Route path="teams" element={<LeaderTeams />} />
-            <Route path="add-worker" element={<LeaderAddWorker />} />
-            <Route path="assign-work" element={<LeaderAssignWork />} />
-            <Route path="locations" element={<LeaderLocations />} />
-            <Route path="attendance" element={<LeaderAttendance />} />
-            <Route path="evidence" element={<LeaderEvidence />} />
-            <Route path="work-monitoring" element={<LeaderMonitoring />} />
-            <Route path="reports" element={<LeaderReports />} />
-            <Route path="profile" element={<LeaderProfile />} />
-            <Route path="settings" element={<LeaderSettings />} />
-          </Route>
+            {/* TEAM LEADER INTERFACE */}
+            <Route
+              path="/leader"
+              element={
+                <ProtectedRoute allowedRoles={['TEAM_LEADER']} targetRole="TEAM_LEADER">
+                  <LeaderLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="/leader/dashboard" replace />} />
+              <Route path="dashboard" element={<LeaderDashboard />} />
+              <Route path="teams" element={<LeaderTeams />} />
+              <Route path="add-worker" element={<LeaderAddWorker />} />
+              <Route path="assign-work" element={<LeaderAssignWork />} />
+              <Route path="locations" element={<LeaderLocations />} />
+              <Route path="attendance" element={<LeaderAttendance />} />
+              <Route path="evidence" element={<LeaderEvidence />} />
+              <Route path="work-monitoring" element={<LeaderMonitoring />} />
+              <Route path="reports" element={<LeaderReports />} />
+              <Route path="profile" element={<LeaderProfile />} />
+              <Route path="settings" element={<LeaderSettings />} />
+            </Route>
 
-          {/* WORKER INTERFACE (MOBILE-FIRST) */}
-          <Route
-            path="/worker"
-            element={
-              <ProtectedRoute allowedRoles={['WORKER', 'ADMIN', 'TEAM_LEADER']}>
-                <WorkerLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Navigate to="/worker/home" replace />} />
-            <Route path="home" element={<WorkerHome />} />
-            <Route path="work" element={<WorkerWork />} />
-            <Route path="attendance" element={<WorkerAttendance />} />
-            <Route path="profile" element={<WorkerProfile />} />
-          </Route>
+            {/* WORKER INTERFACE (MOBILE-FIRST) */}
+            <Route
+              path="/worker"
+              element={
+                <ProtectedRoute allowedRoles={['WORKER', 'ADMIN', 'TEAM_LEADER']}>
+                  <WorkerLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="/worker/home" replace />} />
+              <Route path="home" element={<WorkerHome />} />
+              <Route path="work" element={<WorkerWork />} />
+              <Route path="attendance" element={<WorkerAttendance />} />
+              <Route path="profile" element={<WorkerProfile />} />
+            </Route>
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </LanguageProvider>
-  </AuthProvider>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </LanguageProvider>
+    </AuthProvider>
+  </ErrorBoundary>
   );
 };
 

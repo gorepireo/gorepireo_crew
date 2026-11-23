@@ -43,7 +43,7 @@ export interface DatabaseSchema {
   settings: OrganizationSettings;
 }
 
-const DATA_DIR = process.env.VERCEL ? path.join('/tmp', 'data') : path.join(process.cwd(), 'data');
+const DATA_DIR = process.env.VERCEL ? path.join('/tmp', 'data') : path.join(__dirname, '..', 'data');
 const DB_FILE = path.join(DATA_DIR, 'store.json');
 
 const DEFAULT_TURSO_URL = 'https://gorepireo-workcrew-gorepireo.aws-ap-south-1.turso.io';
@@ -970,10 +970,8 @@ class DatabaseService {
   }
 
   private async initTurso(): Promise<void> {
-    let tursoUrl = process.env.TURSO_DATABASE_URL || DEFAULT_TURSO_URL;
-    if (tursoUrl && tursoUrl.startsWith('libsql://')) {
-      tursoUrl = tursoUrl.replace('libsql://', 'https://');
-    }
+    const rawUrl = process.env.TURSO_DATABASE_URL || DEFAULT_TURSO_URL;
+    const tursoUrl = rawUrl.replace(/^libsql:\/\//, 'https://');
     const tursoToken = process.env.TURSO_AUTH_TOKEN || DEFAULT_TURSO_TOKEN;
     if (tursoUrl && tursoToken) {
       try {
@@ -981,7 +979,7 @@ class DatabaseService {
           url: tursoUrl,
           authToken: tursoToken,
         });
-        console.log('[TURSO] Active client connected via HTTPS to:', tursoUrl);
+        console.log('[TURSO] Active client connected to:', tursoUrl);
         // Ensure location photo columns exist
         this.tursoClient.execute('ALTER TABLE locations ADD COLUMN photoURL TEXT').catch(() => {});
         this.tursoClient.execute('ALTER TABLE locations ADD COLUMN googleDriveFileId TEXT').catch(() => {});
