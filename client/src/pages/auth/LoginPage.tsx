@@ -50,13 +50,35 @@ export const LoginPage: React.FC = () => {
   const [changeError, setChangeError] = useState<string | null>(null);
   const [targetRedirect, setTargetRedirect] = useState('/worker/home');
 
-  // Forgot password modal state
+  // Restore password modal state
   const [showForgotModal, setShowForgotModal] = useState(false);
-  const [forgotPhone, setForgotPhone] = useState('+91 98765 43210');
-  const [forgotReason, setForgotReason] = useState('Forgot my password, please assist');
+  const [forgotPhone, setForgotPhone] = useState('');
+  const [forgotNewPassword, setForgotNewPassword] = useState('');
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
+  const [showForgotNewPassword, setShowForgotNewPassword] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSuccess, setForgotSuccess] = useState<string | null>(null);
   const [forgotError, setForgotError] = useState<string | null>(null);
+
+  const handleQuickLogin = async (quickPhone: string, quickPass: string) => {
+    setPhone(quickPhone);
+    setPassword(quickPass);
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await login(quickPhone, quickPass);
+      if (res.mustChangePassword) {
+        setTargetRedirect(res.redirectUrl);
+        setShowChangeModal(true);
+      } else {
+        navigate(res.redirectUrl);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Login failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,16 +159,26 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
+  const handleRestorePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (forgotNewPassword.length < 6) {
+      setForgotError('New password must be at least 6 characters long.');
+      return;
+    }
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      setForgotError('Passwords do not match. Please re-enter both identical passwords.');
+      return;
+    }
     setForgotLoading(true);
     setForgotError(null);
     setForgotSuccess(null);
     try {
-      const res = await api.forgotPasswordRequest(forgotPhone, forgotReason);
-      setForgotSuccess(res.message || 'Reset request submitted to your administrator / team leader.');
+      const res = await api.selfResetPassword(forgotPhone.trim(), forgotNewPassword);
+      setForgotSuccess(res.message);
+      setPhone(forgotPhone.trim());
+      setPassword(forgotNewPassword);
     } catch (err: any) {
-      setForgotError(err.message || 'Failed to submit reset request');
+      setForgotError(err.message || 'Failed to restore password. Please check your mobile number.');
     } finally {
       setForgotLoading(false);
     }
@@ -299,15 +331,79 @@ export const LoginPage: React.FC = () => {
                 </button>
               </div>
 
-              {/* Forgot password help link */}
+              {/* Restore password link */}
               <div className="text-center pt-1">
                 <button
                   type="button"
-                  onClick={() => setShowForgotModal(true)}
-                  className="text-3xs font-extrabold text-slate-400 hover:text-slate-600 cursor-pointer"
+                  onClick={() => {
+                    setForgotPhone(phone || '123456789');
+                    setShowForgotModal(true);
+                  }}
+                  className="text-xs font-bold text-blue-600 hover:text-blue-800 underline cursor-pointer"
                 >
-                  Forgot your password? Get Help
+                  Forgot or need to restore password? Click here
                 </button>
+              </div>
+
+              {/* Saved Test Accounts Quick Login */}
+              <div className="mt-4 pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-3xs font-extrabold uppercase tracking-wider text-slate-400">
+                    Saved Test Accounts
+                  </span>
+                  <span className="text-3xs text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    Pass: password123
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickLogin('123456789', 'password123')}
+                    disabled={loading}
+                    className="flex items-center justify-between p-2.5 bg-blue-50/80 hover:bg-blue-100/80 border border-blue-200/70 rounded-xl text-left transition cursor-pointer group"
+                  >
+                    <div>
+                      <div className="text-xs font-black text-blue-950 flex items-center gap-1.5">
+                        <span>🛡️ Team Leader</span>
+                        <span className="text-3xs font-bold text-blue-700 bg-white px-1.5 py-0.5 rounded shadow-2xs">hulu</span>
+                      </div>
+                      <div className="text-3xs text-slate-500 font-mono mt-0.5">Mobile: 123456789</div>
+                    </div>
+                    <span className="text-3xs font-extrabold text-blue-600 group-hover:underline">Instant Log In →</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickLogin('+91 98765 11111', 'password123')}
+                    disabled={loading}
+                    className="flex items-center justify-between p-2.5 bg-indigo-50/80 hover:bg-indigo-100/80 border border-indigo-200/70 rounded-xl text-left transition cursor-pointer group"
+                  >
+                    <div>
+                      <div className="text-xs font-black text-indigo-950 flex items-center gap-1.5">
+                        <span>👑 Organization Admin</span>
+                        <span className="text-3xs font-bold text-indigo-700 bg-white px-1.5 py-0.5 rounded shadow-2xs">Rajesh</span>
+                      </div>
+                      <div className="text-3xs text-slate-500 font-mono mt-0.5">Mobile: +91 98765 11111</div>
+                    </div>
+                    <span className="text-3xs font-extrabold text-indigo-600 group-hover:underline">Instant Log In →</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickLogin('9800615892', 'password123')}
+                    disabled={loading}
+                    className="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-left transition cursor-pointer group"
+                  >
+                    <div>
+                      <div className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                        <span>👷 Worker</span>
+                        <span className="text-3xs font-bold text-slate-700 bg-white px-1.5 py-0.5 rounded shadow-2xs">Prithibi</span>
+                      </div>
+                      <div className="text-3xs text-slate-500 font-mono mt-0.5">Mobile: 9800615892</div>
+                    </div>
+                    <span className="text-3xs font-extrabold text-slate-600 group-hover:underline">Instant Log In →</span>
+                  </button>
+                </div>
               </div>
             </>
           ) : (
@@ -503,7 +599,7 @@ export const LoginPage: React.FC = () => {
         </div>
       )}
 
-      {/* FORGOT PASSWORD MODAL */}
+      {/* RESTORE PASSWORD MODAL */}
       {showForgotModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-100 space-y-4 relative">
@@ -524,30 +620,30 @@ export const LoginPage: React.FC = () => {
                 <KeyRound className="w-6 h-6" />
               </div>
               <h2 className="text-base font-black text-slate-900">
-                Password Reset Help
+                Restore Account Password
               </h2>
               <p className="text-2xs text-slate-500 font-medium">
-                Submit a request to your Team Leader or Organization Admin to reset your password.
+                Enter your registered mobile number and set your new password directly.
               </p>
             </div>
 
             {forgotSuccess ? (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-2xl flex flex-col items-center text-center space-y-2">
-                <CheckCircle2 className="w-6 h-6 text-emerald-600" />
-                <span>{forgotSuccess}</span>
+              <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-2xl flex flex-col items-center text-center space-y-3">
+                <CheckCircle2 className="w-7 h-7 text-emerald-600" />
+                <span className="leading-snug">{forgotSuccess}</span>
                 <button
                   type="button"
                   onClick={() => setShowForgotModal(false)}
-                  className="mt-2 px-4 py-1.5 bg-emerald-600 text-white rounded-xl text-2xs font-extrabold cursor-pointer"
+                  className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black cursor-pointer shadow-sm transition"
                 >
-                  Close
+                  Log In Now
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleForgotPasswordSubmit} className="space-y-3">
+              <form onSubmit={handleRestorePasswordSubmit} className="space-y-3">
                 {forgotError && (
                   <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 text-3xs font-bold rounded-xl flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                     <span>{forgotError}</span>
                   </div>
                 )}
@@ -561,19 +657,47 @@ export const LoginPage: React.FC = () => {
                     required
                     value={forgotPhone}
                     onChange={(e) => setForgotPhone(e.target.value)}
-                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600"
+                    placeholder="e.g. 123456789"
+                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 font-medium"
                   />
                 </div>
 
                 <div>
                   <label className="block text-2xs font-bold text-slate-700 mb-1">
-                    Reason / Note
+                    New Password
                   </label>
-                  <textarea
-                    rows={2}
-                    value={forgotReason}
-                    onChange={(e) => setForgotReason(e.target.value)}
-                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600"
+                  <div className="relative">
+                    <input
+                      type={showForgotNewPassword ? 'text' : 'password'}
+                      required
+                      minLength={6}
+                      value={forgotNewPassword}
+                      onChange={(e) => setForgotNewPassword(e.target.value)}
+                      placeholder="Minimum 6 characters"
+                      className="w-full px-3 py-2 pr-9 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotNewPassword(!showForgotNewPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                    >
+                      {showForgotNewPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-2xs font-bold text-slate-700 mb-1">
+                    Confirm New Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={forgotConfirmPassword}
+                    onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                    placeholder="Re-enter new password"
+                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 font-medium"
                   />
                 </div>
 
@@ -582,7 +706,7 @@ export const LoginPage: React.FC = () => {
                   disabled={forgotLoading}
                   className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all disabled:opacity-60 cursor-pointer"
                 >
-                  {forgotLoading ? 'Submitting...' : 'Request Password Reset'}
+                  {forgotLoading ? 'Restoring Password...' : 'Restore & Set Password'}
                 </button>
               </form>
             )}

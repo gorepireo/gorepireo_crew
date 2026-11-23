@@ -136,6 +136,13 @@ class ApiService {
     });
   }
 
+  async selfResetPassword(phone: string, newPassword: string) {
+    return this.request<{ success: boolean; message: string }>('/api/auth/self-reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ phone, newPassword }),
+    });
+  }
+
   async getResetRequests() {
     return this.request<any[]>('/api/auth/reset-requests');
   }
