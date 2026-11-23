@@ -1,35 +1,10 @@
 const express = require('express');
 
-let app = null;
-let bootError = null;
+const app = express();
 
-try {
-  const raw = require('./dist/index.js');
-  app = (raw && raw.default) || raw;
-} catch (err) {
-  bootError = err;
-  console.error('[BOOT-ERROR]:', err);
-}
-
-if (!app || typeof app !== 'function') {
-  const fallback = express();
-  fallback.all('*', (req, res) => {
-    res.status(500).json({
-      error: 'Backend Boot Failed on Vercel',
-      message: bootError ? bootError.message : 'App was not exported as a function',
-      stack: bootError ? bootError.stack : null,
-      name: bootError ? bootError.name : null,
-      nodeVersion: process.version,
-      envVercel: process.env.VERCEL,
-      cwd: process.cwd(),
-      dirname: __dirname,
-    });
-  });
-  app = fallback;
-}
-
-if (app && typeof app === 'function') {
-  app.default = app;
-}
+app.get(['/api/health', '/health'], (req, res) => {
+  res.json({ status: 'ok', msg: 'hello from simple express', vercel: process.env.VERCEL });
+});
 
 module.exports = app;
+module.exports.default = app;
