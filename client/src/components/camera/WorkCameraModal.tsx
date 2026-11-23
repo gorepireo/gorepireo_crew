@@ -14,7 +14,12 @@ import {
   Radio,
   Upload,
   RefreshCw,
+  Sparkles,
+  Lock,
+  ArrowRight,
+  ShieldCheck,
 } from 'lucide-react';
+import { WorkEvidence } from '../../types';
 
 interface WorkCameraModalProps {
   isOpen: boolean;
@@ -44,8 +49,12 @@ export const WorkCameraModal: React.FC<WorkCameraModalProps> = ({
   const [originalPhoto, setOriginalPhoto] = useState<string | null>(null);
   const [watermarkedPhoto, setWatermarkedPhoto] = useState<string | null>(null);
 
-  // Form fields (Prompt Req 5: 3 large buttons: BEFORE WORK, WORK IN PROGRESS, WORK COMPLETED)
-  const [category, setCategory] = useState<WorkEvidenceCategory>('AFTER');
+  // Existing evidence for sequence validation
+  const [existingEvidence, setExistingEvidence] = useState<WorkEvidence[]>([]);
+  const [loadingEvidence, setLoadingEvidence] = useState(false);
+
+  // Form fields (Ordered: BEFORE WORK first, then AFTER WORK for auto verification)
+  const [category, setCategory] = useState<WorkEvidenceCategory>('BEFORE');
   const [description, setDescription] = useState('');
 
   // GPS state
@@ -65,11 +74,31 @@ export const WorkCameraModal: React.FC<WorkCameraModalProps> = ({
       setWatermarkedPhoto(null);
       setDescription('');
       setError(null);
+
+      if (assignment?.assignmentId) {
+        setLoadingEvidence(true);
+        api.getWorkEvidence({ assignmentId: assignment.assignmentId })
+          .then((evList) => {
+            setExistingEvidence(evList || []);
+            const hasBefore = (evList || []).some((e: WorkEvidence) => e.category === 'BEFORE');
+            // If Before photo is missing, enforce BEFORE. If Before photo exists, step up to AFTER.
+            if (!hasBefore) {
+              setCategory('BEFORE');
+            } else {
+              setCategory('AFTER');
+            }
+          })
+          .catch((e) => console.warn(e))
+          .finally(() => setLoadingEvidence(false));
+      }
     } else {
       stopCamera();
     }
     return () => stopCamera();
-  }, [isOpen, facingMode]);
+  }, [isOpen, facingMode, assignment?.assignmentId]);
+
+  const beforeEvidence = existingEvidence.find((e) => e.category === 'BEFORE');
+  const hasBefore = Boolean(beforeEvidence);
 
   const startCamera = async () => {
     stopCamera();
@@ -329,6 +358,40 @@ export const WorkCameraModal: React.FC<WorkCameraModalProps> = ({
                 </>
               )}
             </>
+          ) : category === 'AFTER' && hasBefore && beforeEvidence ? (
+            /* BEFORE & AFTER SIDE-BY-SIDE AUTO-VERIFICATION VIEW */
+            <div className="relative w-full h-full flex flex-col bg-slate-950 p-2 min-h-[290px]">
+              <div className="grid grid-cols-2 gap-2 flex-1 min-h-[210px]">
+                {/* 1. BEFORE PHOTO */}
+                <div className="relative rounded-2xl overflow-hidden border border-blue-500/70 bg-black flex items-center justify-center">
+                  <img
+                    src={beforeEvidence.watermarkUrl || beforeEvidence.photoUrl}
+                    alt="Before Work"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-2 left-2 bg-blue-600/95 text-white px-2 py-0.5 rounded-md text-4xs font-black shadow-xs">
+                    1. BEFORE WORK
+                  </div>
+                </div>
+
+                {/* 2. AFTER PHOTO */}
+                <div className="relative rounded-2xl overflow-hidden border border-emerald-500/80 bg-black flex items-center justify-center">
+                  <img
+                    src={watermarkedPhoto || originalPhoto}
+                    alt="After Work"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-2 left-2 bg-emerald-600/95 text-white px-2 py-0.5 rounded-md text-4xs font-black shadow-xs">
+                    2. AFTER WORK
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-2 bg-emerald-950/85 border border-emerald-700/80 text-emerald-300 px-3 py-1.5 rounded-xl text-3xs font-extrabold flex items-center gap-2 shadow-xs">
+                <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Auto-Verification: Before & After matched! Submitting will complete duty.</span>
+              </div>
+            </div>
           ) : (
             <div className="relative w-full h-full">
               <img
@@ -338,7 +401,7 @@ export const WorkCameraModal: React.FC<WorkCameraModalProps> = ({
               />
               <span className="absolute top-3 left-3 bg-emerald-500/90 text-white px-3 py-1 rounded-full text-3xs font-bold flex items-center gap-1 shadow-md">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Ready to Submit</span>
+                <span>{category === 'BEFORE' ? 'Step 1: Before Photo Ready' : 'Ready to Submit'}</span>
               </span>
             </div>
           )}
@@ -356,47 +419,105 @@ export const WorkCameraModal: React.FC<WorkCameraModalProps> = ({
           </div>
         </div>
 
-        {/* WORK EVIDENCE FORM & 3 LARGE CATEGORY BUTTONS (Prompt Req 5) */}
-        <div className="p-4 bg-slate-900 space-y-3.5 border-t border-slate-800">
+        {/* WORK EVIDENCE FORM & ORDERED SEQUENTIAL CATEGORY BUTTONS */}
+        <div className="p-4 bg-slate-900 space-y-3 border-t border-slate-800">
+          {/* STEP PROGRESSION HEADER */}
+          <div className="flex items-center justify-between pb-0.5">
+            <div className="flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="text-3xs font-black uppercase tracking-wider text-indigo-400">
+                Verification Order
+              </span>
+            </div>
+            <span className="text-4xs font-black px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+              {!hasBefore ? 'Step 1 of 2: Before Work' : 'Step 2 of 2: After Work (Auto-Verify)'}
+            </span>
+          </div>
+
+          {/* BEFORE PHOTO REFERENCE IF ADVANCED TO AFTER STAGE */}
+          {hasBefore && beforeEvidence && (
+            <div className="p-2 rounded-2xl bg-blue-950/50 border border-blue-800/60 flex items-center gap-2.5">
+              <img
+                src={beforeEvidence.watermarkUrl || beforeEvidence.photoUrl}
+                alt="Before Proof"
+                className="w-10 h-10 rounded-xl object-cover border border-blue-500/50 shrink-0"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1 text-3xs font-black text-blue-300">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  <span>Step 1 Before Photo Recorded</span>
+                </div>
+                <p className="text-4xs text-slate-400 truncate">
+                  Now take the After-Work photo to trigger auto-verification.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="block text-3xs font-black uppercase tracking-wider text-slate-400 mb-2">
-              Select Photo Stage (Optional)
+              Select Photo Stage (Required In Order)
             </label>
             <div className="grid grid-cols-3 gap-2">
+              {/* BEFORE WORK BUTTON */}
               <button
                 type="button"
                 onClick={() => setCategory('BEFORE')}
-                className={`min-h-[48px] py-2.5 px-1.5 rounded-2xl text-2xs font-extrabold text-center transition-all border flex flex-col items-center justify-center ${
+                className={`min-h-[50px] py-2 px-1.5 rounded-2xl text-2xs font-extrabold text-center transition-all border flex flex-col items-center justify-center relative ${
                   category === 'BEFORE'
-                    ? 'bg-blue-600 text-white border-blue-500 shadow-sm'
+                    ? 'bg-blue-600 text-white border-blue-400 shadow-sm ring-2 ring-blue-500/30'
+                    : hasBefore
+                    ? 'bg-blue-950/40 text-blue-300 border-blue-800/60'
                     : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
                 }`}
               >
+                {hasBefore && (
+                  <span className="absolute -top-1.5 -right-1 bg-emerald-500 text-white rounded-full p-0.5 shadow-xs">
+                    <CheckCircle2 className="w-3 h-3" />
+                  </span>
+                )}
                 <span>{t('photo_cat_before')}</span>
+                <span className="text-4xs opacity-80 font-normal">
+                  {hasBefore ? 'Recorded ✓' : 'Step 1 (First)'}
+                </span>
               </button>
 
+              {/* WORK IN PROGRESS BUTTON */}
               <button
                 type="button"
                 onClick={() => setCategory('DURING')}
-                className={`min-h-[48px] py-2.5 px-1.5 rounded-2xl text-2xs font-extrabold text-center transition-all border flex flex-col items-center justify-center ${
+                className={`min-h-[50px] py-2 px-1.5 rounded-2xl text-2xs font-extrabold text-center transition-all border flex flex-col items-center justify-center ${
                   category === 'DURING'
-                    ? 'bg-amber-600 text-white border-amber-500 shadow-sm'
+                    ? 'bg-amber-600 text-white border-amber-400 shadow-sm ring-2 ring-amber-500/30'
                     : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
                 }`}
               >
                 <span>{t('photo_cat_during')}</span>
+                <span className="text-4xs opacity-70 font-normal">In Progress</span>
               </button>
 
+              {/* WORK COMPLETED BUTTON (LOCKED IF BEFORE IS MISSING) */}
               <button
                 type="button"
+                disabled={!hasBefore}
                 onClick={() => setCategory('AFTER')}
-                className={`min-h-[48px] py-2.5 px-1.5 rounded-2xl text-2xs font-extrabold text-center transition-all border flex flex-col items-center justify-center ${
+                className={`min-h-[50px] py-2 px-1.5 rounded-2xl text-2xs font-extrabold text-center transition-all border flex flex-col items-center justify-center relative ${
                   category === 'AFTER'
-                    ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
+                    ? 'bg-emerald-600 text-white border-emerald-400 shadow-sm ring-2 ring-emerald-500/30'
+                    : !hasBefore
+                    ? 'bg-slate-900/60 text-slate-500 border-slate-800/80 cursor-not-allowed opacity-60'
                     : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
                 }`}
               >
+                {!hasBefore && (
+                  <span className="absolute -top-1.5 -right-1 bg-slate-700 text-slate-400 rounded-full p-0.5">
+                    <Lock className="w-3 h-3" />
+                  </span>
+                )}
                 <span>{t('photo_cat_after')}</span>
+                <span className="text-4xs opacity-85 font-normal">
+                  {!hasBefore ? 'Take Before First' : 'Auto-Verify ✨'}
+                </span>
               </button>
             </div>
           </div>
@@ -421,10 +542,16 @@ export const WorkCameraModal: React.FC<WorkCameraModalProps> = ({
             <button
               type="button"
               onClick={handleCapture}
-              className="w-full min-h-[56px] py-3.5 bg-indigo-600 hover:bg-indigo-500 active:scale-98 text-white font-black text-sm rounded-2xl transition-all shadow-md flex items-center justify-center gap-2"
+              className="w-full min-h-[56px] py-3.5 bg-indigo-600 hover:bg-indigo-500 active:scale-98 text-white font-black text-sm rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
               <Camera className="w-5 h-5" />
-              <span>SNAP PHOTO</span>
+              <span>
+                {category === 'BEFORE'
+                  ? 'SNAP BEFORE WORK PHOTO'
+                  : category === 'AFTER'
+                  ? 'SNAP AFTER WORK PHOTO (AUTO-VERIFY)'
+                  : 'SNAP WORK PHOTO'}
+              </span>
             </button>
           ) : (
             <div className="flex items-center gap-2.5 w-full">
@@ -441,10 +568,22 @@ export const WorkCameraModal: React.FC<WorkCameraModalProps> = ({
                 type="button"
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="flex-1 min-h-[52px] py-3 bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white font-black text-xs rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+                className={`flex-1 min-h-[52px] py-3 active:scale-98 text-white font-black text-xs rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50 ${
+                  category === 'AFTER' && hasBefore
+                    ? 'bg-emerald-600 hover:bg-emerald-500'
+                    : 'bg-blue-600 hover:bg-blue-500'
+                }`}
               >
                 <CheckCircle2 className="w-5 h-5" />
-                <span>{submitting ? 'Saving...' : 'SUBMIT PHOTO'}</span>
+                <span>
+                  {submitting
+                    ? 'Saving...'
+                    : category === 'AFTER' && hasBefore
+                    ? 'SUBMIT & AUTO-VERIFY WORK'
+                    : category === 'BEFORE'
+                    ? 'SUBMIT BEFORE PHOTO'
+                    : 'SUBMIT PHOTO'}
+                </span>
               </button>
             </div>
           )}

@@ -106,6 +106,37 @@ router.post('/', authMiddleware, (req: Request, res: Response) => {
   const photoId = `photo-ev-${Date.now()}`;
   const evidenceId = `ev-${Date.now()}`;
 
+  // Check existing work evidence for this assignment to evaluate auto-verification
+  const existingForAssignment = db.getWorkEvidence({ assignmentId });
+  const hasBefore = existingForAssignment.some((e) => e.category === 'BEFORE');
+
+  let reviewStatus: WorkEvidenceReviewStatus = 'PENDING';
+  let reviewNotes: string | undefined = undefined;
+  let autoVerified = false;
+
+  // Auto-verification rule: If submitting AFTER work and a BEFORE photo exists, auto-verify!
+  if (category === 'AFTER' && hasBefore) {
+    reviewStatus = 'APPROVED';
+    reviewNotes = 'Auto-verified: Both BEFORE and AFTER cleaning/work photographic evidence verified.';
+    autoVerified = true;
+
+    // Automatically complete assignment
+    if (assignment && assignment.status !== 'COMPLETED') {
+      db.updateAssignment(assignmentId, {
+        status: 'COMPLETED',
+        completionNote: 'Auto-verified: Before & After photographic evidence completed.',
+        completionEvidenceUrl: photoUrl,
+      });
+    }
+  } else if (category === 'BEFORE') {
+    // If starting work, set assignment to IN_PROGRESS
+    if (assignment && assignment.status === 'ASSIGNED') {
+      db.updateAssignment(assignmentId, {
+        status: 'IN_PROGRESS',
+      });
+    }
+  }
+
   const evidence: WorkEvidence = {
     evidenceId,
     workerId,
@@ -126,7 +157,11 @@ router.post('/', authMiddleware, (req: Request, res: Response) => {
     detectedAddress: address,
     capturedAt: capturedAt || now,
     uploadedAt: now,
-    reviewStatus: 'PENDING',
+    reviewStatus,
+    reviewNotes,
+    reviewedBy: autoVerified ? 'SYSTEM_AUTO_VERIFIER' : undefined,
+    reviewedByName: autoVerified ? 'System Auto-Verifier' : undefined,
+    reviewedAt: autoVerified ? now : undefined,
     createdAt: now,
   };
 
@@ -138,8 +173,10 @@ router.post('/', authMiddleware, (req: Request, res: Response) => {
   db.addNotification({
     notificationId: `notif-${Date.now()}`,
     recipientId,
-    title: `New Work Evidence (${category})`,
-    message: `${workerName} submitted ${category.toLowerCase()} work evidence for "${assignment?.title || 'Duty'}": "${description || 'Photograph captured'}"`,
+    title: autoVerified ? `Work Completed & Auto-Verified (${assignment?.title || 'Duty'})` : `New Work Evidence (${category})`,
+    message: autoVerified
+      ? `${workerName} submitted After Work cleaning photo. Both Before & After photos matched and duty is AUTO-VERIFIED.`
+      : `${workerName} submitted ${category.toLowerCase()} work evidence for "${assignment?.title || 'Duty'}": "${description || 'Photograph captured'}"`,
     type: 'ASSIGNMENT',
     read: false,
     relatedEntityId: evidenceId,
@@ -148,7 +185,13 @@ router.post('/', authMiddleware, (req: Request, res: Response) => {
 
   res.status(201).json({
     evidence,
-    message: 'Work photograph evidence submitted successfully',
+    autoVerified,
+    assignmentStatus: assignment ? (autoVerified ? 'COMPLETED' : (category === 'BEFORE' ? 'IN_PROGRESS' : assignment.status)) : undefined,
+    message: autoVerified
+      ? 'Before & After cleaning evidence complete! Work has been auto-verified and marked completed.'
+      : category === 'BEFORE'
+      ? 'Before-work photo saved. Please proceed with work and capture After-work photo when completed.'
+      : 'Work photograph evidence submitted successfully',
   });
 });
 

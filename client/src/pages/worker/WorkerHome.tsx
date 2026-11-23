@@ -29,7 +29,10 @@ import {
   User,
   ArrowRight,
   Building2,
+  Sparkles,
+  Lock,
 } from 'lucide-react';
+import { WorkEvidence } from '../../types';
 
 export const WorkerHome: React.FC = () => {
   const { worker, user, refreshMe } = useAuth();
@@ -38,6 +41,7 @@ export const WorkerHome: React.FC = () => {
 
   const [todayAssignment, setTodayAssignment] = useState<Assignment | null>(null);
   const [todayAttendance, setTodayAttendance] = useState<Attendance | null>(null);
+  const [todayEvidence, setTodayEvidence] = useState<WorkEvidence[]>([]);
   const [locations, setLocations] = useState<WorkLocation[]>([]);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -78,8 +82,12 @@ export const WorkerHome: React.FC = () => {
 
       if (assignments.length > 0) {
         setTodayAssignment(assignments[0]);
+        api.getWorkEvidence({ assignmentId: assignments[0].assignmentId })
+          .then((evList) => setTodayEvidence(evList || []))
+          .catch(() => setTodayEvidence([]));
       } else {
         setTodayAssignment(null);
+        setTodayEvidence([]);
       }
 
       if (attendanceList.length > 0) {
@@ -125,6 +133,9 @@ export const WorkerHome: React.FC = () => {
 
   const isCheckedIn = !!todayAttendance?.checkInTime;
   const isCheckedOut = !!todayAttendance?.checkOutTime;
+
+  const hasBeforeWorkPhoto = todayEvidence.some((e) => e.category === 'BEFORE');
+  const hasAfterWorkPhoto = todayEvidence.some((e) => e.category === 'AFTER');
 
   const checkInDisplayTime = todayAttendance?.checkInTime
     ? new Date(todayAttendance.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -596,6 +607,91 @@ export const WorkerHome: React.FC = () => {
                   <span>Team: {worker?.primaryTeamName || 'General Crew'}</span>
                 </div>
               </div>
+
+              {/* SEQUENTIAL 3-STEP EXECUTION TRACKER */}
+              <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                <span className="text-4xs font-black uppercase tracking-wider text-slate-400 block">
+                  Required Order of Work:
+                </span>
+                <div className="grid grid-cols-3 gap-1.5 text-center">
+                  {/* Step 1: Attendance */}
+                  <div className={`p-1.5 rounded-xl text-3xs font-extrabold flex flex-col items-center border ${
+                    isCheckedIn
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                      : 'bg-blue-50 text-blue-700 border-blue-200'
+                  }`}>
+                    <span>{isCheckedIn ? '✓ 1. Attendance' : '1. Attendance'}</span>
+                    <span className="text-4xs opacity-75 font-normal">
+                      {isCheckedIn ? 'Verified' : 'Required'}
+                    </span>
+                  </div>
+
+                  {/* Step 2: Before Photo */}
+                  <div className={`p-1.5 rounded-xl text-3xs font-extrabold flex flex-col items-center border ${
+                    hasBeforeWorkPhoto
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                      : isCheckedIn
+                      ? 'bg-amber-50 text-amber-800 border-amber-300 ring-1 ring-amber-400/50'
+                      : 'bg-slate-50 text-slate-400 border-slate-200'
+                  }`}>
+                    <span>{hasBeforeWorkPhoto ? '✓ 2. Before Pic' : '2. Before Pic'}</span>
+                    <span className="text-4xs opacity-75 font-normal">
+                      {hasBeforeWorkPhoto ? 'Recorded' : isCheckedIn ? 'Next Step' : 'Step 2'}
+                    </span>
+                  </div>
+
+                  {/* Step 3: After Photo / Auto-Verify */}
+                  <div className={`p-1.5 rounded-xl text-3xs font-extrabold flex flex-col items-center border ${
+                    hasAfterWorkPhoto
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                      : hasBeforeWorkPhoto
+                      ? 'bg-indigo-50 text-indigo-700 border-indigo-300 ring-1 ring-indigo-400/50'
+                      : 'bg-slate-50 text-slate-400 border-slate-200'
+                  }`}>
+                    <span>{hasAfterWorkPhoto ? '✓ 3. Verified' : '3. After Pic'}</span>
+                    <span className="text-4xs opacity-75 font-normal">
+                      {hasAfterWorkPhoto ? 'Complete' : hasBeforeWorkPhoto ? 'Auto-Verify' : 'Locked'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* DIRECT STEP ACTION BUTTON */}
+                <div className="pt-1">
+                  {!isCheckedIn ? (
+                    <button
+                      type="button"
+                      onClick={handleStartWork}
+                      className="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-2xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 active:scale-98 transition-all"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-white" />
+                      <span>Step 1: Check In with Attendance Selfie</span>
+                    </button>
+                  ) : !hasBeforeWorkPhoto ? (
+                    <button
+                      type="button"
+                      onClick={() => setWorkCameraModalOpen(true)}
+                      className="w-full py-2 px-3 bg-blue-600 hover:bg-blue-500 text-white font-black text-2xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 active:scale-98 transition-all"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                      <span>Step 2: Snap Before-Cleaning Photo</span>
+                    </button>
+                  ) : !hasAfterWorkPhoto ? (
+                    <button
+                      type="button"
+                      onClick={() => setWorkCameraModalOpen(true)}
+                      className="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-2xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 active:scale-98 transition-all"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Step 3: Complete Work (After Photo & Auto-Verify)</span>
+                    </button>
+                  ) : (
+                    <div className="w-full py-1.5 px-3 bg-emerald-50 text-emerald-800 border border-emerald-200 font-extrabold text-2xs rounded-xl flex items-center justify-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Duty Completed & Auto-Verified ✓</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         ) : (
@@ -614,6 +710,12 @@ export const WorkerHome: React.FC = () => {
             if (!todayAssignment) {
               alert('No assignment active for today.');
               return;
+            }
+            if (!isCheckedIn) {
+              if (window.confirm('Step 1 is Attendance Check-In! You should verify attendance first before recording work photos. Open Attendance Check-In now?')) {
+                handleStartWork();
+                return;
+              }
             }
             setWorkCameraModalOpen(true);
           }}

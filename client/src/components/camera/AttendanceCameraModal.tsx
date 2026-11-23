@@ -396,10 +396,17 @@ export const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({
                 alt="Captured Selfie"
                 className="w-full h-full object-cover min-h-[320px]"
               />
-              <span className="absolute top-3 left-3 bg-emerald-500/90 text-white px-2.5 py-1 rounded-full text-3xs font-bold flex items-center gap-1 shadow-md">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Photo Captured
-              </span>
+              {isInside && !isPoorAccuracy ? (
+                <span className="absolute top-3 left-3 bg-emerald-500/95 text-white px-3 py-1 rounded-full text-3xs font-extrabold flex items-center gap-1.5 shadow-md">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>On-Site Verified</span>
+                </span>
+              ) : (
+                <span className="absolute top-3 left-3 bg-rose-600/95 text-white px-3 py-1 rounded-full text-3xs font-extrabold flex items-center gap-1.5 shadow-md">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  <span>Not Verified · Retake Needed</span>
+                </span>
+              )}
             </div>
           )}
 
@@ -532,7 +539,7 @@ export const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({
         </div>
 
         {/* BOTTOM ACTION BAR */}
-        <div className="p-4 border-t border-slate-800 flex items-center justify-between gap-3 bg-slate-900/95">
+        <div className="p-4 border-t border-slate-800 flex flex-col gap-2.5 bg-slate-900/95">
           {!capturedPhoto ? (
             <button
               type="button"
@@ -542,10 +549,46 @@ export const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({
               }`}
             >
               <Camera className="w-5 h-5" />
-              <span>TAKE SELFIE</span>
+              <span>TAKE SELFIE FOR ATTENDANCE</span>
             </button>
+          ) : !isInside || isPoorAccuracy ? (
+            /* ATTENDANCE NOT VERIFIED: REQUIRE RETAKE */
+            <div className="space-y-2.5 w-full">
+              <div className="p-3 bg-rose-950/90 border border-rose-700 text-rose-200 rounded-2xl text-xs space-y-1">
+                <div className="flex items-center gap-2 font-black text-rose-300">
+                  <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>ATTENDANCE NOT VERIFIED</span>
+                </div>
+                <p className="text-3xs text-rose-300 leading-relaxed">
+                  {verificationResult?.distanceMeters
+                    ? `You are ${verificationResult.distanceMeters}m outside the designated site perimeter (${verificationResult.geofenceRadiusMeters}m radius).`
+                    : 'GPS coordinates could not be verified on-site.'}
+                  {' '}Please move inside the worksite and retake your selfie.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleRetake}
+                  className="flex-1 min-h-[52px] bg-rose-600 hover:bg-rose-500 text-white font-black text-xs rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 active:scale-98"
+                >
+                  <RotateCw className="w-4 h-4" />
+                  <span>RETAKE PHOTO</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowExceptionForm(true)}
+                  className="px-3.5 min-h-[52px] bg-slate-800 hover:bg-slate-700 text-slate-300 text-3xs font-extrabold rounded-2xl border border-slate-700 transition-colors"
+                >
+                  Request Exception
+                </button>
+              </div>
+            </div>
           ) : (
-            <>
+            /* ATTENDANCE VERIFIED: PROCEED */
+            <div className="flex items-center gap-2.5 w-full">
               <button
                 type="button"
                 onClick={handleRetake}
@@ -572,7 +615,7 @@ export const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({
                     : 'CONFIRM CHECK OUT'}
                 </span>
               </button>
-            </>
+            </div>
           )}
         </div>
       </div>
