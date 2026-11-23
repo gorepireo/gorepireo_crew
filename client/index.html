@@ -12,14 +12,59 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <title>Go_Repireo Crew — Workforce Management Platform</title>
+
+    <script>
+      // 1. Direct path to HashRouter translator (e.g. /login -> /#/login)
+      (function() {
+        var pathname = window.location.pathname;
+        if (pathname && pathname !== '/' && !window.location.hash) {
+          window.location.replace('/#' + pathname + window.location.search);
+        }
+      })();
+
+      // 2. Proactively clear legacy caches from older builds to prevent stale white-screen bugs
+      (function() {
+        if ('caches' in window) {
+          caches.keys().then(function(keys) {
+            keys.forEach(function(key) {
+              if (key === 'workcrew-v1' || key === 'workcrew-v2' || key === 'workcrew-v3') {
+                caches.delete(key);
+              }
+            });
+          });
+        }
+      })();
+    </script>
   </head>
   <body class="bg-slate-50 text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-900 min-h-screen">
-    <div id="root"></div>
+    <div id="root">
+      <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0f172a; color: #ffffff; font-family: 'Inter', system-ui, sans-serif; text-align: center; padding: 20px;">
+        <div style="width: 48px; height: 48px; border: 3px solid rgba(59, 130, 246, 0.2); border-top-color: #3b82f6; border-radius: 50%; animation: workcrew-spin 0.8s linear infinite;"></div>
+        <div style="margin-top: 18px; font-weight: 700; font-size: 17px; letter-spacing: -0.02em;">Go_Repireo Crew</div>
+        <div style="margin-top: 6px; font-size: 13px; color: #94a3b8;">Loading platform...</div>
+      </div>
+      <style>
+        @keyframes workcrew-spin { to { transform: rotate(360deg); } }
+      </style>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
       if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch((err) => {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').then(function(reg) {
+            reg.update();
+            reg.onupdatefound = function() {
+              var installing = reg.installing;
+              if (installing) {
+                installing.onstatechange = function() {
+                  if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('[SW] New version found, reloading...');
+                    window.location.reload();
+                  }
+                };
+              }
+            };
+          }).catch(function(err) {
             console.log('SW registration skipped:', err);
           });
         });
