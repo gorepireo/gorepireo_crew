@@ -44,8 +44,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health check
-app.get('/api/health', (req, res) => {
+// Health check (available immediately without waiting for db hydration)
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({
     status: 'healthy',
     service: 'WorkCrew API',
@@ -54,7 +54,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Ensure Turso database is fully hydrated from cloud before handling requests
+// Ensure Turso database is fully hydrated from cloud before handling business requests
 app.use(async (_req, _res, next) => {
   try {
     await db.ready();
@@ -64,22 +64,29 @@ app.use(async (_req, _res, next) => {
   next();
 });
 
-// Mount modular REST routes
-app.use('/api/auth', authRoutes);
-app.use('/api/workers', workerRoutes);
-app.use('/api/leaders', leaderRoutes);
-app.use('/api/teams', teamRoutes);
-app.use('/api/locations', locationRoutes);
-app.use('/api/location', locationRoutes);
-app.use('/api/assignments', assignmentRoutes);
-app.use('/api/attendance', attendanceRoutes);
-app.use('/api/work-evidence', workEvidenceRoutes);
-app.use('/api/recognition', recognitionRoutes);
-app.use('/api/reports', reportRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/settings', settingsRoutes);
-app.use('/api/activity-logs', activityLogRoutes);
-app.use('/api/leaves', leaveRoutes);
+// Mount modular REST routes (support both /api/xxx and /xxx)
+const routeMap: [string, any][] = [
+  ['/auth', authRoutes],
+  ['/workers', workerRoutes],
+  ['/leaders', leaderRoutes],
+  ['/teams', teamRoutes],
+  ['/locations', locationRoutes],
+  ['/location', locationRoutes],
+  ['/assignments', assignmentRoutes],
+  ['/attendance', attendanceRoutes],
+  ['/work-evidence', workEvidenceRoutes],
+  ['/recognition', recognitionRoutes],
+  ['/reports', reportRoutes],
+  ['/notifications', notificationRoutes],
+  ['/settings', settingsRoutes],
+  ['/activity-logs', activityLogRoutes],
+  ['/leaves', leaveRoutes],
+];
+
+for (const [routePath, routeHandler] of routeMap) {
+  app.use(`/api${routePath}`, routeHandler);
+  app.use(routePath, routeHandler);
+}
 
 // Error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

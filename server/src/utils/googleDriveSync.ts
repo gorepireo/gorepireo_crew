@@ -1,5 +1,4 @@
 import { Readable } from 'stream';
-import { google } from 'googleapis';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -17,6 +16,12 @@ function getDriveClient() {
     const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
     const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
+    if (!credsJson && !credsPath && (!clientEmail || !privateKey)) {
+      return null;
+    }
+
+    // Dynamically require googleapis only when credentials are explicitly configured
+    const { google } = require('googleapis');
     let auth = null;
 
     if (credsJson) {
