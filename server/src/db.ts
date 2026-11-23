@@ -43,6 +43,28 @@ export interface DatabaseSchema {
   settings: OrganizationSettings;
 }
 
+function safeJsonParse<T>(val: any, fallback: T): T {
+  if (!val) return fallback;
+  if (typeof val === 'object') return val;
+  if (typeof val !== 'string') return fallback;
+  const trimmed = val.trim();
+  if (!trimmed) return fallback;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    try {
+      const fixed = trimmed.replace(/'/g, '"');
+      return JSON.parse(fixed);
+    } catch {
+      if (Array.isArray(fallback) && typeof trimmed === 'string') {
+        const parts = trimmed.replace(/[\[\]]/g, '').split(',').map((s: string) => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
+        return parts as unknown as T;
+      }
+      return fallback;
+    }
+  }
+}
+
 const DATA_DIR = process.env.VERCEL ? path.join('/tmp', 'data') : path.join(__dirname, '..', 'data');
 const DB_FILE = path.join(DATA_DIR, 'store.json');
 
@@ -1056,8 +1078,14 @@ class DatabaseService {
         phone: r.phone || undefined,
         email: r.email || undefined,
         photoURL: r.photoURL || undefined,
-        managedTeamIds: r.managedTeamIds ? JSON.parse(r.managedTeamIds) : [],
-        permissions: r.permissions ? JSON.parse(r.permissions) : {},
+        managedTeamIds: safeJsonParse<string[]>(r.managedTeamIds, []),
+        permissions: {
+          canAddWorkers: true,
+          canAssignJobs: true,
+          canCorrectAttendance: true,
+          canCreateTeams: true,
+          ...safeJsonParse<any>(r.permissions, {}),
+        },
         status: r.status || 'ACTIVE',
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
@@ -1082,8 +1110,8 @@ class DatabaseService {
         teamId: r.teamId,
         name: r.name,
         description: r.description || undefined,
-        leaderIds: r.leaderIds ? JSON.parse(r.leaderIds) : [],
-        memberWorkerIds: r.memberWorkerIds ? JSON.parse(r.memberWorkerIds) : [],
+        leaderIds: safeJsonParse<string[]>(r.leaderIds, []),
+        memberWorkerIds: safeJsonParse<string[]>(r.memberWorkerIds, []),
         status: r.status || 'ACTIVE',
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
@@ -1116,8 +1144,8 @@ class DatabaseService {
         locationLongitude: r.locationLongitude ? Number(r.locationLongitude) : undefined,
         assignedBy: r.assignedBy || undefined,
         assignedByName: r.assignedByName || undefined,
-        teamIds: r.teamIds ? JSON.parse(r.teamIds) : [],
-        workerIds: r.workerIds ? JSON.parse(r.workerIds) : [],
+        teamIds: safeJsonParse<string[]>(r.teamIds, []),
+        workerIds: safeJsonParse<string[]>(r.workerIds, []),
         date: r.date,
         startTime: r.startTime || undefined,
         endTime: r.endTime || undefined,
@@ -1210,14 +1238,14 @@ class DatabaseService {
         action: r.action,
         entityType: r.entityType,
         entityId: r.entityId,
-        changes: r.changes ? JSON.parse(r.changes) : undefined,
+        changes: safeJsonParse<Record<string, any> | undefined>(r.changes, undefined),
         timestamp: r.timestamp,
       })) : [];
 
       // ORGANIZATION SETTINGS (Hydrated directly from Turso)
       if (sRes && (sRes as any).rows && (sRes as any).rows.length > 0) {
         try {
-          const parsed = JSON.parse((sRes as any).rows[0].value);
+          const parsed = safeJsonParse((sRes as any).rows[0].value, {});
           this.data.settings = { ...this.data.settings, ...parsed };
         } catch (e: any) {
           console.warn('[TURSO] Error parsing organizationSettings from cloud database:', e.message);
