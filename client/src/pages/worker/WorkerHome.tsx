@@ -177,35 +177,35 @@ export const WorkerHome: React.FC = () => {
     return (
       <div className="space-y-4 pb-4">
         {/* TOP GREETING & STATUS ROW */}
-        <div className="flex items-center justify-between pt-1 pb-0.5">
-          <div className="flex items-center gap-3">
-            <div className="relative">
+        <div className="flex items-center justify-between gap-2.5 pt-1 pb-0.5">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="relative shrink-0">
               <SafeAvatar
                 src={worker?.photoURL || user?.photoURL}
                 name={workerName}
-                className="w-12 h-12 rounded-full border-2 border-white shadow-xs"
+                className="w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 border-white shadow-xs"
               />
-              <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full" />
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
             </div>
-            <div>
-              <p className="text-xs font-semibold text-slate-500">
+            <div className="min-w-0 flex-1">
+              <p className="text-2xs font-semibold text-slate-500 truncate leading-tight">
                 {timeGreeting},
               </p>
-              <h2 className="text-xl font-black text-slate-900 leading-tight">
+              <h2 className="text-base sm:text-lg font-black text-slate-900 leading-tight truncate">
                 {workerName}
               </h2>
-              <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-500 font-medium">
-                <Contact className="w-3.5 h-3.5 text-slate-400" />
-                <span>Worker ID</span>
+              <div className="flex items-center gap-1.5 mt-0.5 text-2xs text-slate-500 font-medium whitespace-nowrap">
+                <Contact className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span className="shrink-0">Worker ID:</span>
                 <span className="text-blue-600 font-bold font-mono">
-                  {worker?.workerId || 'WC-2026-016'}
+                  {worker?.workerId || 'WC-2026-001'}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-3 py-1 rounded-full text-xs font-extrabold shadow-2xs">
-            <Navigation className="w-3.5 h-3.5 text-emerald-600 fill-emerald-600" />
+          <div className="shrink-0 flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2.5 py-1 rounded-full text-3xs sm:text-2xs font-extrabold shadow-2xs whitespace-nowrap">
+            <Navigation className="w-3 h-3 text-emerald-600 fill-emerald-600 shrink-0" />
             <span>GPS Ready</span>
           </div>
         </div>
@@ -386,41 +386,49 @@ export const WorkerHome: React.FC = () => {
         </div>
       )}
 
-      {/* 1. BLUE TODAY STATUS BANNER (Exact Match Image 1) */}
-      <div className="bg-gradient-to-r from-[#1752d5] via-[#1a58dd] to-[#1244b7] text-white p-4.5 rounded-3xl shadow-sm relative overflow-hidden">
+      {/* 1. BLUE TODAY STATUS BANNER */}
+      <div className="bg-gradient-to-r from-[#1752d5] via-[#1a58dd] to-[#1244b7] text-white p-4 sm:p-4.5 rounded-3xl shadow-sm relative overflow-hidden">
         {/* Subtle decorative wave */}
         <div className="absolute -bottom-8 -left-8 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="flex items-start justify-between relative z-10">
-          {/* Left Column: Date & Greeting */}
-          <div>
+        <div className="flex items-start justify-between gap-2.5 relative z-10">
+          {/* Left Column: Date, Greeting & ID */}
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 text-blue-100 text-2xs font-semibold">
-              <Calendar className="w-3.5 h-3.5" />
-              <span>{todayDateFormatted}</span>
+              <Calendar className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">{todayDateFormatted}</span>
             </div>
 
-            <h2 className="text-lg font-black text-white mt-1.5 leading-snug tracking-tight">
-              Good Morning,<br />
-              {workerName}
+            <h2 className="text-base sm:text-lg font-black text-white mt-1 leading-tight tracking-tight flex items-baseline flex-wrap gap-x-1.5 gap-y-0.5">
+              <span className="opacity-95">{timeGreeting},</span>
+              <span className="truncate max-w-full font-extrabold">{workerName}</span>
             </h2>
+
+            <div className="flex items-center gap-1.5 text-3xs text-blue-100 font-medium mt-1 whitespace-nowrap">
+              <Contact className="w-3 h-3 shrink-0 text-blue-200" />
+              <span>ID:</span>
+              <span className="font-mono font-bold text-white bg-white/15 px-1.5 py-0.5 rounded text-4xs">
+                {worker?.workerId || 'WC-2026-001'}
+              </span>
+            </div>
           </div>
 
           {/* Right Column: Present Badge & Work Time */}
-          <div className="text-right flex flex-col items-end">
-            <span className="bg-[#bbf7d0] text-[#14532d] px-3 py-0.5 rounded-full text-2xs font-black uppercase tracking-wider shadow-2xs">
+          <div className="text-right shrink-0 flex flex-col items-end">
+            <span className="bg-[#bbf7d0] text-[#14532d] px-2.5 py-0.5 rounded-full text-3xs sm:text-2xs font-black uppercase tracking-wider shadow-2xs whitespace-nowrap">
               {todayAttendance?.status === 'PRESENT' || isCheckedIn ? 'PRESENT' : 'READY'}
             </span>
 
-            <div className="mt-2 text-right">
-              <span className="text-3xs text-blue-100 flex items-center justify-end gap-1 font-semibold">
-                <Clock className="w-3 h-3" />
+            <div className="mt-1.5 text-right">
+              <span className="text-3xs text-blue-100 flex items-center justify-end gap-1 font-semibold whitespace-nowrap">
+                <Clock className="w-3 h-3 shrink-0" />
                 <span>Work Time</span>
               </span>
-              <div className="text-xl font-black text-white tracking-tight mt-0.5">
+              <div className="text-lg sm:text-xl font-black text-white tracking-tight mt-0.5 font-mono">
                 {checkInDisplayTime}
               </div>
-              <span className="text-4xs text-blue-100/90 font-medium block mt-0.5">
-                Shift: {todayAssignment?.startTime || '09:00 AM'} – {todayAssignment?.endTime || '05:30 PM'}
+              <span className="text-4xs text-blue-100/90 font-medium block mt-0.5 whitespace-nowrap">
+                Shift: {todayAssignment?.startTime || '09:00'} – {todayAssignment?.endTime || '17:30'}
               </span>
             </div>
           </div>
@@ -661,33 +669,33 @@ export const WorkerHome: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleStartWork}
-                      className="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-2xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 active:scale-98 transition-all"
+                      className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-2xs sm:text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 active:scale-98 transition-all"
                     >
-                      <Play className="w-3.5 h-3.5 fill-white" />
-                      <span>Step 1: Check In with Attendance Selfie</span>
+                      <Play className="w-3.5 h-3.5 fill-white shrink-0" />
+                      <span className="truncate">Step 1: Attendance Check-In</span>
                     </button>
                   ) : !hasBeforeWorkPhoto ? (
                     <button
                       type="button"
                       onClick={() => setWorkCameraModalOpen(true)}
-                      className="w-full py-2 px-3 bg-blue-600 hover:bg-blue-500 text-white font-black text-2xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 active:scale-98 transition-all"
+                      className="w-full py-2.5 px-3 bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-2xs sm:text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 active:scale-98 transition-all"
                     >
-                      <Camera className="w-3.5 h-3.5" />
-                      <span>Step 2: Snap Before-Cleaning Photo</span>
+                      <Camera className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">Step 2: Take Before-Work Photo</span>
                     </button>
                   ) : !hasAfterWorkPhoto ? (
                     <button
                       type="button"
                       onClick={() => setWorkCameraModalOpen(true)}
-                      className="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-2xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 active:scale-98 transition-all"
+                      className="w-full py-2.5 px-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-2xs sm:text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 active:scale-98 transition-all"
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>Step 3: Complete Work (After Photo & Auto-Verify)</span>
+                      <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">Step 3: After Photo & Auto-Verify</span>
                     </button>
                   ) : (
-                    <div className="w-full py-1.5 px-3 bg-emerald-50 text-emerald-800 border border-emerald-200 font-extrabold text-2xs rounded-xl flex items-center justify-center gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Duty Completed & Auto-Verified ✓</span>
+                    <div className="w-full py-2 px-3 bg-emerald-50 text-emerald-800 border border-emerald-200 font-extrabold text-2xs sm:text-xs rounded-xl flex items-center justify-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span className="truncate">Duty Completed & Auto-Verified ✓</span>
                     </div>
                   )}
                 </div>

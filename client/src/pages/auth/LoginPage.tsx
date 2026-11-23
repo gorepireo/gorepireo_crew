@@ -199,13 +199,13 @@ export const LoginPage: React.FC = () => {
       {/* TOP HEADER SECTION WITH FLOATING BADGES & BRANDING */}
       <div className="relative z-10 pt-10 pb-8 px-6 sm:px-8 text-center max-w-md w-full mx-auto">
         {/* Floating Top-Left Glass Badge: Hard Hat */}
-        <div className="absolute top-8 left-4 sm:left-2 w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center -rotate-12 shadow-lg shadow-blue-900/20 pointer-events-none">
-          <HardHat className="w-7 h-7 text-white/80" />
+        <div className="absolute top-6 left-2 sm:left-2 w-10 h-10 sm:w-14 sm:h-14 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center -rotate-12 shadow-lg shadow-blue-900/20 pointer-events-none">
+          <HardHat className="w-5 h-5 sm:w-7 sm:h-7 text-white/80" />
         </div>
 
         {/* Floating Top-Right Glass Badge: Checklist */}
-        <div className="absolute top-6 right-4 sm:right-2 w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center rotate-12 shadow-lg shadow-blue-900/20 pointer-events-none">
-          <ClipboardList className="w-7 h-7 text-white/80" />
+        <div className="absolute top-5 right-2 sm:right-2 w-10 h-10 sm:w-14 sm:h-14 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center rotate-12 shadow-lg shadow-blue-900/20 pointer-events-none">
+          <ClipboardList className="w-5 h-5 sm:w-7 sm:h-7 text-white/80" />
         </div>
 
         {/* Brand Name */}
