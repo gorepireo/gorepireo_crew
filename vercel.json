@@ -7,7 +7,9 @@
     },
     "server": {
       "root": "server",
-      "framework": "express"
+      "framework": "express",
+      "buildCommand": "npm run build",
+      "entrypoint": "index.js"
     }
   },
   "rewrites": [
@@ -15,13 +17,6 @@
       "source": "/api/(.*)",
       "destination": {
         "service": "server"
-      }
-    },
-    {
-      "source": "/((?!assets/|.*[a-zA-Z0-9]\\.[a-zA-Z0-9]+$).*)",
-      "destination": {
-        "service": "client",
-        "path": "/index.html"
       }
     },
     {
