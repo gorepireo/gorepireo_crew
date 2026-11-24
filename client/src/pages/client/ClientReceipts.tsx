@@ -95,67 +95,54 @@ export const ClientReceipts: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="border-b border-slate-200/80 bg-slate-50/50 text-slate-500 text-3xs font-bold uppercase tracking-wider">
-                  <th className="py-3.5 px-4 sm:px-6">Transaction ID</th>
-                  <th className="py-3.5 px-4">Invoice #</th>
-                  <th className="py-3.5 px-4">Service Event</th>
-                  <th className="py-3.5 px-4">Payment Date</th>
-                  <th className="py-3.5 px-4">Method</th>
-                  <th className="py-3.5 px-4 text-right">Amount Paid</th>
-                  <th className="py-3.5 px-4 text-center">Status</th>
-                  <th className="py-3.5 px-4 sm:px-6 text-right">Receipt</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
-                {payments.map((p) => (
-                  <tr
-                    key={p.paymentId}
-                    onClick={() => handleOpenReceipt(p.paymentId)}
-                    className="hover:bg-slate-50/80 transition-colors cursor-pointer"
-                  >
-                    <td className="py-4 px-4 sm:px-6 font-mono text-3xs font-bold text-slate-900 whitespace-nowrap">
-                      {p.transactionId}
-                    </td>
-                    <td className="py-4 px-4 whitespace-nowrap font-bold text-blue-600">
-                      {p.invoiceNumber}
-                    </td>
-                    <td className="py-4 px-4 max-w-xs truncate text-slate-800">
-                      {p.eventName || 'Scheduled Service'}
-                    </td>
-                    <td className="py-4 px-4 whitespace-nowrap text-3xs text-slate-500">
-                      {p.paymentDate}
-                    </td>
-                    <td className="py-4 px-4 whitespace-nowrap text-3xs font-semibold text-slate-600">
-                      {p.paymentMethod}
-                    </td>
-                    <td className="py-4 px-4 text-right font-extrabold text-slate-900 whitespace-nowrap">
-                      ₹{Number(p.amount).toLocaleString('en-IN')}
-                    </td>
-                    <td className="py-4 px-4 text-center whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1 text-4xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+          <div className="divide-y divide-slate-100">
+            {payments.map((p) => (
+              <div
+                key={p.paymentId}
+                onClick={() => handleOpenReceipt(p.paymentId)}
+                className="p-4 space-y-2.5 hover:bg-slate-50/80 transition-colors cursor-pointer"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-blue-600">{p.invoiceNumber}</span>
+                      <span className="inline-flex items-center gap-1 text-4xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                         <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                         SUCCESS
                       </span>
-                    </td>
-                    <td className="py-4 px-4 sm:px-6 text-right whitespace-nowrap">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenReceipt(p.paymentId);
-                        }}
-                        className="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-3xs font-bold rounded-xl transition inline-flex items-center gap-1"
-                      >
-                        <FileText className="w-3.5 h-3.5" />
-                        <span>View</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                    <p className="text-xs font-semibold text-slate-800 mt-1 line-clamp-1">
+                      {p.eventName || 'Scheduled Service'}
+                    </p>
+                    <p className="font-mono text-4xs text-slate-400 mt-0.5 truncate">
+                      Txn: {p.transactionId}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-sm font-black text-slate-900">
+                      ₹{Number(p.amount).toLocaleString('en-IN')}
+                    </div>
+                    <div className="text-4xs font-semibold text-slate-500 mt-0.5">
+                      {p.paymentMethod}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-3xs">
+                  <span className="text-slate-500">{p.paymentDate?.slice(0, 10)}</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenReceipt(p.paymentId);
+                    }}
+                    className="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-3xs font-bold rounded-xl transition inline-flex items-center gap-1"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>View Receipt</span>
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

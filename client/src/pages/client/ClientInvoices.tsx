@@ -120,7 +120,7 @@ export const ClientInvoices: React.FC = () => {
       </div>
 
       {/* Financial KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+      <div className="grid grid-cols-2 gap-3">
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
           <span className="text-3xs sm:text-2xs font-bold uppercase tracking-wider text-slate-500">
             Total Contract Amount
@@ -203,81 +203,71 @@ export const ClientInvoices: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="border-b border-slate-200/80 bg-slate-50/50 text-slate-500 text-3xs font-bold uppercase tracking-wider">
-                  <th className="py-3.5 px-4 sm:px-6">Invoice #</th>
-                  <th className="py-3.5 px-4">Event Details</th>
-                  <th className="py-3.5 px-4">Invoice Date</th>
-                  <th className="py-3.5 px-4">Due Date</th>
-                  <th className="py-3.5 px-4 text-right">Amount</th>
-                  <th className="py-3.5 px-4 text-center">Status</th>
-                  <th className="py-3.5 px-4 sm:px-6 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
-                {invoices.map((inv) => {
-                  const remaining = Math.max(0, Number(inv.amount) - Number(inv.amountPaid || 0));
-                  const isUnpaid = inv.status !== 'PAID' && remaining > 0;
+          <div className="divide-y divide-slate-100">
+            {invoices.map((inv) => {
+              const remaining = Math.max(0, Number(inv.amount) - Number(inv.amountPaid || 0));
+              const isUnpaid = inv.status !== 'PAID' && remaining > 0;
 
-                  return (
-                    <tr key={inv.invoiceId} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-4 px-4 sm:px-6 font-bold text-slate-900 whitespace-nowrap">
-                        {inv.invoiceNumber}
-                      </td>
-                      <td className="py-4 px-4 max-w-xs truncate">
-                        <div className="font-semibold text-slate-800">{inv.eventName || 'Scheduled Service'}</div>
-                        <div className="text-3xs text-slate-400">{inv.description || 'Facility Maintenance'}</div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap text-3xs text-slate-500">
-                        {inv.invoiceDate}
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap text-3xs text-slate-500">
-                        {inv.dueDate}
-                      </td>
-                      <td className="py-4 px-4 text-right whitespace-nowrap">
-                        <div className="font-extrabold text-slate-900">
-                          ₹{Number(inv.amount).toLocaleString('en-IN')}
-                        </div>
-                        {inv.amountPaid && Number(inv.amountPaid) > 0 && inv.status !== 'PAID' ? (
-                          <div className="text-4xs text-emerald-600 font-semibold">
-                            Paid: ₹{Number(inv.amountPaid).toLocaleString('en-IN')}
-                          </div>
-                        ) : null}
-                      </td>
-                      <td className="py-4 px-4 text-center whitespace-nowrap">
+              return (
+                <div key={inv.invoiceId} className="p-4 space-y-2.5 hover:bg-slate-50/80 transition-colors">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-900">{inv.invoiceNumber}</span>
                         <span
-                          className={`inline-block text-4xs font-extrabold px-2.5 py-0.5 rounded-full border ${getStatusBadge(
+                          className={`inline-block text-4xs font-extrabold px-2 py-0.5 rounded-full border ${getStatusBadge(
                             inv.status
                           )}`}
                         >
                           {inv.status.replace('_', ' ')}
                         </span>
-                      </td>
-                      <td className="py-4 px-4 sm:px-6 text-right whitespace-nowrap">
-                        {isUnpaid ? (
-                          <button
-                            onClick={() => handleOpenPayModal(inv)}
-                            className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-3xs font-bold rounded-xl transition shadow-xs active:scale-95"
-                          >
-                            Pay Now
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => navigate('/client/receipts')}
-                            className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 text-3xs font-bold rounded-xl transition inline-flex items-center gap-1"
-                          >
-                            <Check className="w-3 h-3" />
-                            Receipt
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      </div>
+                      <p className="text-xs font-semibold text-slate-800 mt-1 line-clamp-1">
+                        {inv.eventName || 'Scheduled Service'}
+                      </p>
+                      <p className="text-3xs text-slate-400 line-clamp-1">
+                        {inv.description || 'Facility Maintenance'}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-sm font-black text-slate-900">
+                        ₹{Number(inv.amount).toLocaleString('en-IN')}
+                      </div>
+                      {inv.amountPaid && Number(inv.amountPaid) > 0 && inv.status !== 'PAID' ? (
+                        <div className="text-4xs text-emerald-600 font-semibold">
+                          Paid: ₹{Number(inv.amountPaid).toLocaleString('en-IN')}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-3xs">
+                    <div className="text-slate-500">
+                      <span>Issued: {inv.issueDate || inv.invoiceDate}</span>
+                      <span className="mx-1.5">•</span>
+                      <span>Due: {inv.dueDate}</span>
+                    </div>
+
+                    {isUnpaid ? (
+                      <button
+                        onClick={() => handleOpenPayModal(inv)}
+                        className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-3xs font-bold rounded-xl transition shadow-xs active:scale-95"
+                      >
+                        Pay Now
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => navigate('/client/receipts')}
+                        className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 text-3xs font-bold rounded-xl transition inline-flex items-center gap-1"
+                      >
+                        <Check className="w-3 h-3" />
+                        Receipt
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

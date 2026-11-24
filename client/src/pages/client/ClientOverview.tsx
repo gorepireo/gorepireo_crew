@@ -120,8 +120,8 @@ export const ClientOverview: React.FC = () => {
         </div>
       </div>
 
-      {/* METRIC TILES GRID (Matches AdminOverview) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* METRIC TILES GRID */}
+      <div className="grid grid-cols-2 gap-3">
         <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
           <div className="flex items-center justify-between mb-2">
             <span className="text-2xs font-bold uppercase tracking-wider text-slate-400">
@@ -216,7 +216,7 @@ export const ClientOverview: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-3">
             {upcomingEvents.map((evt) => (
               <div
                 key={evt.eventId}

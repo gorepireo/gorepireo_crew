@@ -118,9 +118,9 @@ export const ClientProfile: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left Column: Organization Summary & Contract Info */}
-        <div className="space-y-6">
+      <div className="space-y-4">
+        {/* Organization Summary & Contract Info */}
+        <div className="space-y-4">
           {/* Org Card */}
           <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs text-center space-y-3">
             <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center mx-auto shadow-xs">
@@ -191,8 +191,8 @@ export const ClientProfile: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Editable Contact Information Form */}
-        <div className="md:col-span-2">
+        {/* Editable Contact Information Form */}
+        <div>
           <form
             onSubmit={handleSave}
             className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-xs space-y-5"
