@@ -364,7 +364,7 @@ export const ClientReceipts: React.FC = () => {
                   <p className="text-xs font-bold text-slate-900 truncate">
                     {selectedReceipt.organizationName ||
                       selectedReceipt.organization?.name ||
-                      'Apex Corporate Towers'}
+                      'Client Organization'}
                   </p>
                   <p className="text-3xs text-slate-500 font-mono truncate">
                     Paid via {selectedReceipt.paymentMethod} • Verified
@@ -398,10 +398,8 @@ export const ClientReceipts: React.FC = () => {
                 aria-label="Receipt verification barcode"
               >
                 {Array.from({ length: 44 }).map((_, i) => {
-                  const seed =
-                    (selectedReceipt.transactionId || 'GR2026').charCodeAt(
-                      i % (selectedReceipt.transactionId?.length || 6)
-                    ) + i * 7;
+                  const refCode = selectedReceipt.transactionId || selectedReceipt.receiptId || '000000';
+                  const seed = refCode.charCodeAt(i % refCode.length) + i * 7;
                   const width = (seed % 3) + 1;
                   const x = i * 5;
                   return (
@@ -417,7 +415,7 @@ export const ClientReceipts: React.FC = () => {
                 })}
               </svg>
               <p className="text-4xs font-mono tracking-[0.25em] text-slate-500 uppercase">
-                {(selectedReceipt.transactionId || 'GR2026981240').slice(0, 14)}
+                {(selectedReceipt.transactionId || selectedReceipt.receiptId || '').slice(0, 14)}
               </p>
               <p className="text-4xs text-slate-400 pt-1">
                 Go_Repireo Crew • Verified Digital Seal

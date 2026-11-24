@@ -47,7 +47,7 @@ export const ClientLayout: React.FC = () => {
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-white text-sm truncate">
-                    {user?.organizationName || 'Apex Corporate Towers'}
+                    {user?.organizationName || settings?.orgName || 'Client Portal'}
                   </span>
                   <span className="text-4xs font-extrabold text-white bg-[#1a63ed] px-2.5 py-0.5 rounded-full shrink-0 shadow-xs">
                     B2B

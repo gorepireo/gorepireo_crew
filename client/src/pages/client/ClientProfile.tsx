@@ -140,7 +140,7 @@ export const ClientProfile: React.FC = () => {
           </div>
           <div>
             <h1 className="text-lg font-black text-white tracking-tight">
-              {organization?.name || 'Apex Corporate Towers'}
+              {organization?.name || '—'}
             </h1>
             <p className="text-xs text-blue-100/85 font-medium">
               {organization?.contactPerson || 'Authorized Representative'}
@@ -278,7 +278,7 @@ export const ClientProfile: React.FC = () => {
                 <div>
                   <span className="text-4xs text-slate-400 block">Contract ID</span>
                   <span className="text-xs font-bold text-slate-900 font-mono">
-                    {organization?.organizationId || organization?.orgId || 'ORG-2026-001'}
+                    {organization?.organizationId || organization?.orgId || '—'}
                   </span>
                 </div>
               </div>

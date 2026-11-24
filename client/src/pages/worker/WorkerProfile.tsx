@@ -368,7 +368,7 @@ export const WorkerProfile: React.FC = () => {
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-black text-slate-900">
-                {worker?.phone || user?.phone || '123456789'}
+                {worker?.phone || user?.phone || '—'}
               </span>
               <ChevronRight className="w-4 h-4 text-slate-400" />
             </div>

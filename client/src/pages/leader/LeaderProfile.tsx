@@ -43,7 +43,7 @@ export const LeaderProfile: React.FC = () => {
   const [photoSuccessMsg, setPhotoSuccessMsg] = useState<string | null>(null);
 
   const leaderName = leader?.name || user?.displayName || 'Prithibi';
-  const phone = leader?.phone || user?.phone || '+91 123456789';
+  const phone = leader?.phone || user?.phone || '—';
   const email = leader?.email || user?.email || 'leader@workcrew.internal';
   const orgName = settings?.orgName || 'WorkCrew Infrastructure Corp';
   const photoUrl = leader?.photoURL || user?.photoURL || null;

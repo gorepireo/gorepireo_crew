@@ -115,7 +115,7 @@ export const ClientOverview: React.FC = () => {
         <div className="relative z-10 space-y-4">
           <div className="space-y-2 max-w-[85%]">
             <h1 className="text-2xl font-black text-white leading-tight tracking-tight">
-              {organization?.name || 'Apex Corporate Towers'} Overview
+              {organization?.name ? `${organization.name} Overview` : 'Client Overview'}
             </h1>
             <p className="text-xs text-blue-100/90 leading-relaxed border-l-2 border-blue-400 pl-2.5">
               Real-time cleaning service schedules, crew status, and contract billing summary.
