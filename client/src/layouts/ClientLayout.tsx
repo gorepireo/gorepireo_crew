@@ -31,7 +31,7 @@ export const ClientLayout: React.FC = () => {
   return (
     <div className="h-[100dvh] bg-slate-950 flex justify-center text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900 overflow-hidden">
       {/* MOBILE-FIRST SHELL CONTAINER (All screen sizes, no PC sidebar) */}
-      <div className="w-full max-w-md bg-gradient-to-b from-[#06122c] from-30% to-[#eef3f9] to-30% h-full flex flex-col shadow-2xl relative overflow-hidden">
+      <div className="w-full max-w-md bg-[#eef3f9] h-full flex flex-col shadow-2xl relative overflow-hidden">
         {/* TRANSPARENT TOP APP HEADER (Blends seamlessly into Hero, no bar/border) */}
         <header className="absolute top-0 inset-x-0 z-20 px-4 pt-3.5 pb-2 flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
