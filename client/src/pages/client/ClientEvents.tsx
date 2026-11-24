@@ -99,35 +99,48 @@ export const ClientEvents: React.FC = () => {
   });
 
   return (
-    <div className="p-3.5 sm:p-4 space-y-4">
-      {/* Header and Filter */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">
+    <div className="space-y-4">
+      {/* FULL-BLEED HERO HEADER */}
+      <div className="relative bg-gradient-to-b from-[#0b1b3d] via-[#133274] to-[#1e4aa8] px-4 pt-4 pb-8 overflow-hidden">
+        <div
+          className="absolute top-0 right-0 w-52 h-full opacity-35 pointer-events-none bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&auto=format&fit=crop&q=80')",
+            maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 100%)',
+            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 100%)',
+          }}
+        />
+        <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#eef3f9] to-transparent pointer-events-none" />
+
+        <div className="relative z-10 space-y-2 max-w-[85%]">
+          <h1 className="text-2xl font-black text-white leading-tight tracking-tight">
             My Events
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-blue-100/90 leading-relaxed border-l-2 border-blue-400 pl-2.5">
             Real-time operational monitoring of all scheduled and completed cleaning tasks
           </p>
         </div>
+      </div>
 
+      {/* BODY CONTENT */}
+      <div className="px-3.5 -mt-4 relative z-10 space-y-4">
         {/* Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 sm:pb-0 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           {['ALL', 'Scheduled', 'Crew Assigned', 'Cleaning In Progress', 'Completed', 'Verified'].map((st) => (
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1.5 rounded-xl text-3xs font-bold shrink-0 transition-colors ${
+              className={`px-3 py-1.5 rounded-full text-3xs font-bold shrink-0 transition-colors ${
                 statusFilter === st
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-white border border-slate-200/80 text-slate-600 hover:bg-slate-100'
+                  ? 'bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] text-white shadow-sm'
+                  : 'bg-white border border-slate-200/80 text-slate-600 hover:bg-slate-100 shadow-2xs'
               }`}
             >
               {st === 'ALL' ? 'All Events' : st}
             </button>
           ))}
         </div>
-      </div>
 
       {loading ? (
         <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
@@ -218,6 +231,7 @@ export const ClientEvents: React.FC = () => {
           ))}
         </div>
       )}
+      </div>
 
       {/* DETAILED EVENT INSPECTION MODAL */}
       {selectedEventId && (

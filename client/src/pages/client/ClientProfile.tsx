@@ -13,7 +13,10 @@ import {
   AlertCircle,
   Loader2,
   Save,
-  Lock,
+  FileText,
+  ChevronRight,
+  Coins,
+  StickyNote,
 } from 'lucide-react';
 
 export const ClientProfile: React.FC = () => {
@@ -22,6 +25,7 @@ export const ClientProfile: React.FC = () => {
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [locationsExpanded, setLocationsExpanded] = useState(false);
 
   // Editable fields
   const [contactPerson, setContactPerson] = useState('');
@@ -92,226 +96,296 @@ export const ClientProfile: React.FC = () => {
     );
   }
 
+  const locations =
+    organization?.serviceLocations && organization.serviceLocations.length > 0
+      ? organization.serviceLocations
+      : organization?.serviceLocationIds || [];
+
   return (
-    <div className="p-3.5 sm:p-4 space-y-4">
-      {/* Title */}
-      <div>
-        <h1 className="text-xl font-bold text-slate-900">
-          Organization Profile
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Manage your enterprise organization details, service contracts, and authorized points of contact
-        </p>
+    <div className="space-y-4">
+      {/* FULL-BLEED HERO HEADER */}
+      <div className="relative bg-gradient-to-b from-[#0b1b3d] via-[#133274] to-[#1e4aa8] px-4 pt-4 pb-10 overflow-hidden">
+        <div
+          className="absolute top-0 right-0 w-52 h-full opacity-35 pointer-events-none bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&auto=format&fit=crop&q=80')",
+            maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 100%)',
+            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 100%)',
+          }}
+        />
+        <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#eef3f9] to-transparent pointer-events-none" />
+
+        <div className="relative z-10 space-y-2 max-w-[85%]">
+          <h1 className="text-2xl font-black text-white leading-tight tracking-tight">
+            Organization Profile
+          </h1>
+          <p className="text-xs text-blue-100/90 leading-relaxed border-l-2 border-blue-400 pl-2.5">
+            Manage your organization details, contract information, and service locations for better
+            service coordination.
+          </p>
+        </div>
       </div>
 
-      {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-xs text-red-700 flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
-          <span>{error}</span>
-        </div>
-      )}
+      {/* BODY CONTENT */}
+      <div className="px-3.5 -mt-6 relative z-10 space-y-4">
+        {error && (
+          <div className="p-3.5 bg-red-50 border border-red-200 rounded-2xl text-xs text-red-700 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+            <span>{error}</span>
+          </div>
+        )}
 
-      {success && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-700 flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
-          <span>{success}</span>
-        </div>
-      )}
+        {success && (
+          <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-700 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+            <span>{success}</span>
+          </div>
+        )}
 
-      <div className="space-y-4">
-        {/* Organization Summary & Contract Info */}
-        <div className="space-y-4">
-          {/* Org Card */}
-          <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs text-center space-y-3">
-            <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center mx-auto shadow-xs">
-              <Building2 className="w-8 h-8" />
+        {/* 1. ORGANIZATION IDENTITY CARD */}
+        <div className="bg-white rounded-2xl border border-slate-200/70 p-5 shadow-sm text-center space-y-3 relative overflow-hidden">
+          <div className="absolute -bottom-6 -right-6 w-28 h-28 rounded-full bg-blue-50/90 pointer-events-none" />
+          <div className="relative z-10 space-y-2.5">
+            <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center mx-auto shadow-2xs">
+              <Building2 className="w-7 h-7" />
             </div>
             <div>
-              <h2 className="text-base font-extrabold text-slate-900">{organization?.name}</h2>
-              <p className="text-3xs text-slate-400 font-mono mt-0.5">{organization?.orgId}</p>
+              <h2 className="text-base font-black text-slate-900">
+                {organization?.name || 'Apex Corporate Towers'}
+              </h2>
             </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-3xs font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              Contract Status: {organization?.status || 'ACTIVE'}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-3xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Contract Partner • {organization?.status || 'Active'}</span>
             </div>
           </div>
+        </div>
 
-          {/* Contract Overview (Read-Only) */}
-          <div className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                Contract Terms
-              </h3>
-              <Lock className="w-3.5 h-3.5 text-slate-400" />
+        {/* 2. CONTRACT DETAILS CARD */}
+        <div className="bg-white rounded-2xl border border-slate-200/70 p-4 shadow-sm space-y-3">
+          <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl shrink-0">
+              <FileText className="w-4 h-4" />
             </div>
+            <h3 className="text-sm font-bold text-slate-900">Contract Details</h3>
+          </div>
 
-            <div className="space-y-3 text-xs">
+          <div className="divide-y divide-slate-100 text-xs">
+            <div className="py-2.5 flex items-start gap-3">
+              <Calendar className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
               <div>
-                <span className="text-3xs font-bold uppercase text-slate-400">Duration</span>
-                <p className="font-semibold text-slate-800 mt-0.5 flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  {organization?.contractStartDate || 'Active'} to {organization?.contractEndDate || 'Continuous'}
+                <span className="text-3xs text-slate-400 block">Contract ID</span>
+                <p className="font-bold text-slate-900 mt-0.5 font-mono">
+                  {organization?.organizationId || organization?.orgId || 'ORG-2026-001'}
                 </p>
               </div>
+            </div>
 
+            <div className="py-2.5 flex items-start gap-3">
+              <Coins className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
               <div>
-                <span className="text-3xs font-bold uppercase text-slate-400">Contract Rate</span>
-                <p className="font-extrabold text-slate-900 mt-0.5">
+                <span className="text-3xs text-slate-400 block">Contract Value</span>
+                <p className="font-black text-slate-900 mt-0.5">
                   ₹{Number(organization?.contractPricing || 0).toLocaleString('en-IN')}
                 </p>
               </div>
+            </div>
 
+            <div className="py-2.5 flex items-start gap-3">
+              <Calendar className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
               <div>
-                <span className="text-3xs font-bold uppercase text-slate-400">Payment Terms</span>
-                <p className="font-semibold text-slate-800 mt-0.5">
-                  {organization?.paymentTerms || 'Net 15 Days after event completion'}
+                <span className="text-3xs text-slate-400 block">Contract Tenure</span>
+                <p className="font-bold text-slate-900 mt-0.5">
+                  {organization?.contractStartDate || 'Active'} –{' '}
+                  {organization?.contractEndDate || 'Continuous'}
                 </p>
               </div>
             </div>
           </div>
-
-          {/* Service Locations */}
-          <div className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-xs space-y-3">
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-blue-600" />
-              Service Locations
-            </h3>
-
-            {organization?.serviceLocations && organization.serviceLocations.length > 0 ? (
-              <div className="space-y-2">
-                {organization.serviceLocations.map((loc, idx) => (
-                  <div key={idx} className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/60 text-3xs text-slate-700">
-                    <p className="font-bold text-slate-900">{loc}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-3xs text-slate-400">Locations configured per event assignment.</p>
-            )}
-          </div>
         </div>
 
-        {/* Editable Contact Information Form */}
-        <div>
-          <form
-            onSubmit={handleSave}
-            className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-xs space-y-5"
+        {/* 3. SERVICE LOCATIONS CARD */}
+        <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setLocationsExpanded(!locationsExpanded)}
+            className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50/70 transition"
           >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="p-2 bg-blue-50 text-blue-600 rounded-xl shrink-0">
+                <MapPin className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm font-bold text-slate-900">Service Locations</h3>
+                <p className="text-3xs text-slate-500 truncate">
+                  Locations where cleaning services are provided
+                </p>
+              </div>
+            </div>
+
+            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 text-3xs font-bold shrink-0">
+              <span>{locations.length} Locations</span>
+              <ChevronRight
+                className={`w-3.5 h-3.5 transition-transform ${
+                  locationsExpanded ? 'rotate-90' : ''
+                }`}
+              />
+            </div>
+          </button>
+
+          {locationsExpanded && (
+            <div className="px-4 pb-4 pt-1 space-y-2 border-t border-slate-100">
+              {locations.length > 0 ? (
+                locations.map((loc, idx) => (
+                  <div
+                    key={idx}
+                    className="p-2.5 bg-[#f8fafc] rounded-xl border border-slate-200/70 text-3xs text-slate-700 font-semibold flex items-center gap-2"
+                  >
+                    <MapPin className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                    <span>{loc}</span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-3xs text-slate-400 py-2">
+                  Locations configured per event assignment.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* 4. ORGANIZATION INFORMATION FORM */}
+        <form
+          onSubmit={handleSave}
+          className="bg-white rounded-2xl border border-slate-200/70 p-4 shadow-sm space-y-4"
+        >
+          <div className="flex items-start gap-2.5 pb-2 border-b border-slate-100">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl shrink-0 mt-0.5">
+              <Building2 className="w-4 h-4" />
+            </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">Contact & Notification Settings</h3>
+              <h3 className="text-sm font-bold text-slate-900">Organization Information</h3>
               <p className="text-3xs text-slate-500">
-                Ensure your facility managers and accounting officers receive prompt event updates and payment receipts
+                Keep your company details up to date for invoices and service management
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3.5 text-xs">
+            {/* Organization Name (Read Only) */}
+            <div className="space-y-1">
+              <label className="text-3xs font-bold text-slate-700">
+                Organization / Company Name <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  disabled
+                  value={organization?.name || ''}
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold text-slate-500 cursor-not-allowed"
+                />
+              </div>
+              <p className="text-4xs text-slate-400">
+                Registered company or organization name as per contract
               </p>
             </div>
 
-            <div className="space-y-4 text-xs">
-              {/* Organization Legal Name (Read Only) */}
-              <div className="space-y-1">
-                <label className="text-3xs font-bold uppercase tracking-wider text-slate-500">
-                  Registered Organization Name
-                </label>
-                <div className="relative">
-                  <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    disabled
-                    value={organization?.name || ''}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold text-slate-500 cursor-not-allowed"
-                  />
-                </div>
-                <p className="text-4xs text-slate-400">To amend legal business name, please request an administrative update.</p>
-              </div>
-
-              {/* Authorized Contact Person */}
-              <div className="space-y-1">
-                <label className="text-3xs font-bold uppercase tracking-wider text-slate-700">
-                  Authorized Contact Person <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    value={contactPerson}
-                    onChange={(e) => setContactPerson(e.target.value)}
-                    placeholder="e.g. Rajesh Sharma"
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:bg-white"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Registered Phone */}
-              <div className="space-y-1">
-                <label className="text-3xs font-bold uppercase tracking-wider text-slate-700">
-                  Primary Mobile Number <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="e.g. 9800615893"
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:bg-white"
-                    required
-                  />
-                </div>
-                <p className="text-4xs text-slate-400">Used for client login and instant SMS notifications.</p>
-              </div>
-
-              {/* Registered Email */}
-              <div className="space-y-1">
-                <label className="text-3xs font-bold uppercase tracking-wider text-slate-700">
-                  Billing & Notification Email
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="e.g. client@apextowers.com"
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:bg-white"
-                  />
-                </div>
-              </div>
-
-              {/* Client Notes / Instructions */}
-              <div className="space-y-1">
-                <label className="text-3xs font-bold uppercase tracking-wider text-slate-700">
-                  Special Access Instructions & Preferences
-                </label>
-                <textarea
-                  rows={3}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="e.g. Access via South Gate security desk. Hard hats required on lower mezzanine."
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:bg-white"
+            {/* Authorized Contact Person */}
+            <div className="space-y-1">
+              <label className="text-3xs font-bold text-slate-700">
+                Authorized Contact Person <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={contactPerson}
+                  onChange={(e) => setContactPerson(e.target.value)}
+                  placeholder="e.g. Vikram Malhotra"
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                  required
                 />
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-100 flex justify-end">
-              <button
-                type="submit"
-                disabled={saving}
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-2"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" />
-                    <span>Update Contact Details</span>
-                  </>
-                )}
-              </button>
+            {/* Contact Phone Number */}
+            <div className="space-y-1">
+              <label className="text-3xs font-bold text-slate-700">
+                Contact Phone Number <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="e.g. 9800615893"
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                  required
+                />
+              </div>
+              <p className="text-4xs text-slate-400">
+                Used for service coordination and notifications
+              </p>
             </div>
-          </form>
-        </div>
+
+            {/* Billing & Notification Email */}
+            <div className="space-y-1">
+              <label className="text-3xs font-bold text-slate-700">
+                Billing & Notification Email <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="e.g. client@apextowers.com"
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                />
+              </div>
+            </div>
+
+            {/* Special Instructions / Service Preferences */}
+            <div className="space-y-1">
+              <label className="text-3xs font-bold text-slate-700">
+                Special Instructions / Service Preferences
+              </label>
+              <div className="relative">
+                <StickyNote className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                <textarea
+                  rows={3}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="e.g. Please ensure weekend deep cleaning."
+                  className="w-full pl-10 pr-3 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-2 flex justify-end">
+            <button
+              type="submit"
+              disabled={saving}
+              className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] hover:from-[#1d4ed8] hover:to-[#1e40af] disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-md shadow-blue-600/20 flex items-center justify-center gap-2"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Updating...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>Update Contract Details</span>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -5,17 +5,15 @@ import { Invoice } from '../../types';
 import {
   CreditCard,
   CheckCircle2,
-  AlertCircle,
-  Clock,
-  ArrowRight,
-  Receipt,
   X,
   ShieldCheck,
-  Building2,
-  DollarSign,
   Loader2,
-  Sparkles,
-  Check,
+  FileText,
+  Wallet,
+  Hourglass,
+  Calendar,
+  Download,
+  ArrowRight,
 } from 'lucide-react';
 
 export const ClientInvoices: React.FC = () => {
@@ -81,7 +79,9 @@ export const ClientInvoices: React.FC = () => {
         paymentMethod: payMethod,
       });
 
-      setPaySuccess(`Payment of ₹${Number(payAmount).toLocaleString('en-IN')} confirmed! Transaction ID: ${res.transactionId}`);
+      setPaySuccess(
+        `Payment of ₹${Number(payAmount).toLocaleString('en-IN')} confirmed! Transaction ID: ${res.transactionId}`
+      );
       setTimeout(() => {
         fetchInvoices();
       }, 1000);
@@ -108,168 +108,238 @@ export const ClientInvoices: React.FC = () => {
   };
 
   return (
-    <div className="p-3.5 sm:p-4 space-y-4">
-      {/* Page Title */}
-      <div>
-        <h1 className="text-xl font-bold text-slate-900">
-          Payments & Invoices
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Track contract billing, settle pending invoices, and download instant payment receipts
-        </p>
-      </div>
+    <div className="space-y-4">
+      {/* FULL-BLEED HERO HEADER */}
+      <div className="relative bg-gradient-to-b from-[#0b1b3d] via-[#133274] to-[#1e4aa8] px-4 pt-4 pb-8 overflow-hidden">
+        <div
+          className="absolute top-0 right-0 w-52 h-full opacity-35 pointer-events-none bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&auto=format&fit=crop&q=80')",
+            maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 100%)',
+            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 100%)',
+          }}
+        />
+        <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#eef3f9] to-transparent pointer-events-none" />
 
-      {/* Financial KPI Cards */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
-          <span className="text-3xs sm:text-2xs font-bold uppercase tracking-wider text-slate-500">
-            Total Contract Amount
-          </span>
-          <div className="mt-2">
-            <div className="text-xl sm:text-2xl font-black text-slate-900">
-              ₹{summary.totalContractAmount.toLocaleString('en-IN')}
-            </div>
-            <p className="text-3xs text-slate-400 mt-0.5">All issued invoices</p>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
-          <span className="text-3xs sm:text-2xs font-bold uppercase tracking-wider text-slate-500">
-            Total Paid
-          </span>
-          <div className="mt-2">
-            <div className="text-xl sm:text-2xl font-black text-emerald-600">
-              ₹{summary.totalPaid.toLocaleString('en-IN')}
-            </div>
-            <p className="text-3xs text-slate-400 mt-0.5">Cleared settlements</p>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
-          <span className="text-3xs sm:text-2xs font-bold uppercase tracking-wider text-slate-500">
-            Outstanding Amount
-          </span>
-          <div className="mt-2">
-            <div className="text-xl sm:text-2xl font-black text-amber-600">
-              ₹{summary.outstandingAmount.toLocaleString('en-IN')}
-            </div>
-            <p className="text-3xs text-slate-400 mt-0.5">Balance due</p>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
-          <span className="text-3xs sm:text-2xs font-bold uppercase tracking-wider text-slate-500">
-            Account Status
-          </span>
-          <div className="mt-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              {summary.outstandingAmount === 0 ? 'Fully Paid' : 'Active Contract'}
-            </div>
-            <p className="text-3xs text-slate-400 mt-1">Verified partner</p>
-          </div>
+        <div className="relative z-10 space-y-2 max-w-[85%]">
+          <h1 className="text-2xl font-black text-white leading-tight tracking-tight">
+            Payments & Invoices
+          </h1>
+          <p className="text-xs text-blue-100/90 leading-relaxed border-l-2 border-blue-400 pl-2.5">
+            Track contract billing, settle pending invoices, and download instant payment receipts
+          </p>
         </div>
       </div>
 
-      {/* Invoices List */}
-      <div className="bg-white rounded-3xl border border-slate-200/80 overflow-hidden shadow-xs">
-        <div className="p-5 sm:p-6 border-b border-slate-200/80 flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-bold text-slate-900">Contract Invoices</h2>
-            <p className="text-3xs text-slate-500">Directly associated with verified cleaning operations</p>
+      {/* BODY CONTENT */}
+      <div className="px-3.5 -mt-4 relative z-10 space-y-4">
+        {/* 4 Financial KPI Cards */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* 1. Total Contract Amount */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/70 shadow-sm relative overflow-hidden">
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-blue-50/90 pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex items-start gap-2.5">
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-xl shrink-0">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-bold text-slate-700 leading-tight">
+                  Total Contract Amount
+                </span>
+              </div>
+              <div className="text-xl font-black text-slate-900 mt-2.5">
+                ₹{summary.totalContractAmount.toLocaleString('en-IN')}
+              </div>
+              <p className="text-3xs text-slate-500 mt-0.5">All issued invoices</p>
+            </div>
           </div>
-          <button
-            onClick={() => navigate('/client/receipts')}
-            className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
-          >
-            <Receipt className="w-3.5 h-3.5" />
-            <span>View All Receipts</span>
-          </button>
+
+          {/* 2. Total Paid */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/70 shadow-sm relative overflow-hidden">
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-emerald-50/90 pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex items-start gap-2.5">
+                <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl shrink-0">
+                  <Wallet className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-bold text-slate-700 leading-tight">Total Paid</span>
+              </div>
+              <div className="text-xl font-black text-emerald-600 mt-2.5">
+                ₹{summary.totalPaid.toLocaleString('en-IN')}
+              </div>
+              <p className="text-3xs text-slate-500 mt-0.5">Cleared settlements</p>
+            </div>
+          </div>
+
+          {/* 3. Outstanding Amount */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/70 shadow-sm relative overflow-hidden">
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-orange-50/90 pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex items-start gap-2.5">
+                <div className="p-2 bg-orange-50 text-orange-600 rounded-xl shrink-0">
+                  <Hourglass className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-bold text-slate-700 leading-tight">
+                  Outstanding Amount
+                </span>
+              </div>
+              <div className="text-xl font-black text-[#ea580c] mt-2.5">
+                ₹{summary.outstandingAmount.toLocaleString('en-IN')}
+              </div>
+              <p className="text-3xs text-slate-500 mt-0.5">Balance due</p>
+            </div>
+          </div>
+
+          {/* 4. Account Status */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/70 shadow-sm relative overflow-hidden">
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-emerald-50/90 pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex items-start gap-2.5">
+                <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl shrink-0">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-bold text-slate-700 leading-tight">
+                  Account Status
+                </span>
+              </div>
+              <div className="mt-2.5">
+                <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-3xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                  <span>{summary.outstandingAmount === 0 ? 'Fully Paid' : 'Active Contract'}</span>
+                </div>
+              </div>
+              <p className="text-3xs text-slate-500 mt-1">Verified partner</p>
+            </div>
+          </div>
         </div>
 
-        {loading ? (
-          <div className="py-12 flex flex-col items-center justify-center gap-2">
-            <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
-            <p className="text-xs text-slate-500 font-medium">Loading invoices...</p>
+        {/* Contract Invoices List */}
+        <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-4 space-y-3.5">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start gap-2.5 min-w-0">
+              <div className="p-2 bg-blue-50 text-blue-600 rounded-xl shrink-0 mt-0.5">
+                <FileText className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-sm font-bold text-slate-900">Contract Invoices</h2>
+                <p className="text-3xs text-slate-500 leading-snug">
+                  Directly associated with verified cleaning operations
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/client/receipts')}
+              className="text-3xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 shrink-0 pt-1"
+            >
+              <span>Receipts</span>
+              <ArrowRight className="w-3 h-3" />
+            </button>
           </div>
-        ) : error ? (
-          <div className="p-6 text-center text-red-600 text-xs">{error}</div>
-        ) : invoices.length === 0 ? (
-          <div className="p-12 text-center space-y-2">
-            <CreditCard className="w-8 h-8 text-slate-300 mx-auto" />
-            <h3 className="text-xs font-bold text-slate-700">No invoices generated yet</h3>
-            <p className="text-3xs text-slate-400">
-              Invoices will appear here once your cleaning service events are scheduled and billed.
-            </p>
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-100">
-            {invoices.map((inv) => {
-              const remaining = Math.max(0, Number(inv.amount) - Number(inv.amountPaid || 0));
-              const isUnpaid = inv.status !== 'PAID' && remaining > 0;
 
-              return (
-                <div key={inv.invoiceId} className="p-4 space-y-2.5 hover:bg-slate-50/80 transition-colors">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-900">{inv.invoiceNumber}</span>
-                        <span
-                          className={`inline-block text-4xs font-extrabold px-2 py-0.5 rounded-full border ${getStatusBadge(
-                            inv.status
-                          )}`}
+          {loading ? (
+            <div className="py-10 flex flex-col items-center justify-center gap-2">
+              <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+              <p className="text-xs text-slate-500 font-medium">Loading invoices...</p>
+            </div>
+          ) : error ? (
+            <div className="p-4 text-center text-red-600 text-xs">{error}</div>
+          ) : invoices.length === 0 ? (
+            <div className="p-8 text-center space-y-2 border border-slate-200/70 rounded-2xl bg-[#f8fafc]">
+              <CreditCard className="w-8 h-8 text-slate-300 mx-auto" />
+              <h3 className="text-xs font-bold text-slate-700">No invoices generated yet</h3>
+              <p className="text-3xs text-slate-400">
+                Invoices will appear here once your cleaning service events are scheduled and billed.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {invoices.map((inv) => {
+                const remaining = Math.max(0, Number(inv.amount) - Number(inv.amountPaid || 0));
+                const isUnpaid = inv.status !== 'PAID' && remaining > 0;
+
+                return (
+                  <div
+                    key={inv.invoiceId}
+                    className="p-3.5 bg-[#f8fafc] rounded-2xl border border-slate-200/80 space-y-2.5"
+                  >
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        <div
+                          className={`p-2 rounded-xl shrink-0 mt-0.5 ${
+                            isUnpaid
+                              ? 'bg-amber-50 text-amber-600 border border-amber-200/60'
+                              : 'bg-emerald-50 text-emerald-600 border border-emerald-200/60'
+                          }`}
                         >
-                          {inv.status.replace('_', ' ')}
+                          <FileText className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-xs font-bold text-slate-900">
+                              {inv.invoiceNumber}
+                            </span>
+                            <span
+                              className={`inline-block text-4xs font-extrabold px-2 py-0.5 rounded-full border ${getStatusBadge(
+                                inv.status
+                              )}`}
+                            >
+                              {inv.status.replace('_', ' ')}
+                            </span>
+                          </div>
+                          <p className="text-xs font-bold text-slate-800 mt-1 line-clamp-1">
+                            {inv.eventName || 'Scheduled Service'}
+                          </p>
+                          <p className="text-3xs text-slate-500 line-clamp-1">
+                            {inv.description || 'Facility Maintenance'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <div className="text-sm font-black text-slate-900">
+                          ₹{Number(inv.amount).toLocaleString('en-IN')}
+                        </div>
+                        {inv.amountPaid && Number(inv.amountPaid) > 0 && inv.status !== 'PAID' ? (
+                          <div className="text-4xs text-emerald-600 font-semibold">
+                            Paid: ₹{Number(inv.amountPaid).toLocaleString('en-IN')}
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2.5 border-t border-slate-200/70 text-3xs gap-2">
+                      <div className="text-slate-500 flex items-center gap-1 min-w-0 truncate">
+                        <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
+                        <span className="truncate">
+                          Issued: {inv.issueDate || inv.invoiceDate} | Due: {inv.dueDate}
                         </span>
                       </div>
-                      <p className="text-xs font-semibold text-slate-800 mt-1 line-clamp-1">
-                        {inv.eventName || 'Scheduled Service'}
-                      </p>
-                      <p className="text-3xs text-slate-400 line-clamp-1">
-                        {inv.description || 'Facility Maintenance'}
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="text-sm font-black text-slate-900">
-                        ₹{Number(inv.amount).toLocaleString('en-IN')}
-                      </div>
-                      {inv.amountPaid && Number(inv.amountPaid) > 0 && inv.status !== 'PAID' ? (
-                        <div className="text-4xs text-emerald-600 font-semibold">
-                          Paid: ₹{Number(inv.amountPaid).toLocaleString('en-IN')}
-                        </div>
-                      ) : null}
+
+                      {isUnpaid ? (
+                        <button
+                          onClick={() => handleOpenPayModal(inv)}
+                          className="px-3.5 py-1.5 bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] hover:from-[#1d4ed8] hover:to-[#1e40af] text-white text-3xs font-bold rounded-full transition shadow-sm flex items-center gap-1.5 shrink-0 active:scale-95"
+                        >
+                          <CreditCard className="w-3 h-3" />
+                          <span>Pay Now</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => navigate('/client/receipts')}
+                          className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 text-3xs font-bold rounded-full transition inline-flex items-center gap-1 shrink-0"
+                        >
+                          <Download className="w-3 h-3" />
+                          <span>Receipt</span>
+                        </button>
+                      )}
                     </div>
                   </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-3xs">
-                    <div className="text-slate-500">
-                      <span>Issued: {inv.issueDate || inv.invoiceDate}</span>
-                      <span className="mx-1.5">•</span>
-                      <span>Due: {inv.dueDate}</span>
-                    </div>
-
-                    {isUnpaid ? (
-                      <button
-                        onClick={() => handleOpenPayModal(inv)}
-                        className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-3xs font-bold rounded-xl transition shadow-xs active:scale-95"
-                      >
-                        Pay Now
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => navigate('/client/receipts')}
-                        className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 text-3xs font-bold rounded-xl transition inline-flex items-center gap-1"
-                      >
-                        <Check className="w-3 h-3" />
-                        Receipt
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* SECURE PAY NOW MODAL */}
@@ -356,7 +426,6 @@ export const ClientInvoices: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Amount to Pay */}
                 <div className="space-y-1">
                   <label className="text-3xs font-bold uppercase tracking-wider text-slate-600">
                     Amount to Settle (INR)
@@ -380,7 +449,6 @@ export const ClientInvoices: React.FC = () => {
                   </p>
                 </div>
 
-                {/* Payment Gateway Method */}
                 <div className="space-y-1.5">
                   <label className="text-3xs font-bold uppercase tracking-wider text-slate-600">
                     Payment Gateway
