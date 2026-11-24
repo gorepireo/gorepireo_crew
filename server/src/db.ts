@@ -1558,6 +1558,182 @@ class DatabaseService {
         }));
       }
 
+      // If B2B organization is not in database yet, add it
+      if (this.data.organizations.length === 0) {
+        const seedOrg: Organization = {
+          organizationId: 'ORG-2026-001',
+          name: 'Apex Corporate Towers',
+          contactPerson: 'Vikram Malhotra',
+          email: 'client@apextowers.com',
+          phone: '9800615893',
+          address: 'Tower A & B, DLF CyberCity, Gurugram, Haryana',
+          serviceLocationIds: ['LOC-001', 'LOC-002'],
+          serviceLocations: ['Tower A & B, DLF CyberCity, Gurugram', 'Pier Foundation Hub, Sector 18, Noida'],
+          contractStartDate: '2026-01-01',
+          contractEndDate: '2026-12-31',
+          contractPricing: 125000,
+          paymentTerms: 'Net 15 Days after event completion',
+          status: 'ACTIVE',
+          notes: 'Premier commercial facility contract with weekly deep cleaning and daily lobby sanitization.',
+          createdAt: '2026-01-01T00:00:00Z',
+          updatedAt: '2026-01-01T00:00:00Z',
+        };
+        this.data.organizations.push(seedOrg);
+        if (this.tursoClient) {
+          this.tursoClient.execute({
+            sql: `INSERT OR IGNORE INTO organizations (organizationId, name, contactPerson, email, phone, address, serviceLocationIds, contractStartDate, contractEndDate, contractPricing, paymentTerms, status, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            args: [
+              seedOrg.organizationId,
+              seedOrg.name,
+              seedOrg.contactPerson,
+              seedOrg.email,
+              seedOrg.phone,
+              seedOrg.address || null,
+              JSON.stringify(seedOrg.serviceLocationIds || []),
+              seedOrg.contractStartDate,
+              seedOrg.contractEndDate || null,
+              seedOrg.contractPricing,
+              seedOrg.paymentTerms,
+              seedOrg.status,
+              seedOrg.notes || null,
+              seedOrg.createdAt,
+              seedOrg.updatedAt,
+            ],
+          }).catch(() => {});
+        }
+      }
+
+      // If B2B Client account is not in database yet, add it
+      const existingB2BUser = this.data.users.find((u) => u.role === 'B2B_CLIENT' || u.phone === '9800615893');
+      if (!existingB2BUser) {
+        const defaultHash = bcrypt.hashSync('password123', 10);
+        const seedUser: User = {
+          uid: 'user-b2b-001',
+          role: 'B2B_CLIENT',
+          displayName: 'Vikram Malhotra',
+          phone: '9800615893',
+          email: 'client@apextowers.com',
+          photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+          organizationId: 'ORG-2026-001',
+          organizationName: 'Apex Corporate Towers',
+          active: true,
+          passwordHash: defaultHash,
+          mustChangePassword: false,
+          failedLoginAttempts: 0,
+          createdAt: '2026-01-01T00:00:00Z',
+          updatedAt: '2026-01-01T00:00:00Z',
+        };
+        this.data.users.push(seedUser);
+        if (this.tursoClient) {
+          this.tursoClient.execute({
+            sql: `INSERT OR IGNORE INTO users (uid, role, displayName, phone, email, photoURL, organizationId, organizationName, active, passwordHash, mustChangePassword, failedLoginAttempts, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            args: [
+              seedUser.uid,
+              seedUser.role,
+              seedUser.displayName,
+              seedUser.phone || null,
+              seedUser.email || null,
+              seedUser.photoURL || null,
+              seedUser.organizationId || null,
+              seedUser.organizationName || null,
+              1,
+              defaultHash,
+              0,
+              0,
+              seedUser.createdAt,
+              seedUser.updatedAt,
+            ],
+          }).catch(() => {});
+        }
+      }
+
+      // If invoices are not in database yet, add initial invoices
+      if (this.data.invoices.length === 0) {
+        const seedInvoices: Invoice[] = [
+          {
+            invoiceId: 'INV-2026-001',
+            invoiceNumber: 'INV-2026-001',
+            organizationId: 'ORG-2026-001',
+            organizationName: 'Apex Corporate Towers',
+            assignmentId: 'ASN-20260217-001',
+            eventName: 'Cooling Tower Chilled Water Riser Pressure Test & Sanitization',
+            issueDate: '2026-02-17',
+            dueDate: '2026-03-04',
+            amount: 28000,
+            amountPaid: 28000,
+            status: 'PAID',
+            description: 'Commercial facility cooling tower disinfection, riser pressure check, and bio-wash',
+            items: [
+              { description: 'Cooling Tower Disinfection & High Pressure Flush', quantity: 1, unitPrice: 20000, total: 20000 },
+              { description: 'Chemical Biocide & Inhibitor Flush', quantity: 1, unitPrice: 8000, total: 8000 },
+            ],
+            notes: 'Contract invoice settled via online payment gateway.',
+            createdAt: '2026-02-17T17:00:00Z',
+            updatedAt: '2026-02-17T17:00:00Z',
+          },
+          {
+            invoiceId: 'INV-2026-002',
+            invoiceNumber: 'INV-2026-002',
+            organizationId: 'ORG-2026-001',
+            organizationName: 'Apex Corporate Towers',
+            assignmentId: 'ASN-20260218-001',
+            eventName: 'Central Metro Hub - Pier Foundation Site Deep Scrub',
+            issueDate: '2026-02-18',
+            dueDate: '2026-03-05',
+            amount: 45000,
+            amountPaid: 0,
+            status: 'PENDING',
+            description: 'Heavy industrial pressure washing of pier base, concrete spill wash, and waste clearance',
+            items: [
+              { description: 'Foundation Pier Pressure Wash & Chemical Scrubbing', quantity: 1, unitPrice: 30000, total: 30000 },
+              { description: 'Hazardous Waste & Concrete Slurry Clearance', quantity: 1, unitPrice: 15000, total: 15000 },
+            ],
+            notes: 'Standard contract invoice. Due within 15 days.',
+            createdAt: '2026-02-18T08:00:00Z',
+            updatedAt: '2026-02-18T08:00:00Z',
+          },
+        ];
+        this.data.invoices = seedInvoices;
+        if (this.tursoClient) {
+          for (const inv of seedInvoices) {
+            this.tursoClient.execute({
+              sql: `INSERT OR IGNORE INTO invoices (invoiceId, invoiceNumber, organizationId, organizationName, assignmentId, eventName, issueDate, dueDate, amount, amountPaid, status, description, items, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              args: [inv.invoiceId, inv.invoiceNumber, inv.organizationId, inv.organizationName, inv.assignmentId || null, inv.eventName || null, inv.issueDate, inv.dueDate, inv.amount, inv.amountPaid || 0, inv.status, inv.description || null, JSON.stringify(inv.items || []), inv.notes || null, inv.createdAt, inv.updatedAt],
+            }).catch(() => {});
+          }
+        }
+      }
+
+      // If payments are not in database yet, add initial payment receipt
+      if (this.data.payments.length === 0) {
+        const seedPayment: Payment = {
+          paymentId: 'PAY-2026-001',
+          receiptNumber: 'RCPT-2026-001',
+          invoiceId: 'INV-2026-001',
+          invoiceNumber: 'INV-2026-001',
+          organizationId: 'ORG-2026-001',
+          organizationName: 'Apex Corporate Towers',
+          assignmentId: 'ASN-20260217-001',
+          eventName: 'Cooling Tower Chilled Water Riser Pressure Test & Sanitization',
+          amount: 28000,
+          paymentDate: '2026-02-17T17:00:00Z',
+          paymentMethod: 'ONLINE',
+          transactionId: 'txn_2026_981240192',
+          status: 'SUCCESS',
+          notes: 'Instant settlement confirmed by gateway.',
+          receiptUrl: '/api/b2b/client/receipts/PAY-2026-001',
+          createdAt: '2026-02-17T17:00:00Z',
+          updatedAt: '2026-02-17T17:00:00Z',
+        };
+        this.data.payments.push(seedPayment);
+        if (this.tursoClient) {
+          this.tursoClient.execute({
+            sql: `INSERT OR IGNORE INTO payments (paymentId, receiptNumber, invoiceId, invoiceNumber, organizationId, organizationName, assignmentId, eventName, amount, paymentDate, paymentMethod, transactionId, status, recordedBy, recordedByName, notes, receiptUrl, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            args: [seedPayment.paymentId, seedPayment.receiptNumber, seedPayment.invoiceId, seedPayment.invoiceNumber, seedPayment.organizationId, seedPayment.organizationName, seedPayment.assignmentId || null, seedPayment.eventName || null, seedPayment.amount, seedPayment.paymentDate, seedPayment.paymentMethod, seedPayment.transactionId, seedPayment.status, null, null, seedPayment.notes || null, seedPayment.receiptUrl || null, seedPayment.createdAt, seedPayment.updatedAt],
+          }).catch(() => {});
+        }
+      }
+
       this.sanitizeState(this.data);
       this.saveData(this.data);
       console.log(`[TURSO] Successfully hydrated in-memory state directly from Turso relational tables: ${this.data.workers.length} workers, ${this.data.teamLeaders.length} leaders, ${this.data.teams.length} teams, ${this.data.locations.length} locations, ${this.data.assignments.length} assignments, ${this.data.attendance.length} attendance.`);
