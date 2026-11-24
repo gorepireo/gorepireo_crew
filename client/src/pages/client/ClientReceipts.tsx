@@ -319,15 +319,40 @@ export const ClientReceipts: React.FC = () => {
                 </div>
               </div>
 
-              {/* Date & Time */}
-              <div>
-                <span className="text-4xs font-bold uppercase tracking-wider text-slate-400 block">
-                  DATE & TIME
-                </span>
-                <span className="text-xs font-bold text-slate-900 mt-0.5 block">
-                  {selectedReceipt.paymentDate?.slice(0, 10)} •{' '}
-                  {selectedReceipt.paymentDate?.slice(11, 16) || '12:00'}
-                </span>
+              {/* Date & Time + UTR / Reference Number */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="text-4xs font-bold uppercase tracking-wider text-slate-400 block">
+                    DATE & TIME
+                  </span>
+                  <span className="text-xs font-bold text-slate-900 mt-0.5 block">
+                    {(() => {
+                      const raw = selectedReceipt.paymentDate || selectedReceipt.createdAt;
+                      if (!raw) return 'N/A';
+                      const d = new Date(raw);
+                      if (isNaN(d.getTime())) return raw;
+                      const datePart = d.toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                      });
+                      const timePart = d.toLocaleTimeString('en-IN', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true,
+                      });
+                      return `${datePart} • ${timePart}`;
+                    })()}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-4xs font-bold uppercase tracking-wider text-slate-400 block">
+                    UTR / REF NO.
+                  </span>
+                  <span className="text-xs font-bold text-slate-900 font-mono mt-0.5 block break-all">
+                    {selectedReceipt.transactionId || selectedReceipt.utr || 'N/A'}
+                  </span>
+                </div>
               </div>
 
               {/* Invoice & Event */}
@@ -350,10 +375,12 @@ export const ClientReceipts: React.FC = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-slate-900 truncate">
-                    {selectedReceipt.organization?.name || 'Apex Corporate Towers'}
+                    {selectedReceipt.organizationName ||
+                      selectedReceipt.organization?.name ||
+                      'Apex Corporate Towers'}
                   </p>
                   <p className="text-3xs text-slate-500 font-mono truncate">
-                    {selectedReceipt.paymentMethod} • {selectedReceipt.transactionId}
+                    Paid via {selectedReceipt.paymentMethod} • Verified
                   </p>
                 </div>
               </div>
