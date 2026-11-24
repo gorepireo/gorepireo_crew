@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
 import { Organization, Invoice } from '../../types';
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import {
   Calendar,
   Clock,
@@ -10,11 +11,8 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowRight,
-  TrendingUp,
   CreditCard,
-  Building2,
-  Sparkles,
-  Loader2,
+  CalendarCheck2,
 } from 'lucide-react';
 
 export const ClientOverview: React.FC = () => {
@@ -62,7 +60,7 @@ export const ClientOverview: React.FC = () => {
       case 'Completed':
         return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'Cleaning In Progress':
-        return 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse';
+        return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'Crew Assigned':
         return 'bg-indigo-50 text-indigo-700 border-indigo-200';
       case 'Scheduled':
@@ -72,23 +70,18 @@ export const ClientOverview: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-        <p className="text-xs font-semibold text-slate-500">Loading client overview...</p>
-      </div>
-    );
+    return <LoadingSpinner message="Loading organization overview..." />;
   }
 
   if (error) {
     return (
-      <div className="p-6 bg-red-50 border border-red-200 rounded-2xl text-center space-y-3">
-        <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
-        <h3 className="text-sm font-bold text-red-900">Unable to load dashboard</h3>
-        <p className="text-xs text-red-700 max-w-md mx-auto">{error}</p>
+      <div className="p-6 bg-rose-50 border border-rose-200 rounded-2xl text-center space-y-3">
+        <AlertCircle className="w-8 h-8 text-rose-500 mx-auto" />
+        <h3 className="text-sm font-bold text-rose-900">Unable to load dashboard</h3>
+        <p className="text-xs text-rose-700 max-w-md mx-auto">{error}</p>
         <button
           onClick={fetchOverview}
-          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition"
+          className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition"
         >
           Try Again
         </button>
@@ -98,119 +91,128 @@ export const ClientOverview: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-lg">
-        <div className="relative z-10 space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-3xs font-semibold uppercase tracking-wider text-blue-200">
-            <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
-            Contract Portal
-          </div>
-          <h1 className="text-xl sm:text-2xl font-black tracking-tight">
-            {organization?.name || 'Client Dashboard'}
+      {/* HEADER & TOP QUICK ACTIONS (Matches AdminOverview) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900">
+            {organization?.name ? `${organization.name} Overview` : 'Client Overview'}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-            Welcome to your dedicated cleaning management workspace. Track upcoming services, review before & after photo evidence, and manage invoices with real-time auditability.
+          <p className="text-xs text-slate-500 mt-0.5">
+            Real-time cleaning service schedules, crew status, and contract billing summary
           </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Link
+            to="/client/events"
+            className="px-3.5 py-2 bg-white text-slate-700 hover:bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5"
+          >
+            <CalendarCheck2 className="w-4 h-4 text-blue-600" />
+            My Events
+          </Link>
+          <Link
+            to="/client/invoices"
+            className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+          >
+            <CreditCard className="w-4 h-4" />
+            Pay Invoices
+          </Link>
         </div>
       </div>
 
-      {/* 4 Main Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+      {/* METRIC TILES GRID (Matches AdminOverview) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-3xs sm:text-2xs font-bold uppercase tracking-wider text-slate-500">
+            <span className="text-2xs font-bold uppercase tracking-wider text-slate-400">
               Total Events
             </span>
             <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
               <Calendar className="w-4 h-4" />
             </div>
           </div>
-          <div>
-            <div className="text-2xl sm:text-3xl font-black text-slate-900">
-              {summary.totalEvents}
-            </div>
-            <p className="text-3xs text-slate-400 mt-1">Contract assignments</p>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl font-bold text-slate-900">{summary.totalEvents}</span>
           </div>
+          <span className="text-2xs text-slate-500 block mt-1">Contract assignments</span>
         </div>
 
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-3xs sm:text-2xs font-bold uppercase tracking-wider text-slate-500">
+            <span className="text-2xs font-bold uppercase tracking-wider text-slate-400">
               Upcoming Events
             </span>
             <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
               <Clock className="w-4 h-4" />
             </div>
           </div>
-          <div>
-            <div className="text-2xl sm:text-3xl font-black text-indigo-600">
-              {summary.upcomingEvents}
-            </div>
-            <p className="text-3xs text-slate-400 mt-1">Scheduled & in progress</p>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl font-bold text-indigo-600">{summary.upcomingEvents}</span>
           </div>
+          <span className="text-2xs text-slate-500 block mt-1">Scheduled & in progress</span>
         </div>
 
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-3xs sm:text-2xs font-bold uppercase tracking-wider text-slate-500">
+            <span className="text-2xs font-bold uppercase tracking-wider text-slate-400">
               Completed Events
             </span>
             <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <div>
-            <div className="text-2xl sm:text-3xl font-black text-emerald-600">
-              {summary.completedEvents}
-            </div>
-            <p className="text-3xs text-slate-400 mt-1">Verified work orders</p>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl font-bold text-emerald-600">{summary.completedEvents}</span>
           </div>
+          <span className="text-2xs text-slate-500 block mt-1">Verified work orders</span>
         </div>
 
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-3xs sm:text-2xs font-bold uppercase tracking-wider text-slate-500">
+            <span className="text-2xs font-bold uppercase tracking-wider text-slate-400">
               Pending Payments
             </span>
             <div className="p-2 bg-amber-50 text-amber-600 rounded-xl">
               <CreditCard className="w-4 h-4" />
             </div>
           </div>
-          <div>
-            <div className="text-2xl sm:text-3xl font-black text-amber-600">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl font-bold text-amber-600">
               ₹{summary.outstandingAmount.toLocaleString('en-IN')}
-            </div>
-            <p className="text-3xs text-slate-400 mt-1">{summary.pendingPayments} unpaid invoice(s)</p>
+            </span>
           </div>
+          <span className="text-2xs text-slate-500 block mt-1">
+            {summary.pendingPayments} unpaid invoice(s)
+          </span>
         </div>
       </div>
 
-      {/* Upcoming & Ongoing Events Section */}
-      <div className="space-y-4">
+      {/* UPCOMING & ONGOING EVENTS */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base sm:text-lg font-bold text-slate-900">
-              Upcoming & Ongoing Events
-            </h2>
-            <p className="text-3xs sm:text-2xs text-slate-500">
+            <h2 className="text-sm font-bold text-slate-900">Upcoming & Ongoing Events</h2>
+            <p className="text-2xs text-slate-500">
               Active cleaning sessions assigned to your contracted properties
             </p>
           </div>
           <button
             onClick={() => navigate('/client/events')}
-            className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 group"
+            className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
           >
             <span>View All</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
         {upcomingEvents.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-8 text-center space-y-2">
+          <div className="py-10 text-center space-y-2 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
             <Calendar className="w-8 h-8 text-slate-300 mx-auto" />
-            <p className="text-xs font-bold text-slate-700">No upcoming events currently scheduled</p>
-            <p className="text-3xs text-slate-400">
-              Your facility supervisor or Go_Repireo administrator will schedule your next maintenance session.
+            <p className="text-xs font-semibold text-slate-700">
+              No upcoming events currently scheduled
+            </p>
+            <p className="text-2xs text-slate-400 max-w-md mx-auto">
+              Your facility supervisor or Go_Repireo administrator will schedule your next service session.
             </p>
           </div>
         ) : (
@@ -219,49 +221,53 @@ export const ClientOverview: React.FC = () => {
               <div
                 key={evt.eventId}
                 onClick={() => navigate(`/client/events?id=${evt.eventId}`)}
-                className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex flex-col justify-between space-y-4"
+                className="bg-slate-50/60 hover:bg-white rounded-xl border border-slate-200/80 p-4 hover:shadow-sm hover:border-blue-300 transition-all cursor-pointer flex flex-col justify-between space-y-3"
               >
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <span
-                      className={`text-3xs font-extrabold px-2.5 py-0.5 rounded-full border ${getStatusBadge(
+                      className={`text-3xs font-bold px-2.5 py-0.5 rounded-full border ${getStatusBadge(
                         evt.computedStatus
                       )}`}
                     >
                       {evt.computedStatus}
                     </span>
-                    <span className="text-3xs text-slate-400 font-medium">
-                      {evt.date}
-                    </span>
+                    <span className="text-3xs text-slate-400 font-medium">{evt.date}</span>
                   </div>
 
-                  <h3 className="text-sm font-bold text-slate-900 line-clamp-1">
+                  <h3 className="text-xs font-bold text-slate-900 line-clamp-1">
                     {evt.eventName}
                   </h3>
 
-                  <div className="space-y-1.5 text-3xs text-slate-600">
-                    <div className="flex items-center gap-2">
+                  <div className="space-y-1 text-2xs text-slate-600">
+                    <div className="flex items-center gap-1.5">
                       <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span className="truncate">{evt.locationName || 'Main Facility'}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span>{evt.startTime} - {evt.endTime}</span>
+                      <span>
+                        {evt.startTime} - {evt.endTime}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <Users className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span>
-                        Crew: {evt.assignedTeam?.name || 'Assigned Crew'} ({evt.assignedWorkersCount || 0} Workers)
+                        {evt.assignedTeam?.name || 'Assigned Crew'} ({evt.assignedWorkersCount || 0}{' '}
+                        Workers)
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-3xs">
-                  <span className="text-slate-500 font-medium">
-                    Leader: <strong className="text-slate-800">{evt.teamLeader?.name || 'Field Supervisor'}</strong>
+                <div className="pt-2.5 border-t border-slate-200/60 flex items-center justify-between text-2xs">
+                  <span className="text-slate-500">
+                    Leader:{' '}
+                    <strong className="text-slate-800">
+                      {evt.teamLeader?.name || 'Field Supervisor'}
+                    </strong>
                   </span>
-                  <span className="text-blue-600 font-bold flex items-center gap-1">
+                  <span className="text-blue-600 font-semibold flex items-center gap-0.5">
                     Details <ArrowRight className="w-3 h-3" />
                   </span>
                 </div>
@@ -271,17 +277,19 @@ export const ClientOverview: React.FC = () => {
         )}
       </div>
 
-      {/* Invoices & Quick Pay Preview */}
+      {/* INVOICES AWAITING SETTLEMENT */}
       {recentInvoices.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-bold text-slate-900">Invoices Awaiting Settlement</h2>
-              <p className="text-3xs text-slate-500">Quickly review and clear outstanding invoices</p>
+              <p className="text-2xs text-slate-500">
+                Quickly review and clear outstanding invoices
+              </p>
             </div>
             <button
               onClick={() => navigate('/client/invoices')}
-              className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+              className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
             >
               <span>Manage Invoices</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -291,16 +299,18 @@ export const ClientOverview: React.FC = () => {
           <div className="divide-y divide-slate-100">
             {recentInvoices.slice(0, 3).map((inv) => (
               <div key={inv.invoiceId} className="py-3 flex items-center justify-between gap-3">
-                <div className="space-y-0.5">
+                <div className="space-y-0.5 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-slate-900">{inv.invoiceNumber}</span>
                     <span className="text-3xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
                       {inv.status}
                     </span>
                   </div>
-                  <p className="text-3xs text-slate-500">{inv.eventName || 'Scheduled Service'}</p>
+                  <p className="text-2xs text-slate-500 truncate">
+                    {inv.eventName || 'Scheduled Service'}
+                  </p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 shrink-0">
                   <div className="text-right">
                     <div className="text-xs font-bold text-slate-900">
                       ₹{Number(inv.amount).toLocaleString('en-IN')}
@@ -309,7 +319,7 @@ export const ClientOverview: React.FC = () => {
                   </div>
                   <button
                     onClick={() => navigate('/client/invoices')}
-                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-3xs font-bold rounded-xl transition"
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-2xs font-bold rounded-lg transition"
                   >
                     Pay Now
                   </button>

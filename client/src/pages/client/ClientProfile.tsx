@@ -96,10 +96,10 @@ export const ClientProfile: React.FC = () => {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Title */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-xl font-bold text-slate-900">
           Organization Profile
         </h1>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-500 mt-0.5">
           Manage your enterprise organization details, service contracts, and authorized points of contact
         </p>
       </div>

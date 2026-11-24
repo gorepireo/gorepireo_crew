@@ -64,10 +64,10 @@ export const ClientReceipts: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-xl font-bold text-slate-900">
           Payment History & Receipts
         </h1>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-500 mt-0.5">
           Official tax receipts and transaction ledger for all settled contract invoices
         </p>
       </div>

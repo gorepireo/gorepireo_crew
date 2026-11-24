@@ -111,10 +111,10 @@ export const ClientInvoices: React.FC = () => {
     <div className="space-y-6">
       {/* Page Title */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-xl font-bold text-slate-900">
           Payments & Invoices
         </h1>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-500 mt-0.5">
           Track contract billing, settle pending invoices, and download instant payment receipts
         </p>
       </div>
