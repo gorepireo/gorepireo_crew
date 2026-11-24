@@ -44,8 +44,6 @@
   html, body {
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
-    overscroll-behavior: none !important;
-    overscroll-behavior-y: none !important;
   }
 
   body {

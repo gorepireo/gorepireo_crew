@@ -29,9 +29,9 @@ export const ClientLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex justify-center text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900">
+    <div className="h-[100dvh] bg-slate-950 flex justify-center text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900 overflow-hidden">
       {/* MOBILE-FIRST SHELL CONTAINER (All screen sizes, no PC sidebar) */}
-      <div className="w-full max-w-md bg-[#eef3f9] min-h-screen flex flex-col shadow-2xl relative overflow-x-hidden">
+      <div className="w-full max-w-md bg-[#eef3f9] h-full flex flex-col shadow-2xl relative overflow-hidden">
         {/* TRANSPARENT TOP APP HEADER (Blends seamlessly into Hero, no bar/border) */}
         <header className="absolute top-0 inset-x-0 z-20 px-4 pt-3.5 pb-2 flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -77,46 +77,44 @@ export const ClientLayout: React.FC = () => {
         </header>
 
         {/* MAIN PAGE BODY */}
-        <main className="flex-1 overflow-x-hidden overscroll-none pb-20">
+        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-y-contain pb-4">
           <Outlet />
         </main>
 
-        {/* BOTTOM NAVIGATION BAR (Fixed 5-Column Fluid Grid with Royal Blue Active Pill) */}
-        <footer className="fixed bottom-0 left-0 right-0 z-40 flex justify-center pointer-events-none">
-          <div className="w-full max-w-md bg-white/95 backdrop-blur-md border-t border-slate-200/80 pt-1.5 pb-2.5 px-2 shadow-[0_-6px_24px_rgba(15,23,42,0.08)] pointer-events-auto">
-            <nav className="grid grid-cols-5 w-full items-center gap-1">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div key={item.to} className="flex justify-center w-full">
-                    <NavLink
-                      to={item.to}
-                      className={({ isActive }) =>
-                        `w-full max-w-[72px] h-[52px] flex flex-col items-center justify-center rounded-2xl transition-all duration-150 ${
-                          isActive
-                            ? 'bg-gradient-to-b from-[#2563eb] to-[#1d4ed8] text-white font-bold shadow-md shadow-blue-600/25'
-                            : 'text-slate-500 hover:text-slate-800 font-semibold'
-                        }`
-                      }
-                    >
-                      {({ isActive }) => (
-                        <>
-                          <Icon
-                            className={`w-4.5 h-4.5 shrink-0 ${
-                              isActive ? 'text-white stroke-[2.2]' : 'stroke-[1.9]'
-                            }`}
-                          />
-                          <span className="text-3xs mt-0.5 tracking-tight truncate max-w-full px-0.5">
-                            {item.label}
-                          </span>
-                        </>
-                      )}
-                    </NavLink>
-                  </div>
-                );
-              })}
-            </nav>
-          </div>
+        {/* BOTTOM NAVIGATION BAR (Flex Sibling - Never Overlays Content) */}
+        <footer className="shrink-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 pt-1.5 pb-2.5 px-2 shadow-[0_-6px_24px_rgba(15,23,42,0.08)]">
+          <nav className="grid grid-cols-5 w-full items-center gap-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.to} className="flex justify-center w-full">
+                  <NavLink
+                    to={item.to}
+                    className={({ isActive }) =>
+                      `w-full max-w-[72px] h-[52px] flex flex-col items-center justify-center rounded-2xl transition-all duration-150 ${
+                        isActive
+                          ? 'bg-gradient-to-b from-[#2563eb] to-[#1d4ed8] text-white font-bold shadow-md shadow-blue-600/25'
+                          : 'text-slate-500 hover:text-slate-800 font-semibold'
+                      }`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <Icon
+                          className={`w-4.5 h-4.5 shrink-0 ${
+                            isActive ? 'text-white stroke-[2.2]' : 'stroke-[1.9]'
+                          }`}
+                        />
+                        <span className="text-3xs mt-0.5 tracking-tight truncate max-w-full px-0.5">
+                          {item.label}
+                        </span>
+                      </>
+                    )}
+                  </NavLink>
+                </div>
+              );
+            })}
+          </nav>
         </footer>
       </div>
     </div>
