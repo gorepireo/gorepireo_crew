@@ -32,10 +32,10 @@ export const ClientLayout: React.FC = () => {
     <div className="min-h-screen bg-slate-950 flex justify-center text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900">
       {/* MOBILE-FIRST SHELL CONTAINER (All screen sizes, no PC sidebar) */}
       <div className="w-full max-w-md bg-[#eef3f9] min-h-screen flex flex-col shadow-2xl relative overflow-x-hidden">
-        {/* TOP DARK-NAVY APP BAR */}
-        <header className="sticky top-0 z-30 bg-[#0b1b3d]/95 backdrop-blur-md px-4 h-14 flex items-center justify-between shrink-0 border-b border-white/10">
+        {/* TRANSPARENT TOP APP HEADER (Blends seamlessly into Hero, no bar/border) */}
+        <header className="absolute top-0 inset-x-0 z-20 px-4 pt-3.5 pb-2 flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-xl overflow-hidden bg-slate-900 border border-white/20 flex items-center justify-center shrink-0 shadow-xs">
+            <div className="w-9 h-9 rounded-xl overflow-hidden bg-slate-900 border border-white/25 flex items-center justify-center shrink-0 shadow-sm">
               <img
                 src={settings?.orgLogo || '/logo.png'}
                 alt={settings?.orgName || 'Go_Repireo Crew'}
@@ -43,15 +43,15 @@ export const ClientLayout: React.FC = () => {
               />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-white text-xs truncate">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-white text-sm truncate">
                   {user?.organizationName || 'Apex Corporate Towers'}
                 </span>
-                <span className="text-4xs font-bold text-blue-100 bg-white/15 px-1.5 py-0.5 rounded-md shrink-0">
+                <span className="text-4xs font-extrabold text-white bg-[#1a63ed] px-2.5 py-0.5 rounded-full shrink-0 shadow-xs">
                   B2B
                 </span>
               </div>
-              <p className="text-4xs text-blue-200/80 truncate">
+              <p className="text-3xs text-blue-100/85 truncate leading-tight">
                 {user?.displayName || 'Client Portal'}
               </p>
             </div>
@@ -61,17 +61,17 @@ export const ClientLayout: React.FC = () => {
             <button
               onClick={() => navigate('/client/events')}
               title="Notifications & Updates"
-              className="p-2 rounded-xl text-blue-100 hover:text-white hover:bg-white/10 transition-colors relative"
+              className="p-2 rounded-xl text-white/90 hover:text-white hover:bg-white/10 transition-colors relative"
             >
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-orange-500 ring-2 ring-[#0b1b3d]" />
+              <Bell className="w-4.5 h-4.5" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-orange-500" />
             </button>
             <button
               onClick={handleLogout}
               title="Sign Out"
-              className="p-2 rounded-xl text-blue-100 hover:text-white hover:bg-white/10 transition-colors"
+              className="p-2 rounded-xl text-white/90 hover:text-white hover:bg-white/10 transition-colors"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4.5 h-4.5" />
             </button>
           </div>
         </header>

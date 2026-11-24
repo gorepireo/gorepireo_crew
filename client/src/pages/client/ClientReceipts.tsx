@@ -68,9 +68,9 @@ export const ClientReceipts: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* FULL-BLEED HERO HEADER */}
-      <div className="relative bg-gradient-to-b from-[#0b1b3d] via-[#133274] to-[#1e4aa8] px-4 pt-4 pb-8 overflow-hidden">
+      <div className="relative bg-gradient-to-b from-[#06122c] via-[#133274] to-[#1e4aa8] px-4 pt-16 pb-8 overflow-hidden">
         {/* Stylized Receipt Graphic on Right */}
-        <div className="absolute right-4 top-4 opacity-90 pointer-events-none">
+        <div className="absolute right-4 top-16 opacity-90 pointer-events-none">
           <div className="w-16 h-20 rounded-2xl bg-gradient-to-br from-blue-100 to-white shadow-lg p-2.5 flex flex-col justify-between relative rotate-3 border border-white/60">
             <div className="space-y-1.5">
               <div className="h-1.5 w-8 bg-blue-500 rounded-full" />

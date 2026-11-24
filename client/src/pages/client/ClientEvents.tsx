@@ -101,7 +101,7 @@ export const ClientEvents: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* FULL-BLEED HERO HEADER */}
-      <div className="relative bg-gradient-to-b from-[#0b1b3d] via-[#133274] to-[#1e4aa8] px-4 pt-4 pb-8 overflow-hidden">
+      <div className="relative bg-gradient-to-b from-[#06122c] via-[#133274] to-[#1e4aa8] px-4 pt-16 pb-8 overflow-hidden">
         <div
           className="absolute top-0 right-0 w-52 h-full opacity-35 pointer-events-none bg-cover bg-center"
           style={{
