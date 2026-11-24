@@ -108,7 +108,7 @@ export const ClientInvoices: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-3.5 sm:p-4 space-y-4">
       {/* Page Title */}
       <div>
         <h1 className="text-xl font-bold text-slate-900">

@@ -70,163 +70,199 @@ export const ClientOverview: React.FC = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner message="Loading organization overview..." />;
+    return (
+      <div className="p-4">
+        <LoadingSpinner message="Loading organization overview..." />
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="p-6 bg-rose-50 border border-rose-200 rounded-2xl text-center space-y-3">
-        <AlertCircle className="w-8 h-8 text-rose-500 mx-auto" />
-        <h3 className="text-sm font-bold text-rose-900">Unable to load dashboard</h3>
-        <p className="text-xs text-rose-700 max-w-md mx-auto">{error}</p>
-        <button
-          onClick={fetchOverview}
-          className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition"
-        >
-          Try Again
-        </button>
+      <div className="p-4">
+        <div className="p-6 bg-rose-50 border border-rose-200 rounded-2xl text-center space-y-3">
+          <AlertCircle className="w-8 h-8 text-rose-500 mx-auto" />
+          <h3 className="text-sm font-bold text-rose-900">Unable to load dashboard</h3>
+          <p className="text-xs text-rose-700 max-w-md mx-auto">{error}</p>
+          <button
+            onClick={fetchOverview}
+            className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* HEADER & TOP QUICK ACTIONS (Matches AdminOverview) */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">
-            {organization?.name ? `${organization.name} Overview` : 'Client Overview'}
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Real-time cleaning service schedules, crew status, and contract billing summary
-          </p>
-        </div>
+    <div className="space-y-4">
+      {/* FULL-BLEED HERO HEADER WITH ARCHITECTURAL GLASS BACKDROP */}
+      <div className="relative bg-gradient-to-b from-[#0b1b3d] via-[#133274] to-[#1e4aa8] px-4 pt-4 pb-6 overflow-hidden">
+        {/* Subtle Glass Tower Image on Right */}
+        <div
+          className="absolute top-0 right-0 w-56 h-full opacity-35 pointer-events-none bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&auto=format&fit=crop&q=80')",
+            maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 100%)',
+            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 100%)',
+          }}
+        />
+        {/* Soft Bottom Fade */}
+        <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#eef3f9] to-transparent pointer-events-none" />
 
-        <div className="flex items-center gap-2">
-          <Link
-            to="/client/events"
-            className="px-3.5 py-2 bg-white text-slate-700 hover:bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5"
-          >
-            <CalendarCheck2 className="w-4 h-4 text-blue-600" />
-            My Events
-          </Link>
-          <Link
-            to="/client/invoices"
-            className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
-          >
-            <CreditCard className="w-4 h-4" />
-            Pay Invoices
-          </Link>
+        <div className="relative z-10 space-y-4">
+          <div className="space-y-2 max-w-[85%]">
+            <h1 className="text-2xl font-black text-white leading-tight tracking-tight">
+              {organization?.name || 'Apex Corporate Towers'} Overview
+            </h1>
+            <p className="text-xs text-blue-100/90 leading-relaxed border-l-2 border-blue-400 pl-2.5">
+              Real-time cleaning service schedules, crew status, and contract billing summary.
+            </p>
+          </div>
+
+          {/* TWO ACTION BUTTONS */}
+          <div className="grid grid-cols-2 gap-3 pt-1">
+            <Link
+              to="/client/events"
+              className="bg-white hover:bg-slate-50 text-slate-900 rounded-2xl py-3 px-3.5 text-xs font-bold shadow-lg shadow-slate-900/15 flex items-center justify-center gap-2 transition active:scale-98"
+            >
+              <Calendar className="w-4 h-4 text-blue-600" />
+              <span>My Events</span>
+            </Link>
+            <Link
+              to="/client/invoices"
+              className="bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] hover:from-[#1d4ed8] hover:to-[#1e40af] text-white rounded-2xl py-3 px-3.5 text-xs font-bold shadow-lg shadow-blue-900/30 flex items-center justify-center gap-2 transition active:scale-98"
+            >
+              <CreditCard className="w-4 h-4 text-blue-100" />
+              <span>Pay Invoices</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* METRIC TILES GRID */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-2xs font-bold uppercase tracking-wider text-slate-400">
-              Total Events
-            </span>
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-              <Calendar className="w-4 h-4" />
+      {/* BODY CONTENT */}
+      <div className="px-3.5 space-y-4">
+        {/* 4 KPI METRIC TILES WITH SOFT PASTEL CORNER WAVES */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* 1. Total Events */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/70 shadow-sm relative overflow-hidden">
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-blue-50/90 pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-xs font-semibold text-slate-700">Total Events</span>
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-xl shrink-0">
+                  <Calendar className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl font-black text-slate-900 mt-1">{summary.totalEvents}</div>
+              <span className="text-3xs text-slate-500 block mt-0.5">Contract assignments</span>
             </div>
           </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-bold text-slate-900">{summary.totalEvents}</span>
-          </div>
-          <span className="text-2xs text-slate-500 block mt-1">Contract assignments</span>
-        </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-2xs font-bold uppercase tracking-wider text-slate-400">
-              Upcoming Events
-            </span>
-            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
-              <Clock className="w-4 h-4" />
+          {/* 2. Upcoming Events */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/70 shadow-sm relative overflow-hidden">
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-indigo-50/90 pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-xs font-semibold text-slate-700">Upcoming Events</span>
+                <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl shrink-0">
+                  <Clock className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl font-black text-indigo-600 mt-1">
+                {summary.upcomingEvents}
+              </div>
+              <span className="text-3xs text-slate-500 block mt-0.5">Scheduled & in progress</span>
             </div>
           </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-bold text-indigo-600">{summary.upcomingEvents}</span>
-          </div>
-          <span className="text-2xs text-slate-500 block mt-1">Scheduled & in progress</span>
-        </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-2xs font-bold uppercase tracking-wider text-slate-400">
-              Completed Events
-            </span>
-            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
-              <CheckCircle2 className="w-4 h-4" />
+          {/* 3. Completed Events */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/70 shadow-sm relative overflow-hidden">
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-emerald-50/90 pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-xs font-semibold text-slate-700">Completed Events</span>
+                <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl shrink-0">
+                  <CheckCircle2 className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl font-black text-emerald-600 mt-1">
+                {summary.completedEvents}
+              </div>
+              <span className="text-3xs text-slate-500 block mt-0.5">Verified work orders</span>
             </div>
           </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-bold text-emerald-600">{summary.completedEvents}</span>
-          </div>
-          <span className="text-2xs text-slate-500 block mt-1">Verified work orders</span>
-        </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-2xs font-bold uppercase tracking-wider text-slate-400">
-              Pending Payments
-            </span>
-            <div className="p-2 bg-amber-50 text-amber-600 rounded-xl">
-              <CreditCard className="w-4 h-4" />
+          {/* 4. Pending Payments */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/70 shadow-sm relative overflow-hidden">
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-orange-50/90 pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-xs font-semibold text-slate-700">Pending Payments</span>
+                <div className="p-2 bg-orange-50 text-orange-600 rounded-xl shrink-0">
+                  <CreditCard className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl font-black text-[#ea580c] mt-1">
+                ₹{summary.outstandingAmount.toLocaleString('en-IN')}
+              </div>
+              <span className="text-3xs text-slate-500 block mt-0.5">
+                {summary.pendingPayments} unpaid invoice(s)
+              </span>
             </div>
           </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-bold text-amber-600">
-              ₹{summary.outstandingAmount.toLocaleString('en-IN')}
-            </span>
-          </div>
-          <span className="text-2xs text-slate-500 block mt-1">
-            {summary.pendingPayments} unpaid invoice(s)
-          </span>
-        </div>
-      </div>
-
-      {/* UPCOMING & ONGOING EVENTS */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-bold text-slate-900">Upcoming & Ongoing Events</h2>
-            <p className="text-2xs text-slate-500">
-              Active cleaning sessions assigned to your contracted properties
-            </p>
-          </div>
-          <button
-            onClick={() => navigate('/client/events')}
-            className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
-          >
-            <span>View All</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
         </div>
 
-        {upcomingEvents.length === 0 ? (
-          <div className="py-10 text-center space-y-2 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-            <Calendar className="w-8 h-8 text-slate-300 mx-auto" />
-            <p className="text-xs font-semibold text-slate-700">
-              No upcoming events currently scheduled
-            </p>
-            <p className="text-2xs text-slate-400 max-w-md mx-auto">
-              Your facility supervisor or Go_Repireo administrator will schedule your next service session.
-            </p>
+        {/* UPCOMING & ONGOING EVENTS CARD */}
+        <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-4 space-y-3.5">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start gap-2.5 min-w-0">
+              <div className="p-2 bg-blue-50 text-blue-600 rounded-xl shrink-0 mt-0.5">
+                <Calendar className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-sm font-bold text-slate-900">Upcoming & Ongoing Events</h2>
+                <p className="text-3xs text-slate-500 leading-snug">
+                  Active cleaning sessions assigned to your contracted properties
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/client/events')}
+              className="px-3 py-1.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 text-3xs font-bold flex items-center gap-1 shrink-0 transition"
+            >
+              <span>View All</span>
+              <ArrowRight className="w-3 h-3" />
+            </button>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-3">
-            {upcomingEvents.map((evt) => (
-              <div
-                key={evt.eventId}
-                onClick={() => navigate(`/client/events?id=${evt.eventId}`)}
-                className="bg-slate-50/60 hover:bg-white rounded-xl border border-slate-200/80 p-4 hover:shadow-sm hover:border-blue-300 transition-all cursor-pointer flex flex-col justify-between space-y-3"
-              >
-                <div className="space-y-2">
+
+          {upcomingEvents.length === 0 ? (
+            <div className="py-8 px-4 text-center space-y-2 border border-slate-200/70 rounded-2xl bg-[#f8fafc]">
+              <div className="w-11 h-11 rounded-2xl bg-blue-100/70 text-blue-600 flex items-center justify-center mx-auto">
+                <CalendarCheck2 className="w-6 h-6" />
+              </div>
+              <p className="text-xs font-bold text-slate-800">
+                No upcoming events currently scheduled
+              </p>
+              <p className="text-3xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+                Your facility supervisor or Go_Repireo administrator will schedule your next service
+                session.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {upcomingEvents.map((evt) => (
+                <div
+                  key={evt.eventId}
+                  onClick={() => navigate(`/client/events?id=${evt.eventId}`)}
+                  className="bg-[#f8fafc] hover:bg-white rounded-2xl border border-slate-200/80 p-3.5 hover:shadow-sm hover:border-blue-300 transition-all cursor-pointer space-y-2.5"
+                >
                   <div className="flex items-start justify-between gap-2">
                     <span
-                      className={`text-3xs font-bold px-2.5 py-0.5 rounded-full border ${getStatusBadge(
+                      className={`text-4xs font-bold px-2.5 py-0.5 rounded-full border ${getStatusBadge(
                         evt.computedStatus
                       )}`}
                     >
@@ -235,11 +271,9 @@ export const ClientOverview: React.FC = () => {
                     <span className="text-3xs text-slate-400 font-medium">{evt.date}</span>
                   </div>
 
-                  <h3 className="text-xs font-bold text-slate-900 line-clamp-1">
-                    {evt.eventName}
-                  </h3>
+                  <h3 className="text-xs font-bold text-slate-900 line-clamp-1">{evt.eventName}</h3>
 
-                  <div className="space-y-1 text-2xs text-slate-600">
+                  <div className="space-y-1 text-3xs text-slate-600">
                     <div className="flex items-center gap-1.5">
                       <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span className="truncate">{evt.locationName || 'Main Facility'}</span>
@@ -258,77 +292,77 @@ export const ClientOverview: React.FC = () => {
                       </span>
                     </div>
                   </div>
-                </div>
 
-                <div className="pt-2.5 border-t border-slate-200/60 flex items-center justify-between text-2xs">
-                  <span className="text-slate-500">
-                    Leader:{' '}
-                    <strong className="text-slate-800">
-                      {evt.teamLeader?.name || 'Field Supervisor'}
-                    </strong>
-                  </span>
-                  <span className="text-blue-600 font-semibold flex items-center gap-0.5">
-                    Details <ArrowRight className="w-3 h-3" />
-                  </span>
+                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-3xs">
+                    <span className="text-slate-500">
+                      Leader:{' '}
+                      <strong className="text-slate-800">
+                        {evt.teamLeader?.name || 'Field Supervisor'}
+                      </strong>
+                    </span>
+                    <span className="text-blue-600 font-bold flex items-center gap-0.5">
+                      Details <ArrowRight className="w-3 h-3" />
+                    </span>
+                  </div>
                 </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* INVOICES AWAITING SETTLEMENT */}
+        {recentInvoices.length > 0 && (
+          <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-bold text-slate-900">Invoices Awaiting Settlement</h2>
+                <p className="text-3xs text-slate-500">
+                  Quickly review and clear outstanding invoices
+                </p>
               </div>
-            ))}
+              <button
+                onClick={() => navigate('/client/invoices')}
+                className="text-3xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+              >
+                <span>Manage</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+
+            <div className="divide-y divide-slate-100">
+              {recentInvoices.slice(0, 3).map((inv) => (
+                <div key={inv.invoiceId} className="py-2.5 flex items-center justify-between gap-3">
+                  <div className="space-y-0.5 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-slate-900">{inv.invoiceNumber}</span>
+                      <span className="text-4xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                        {inv.status}
+                      </span>
+                    </div>
+                    <p className="text-3xs text-slate-500 truncate">
+                      {inv.eventName || 'Scheduled Service'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2.5 shrink-0">
+                    <div className="text-right">
+                      <div className="text-xs font-bold text-slate-900">
+                        ₹{Number(inv.amount).toLocaleString('en-IN')}
+                      </div>
+                      <div className="text-4xs text-slate-400">Due: {inv.dueDate}</div>
+                    </div>
+                    <button
+                      onClick={() => navigate('/client/invoices')}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-3xs font-bold rounded-xl transition"
+                    >
+                      Pay Now
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
-
-      {/* INVOICES AWAITING SETTLEMENT */}
-      {recentInvoices.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">Invoices Awaiting Settlement</h2>
-              <p className="text-2xs text-slate-500">
-                Quickly review and clear outstanding invoices
-              </p>
-            </div>
-            <button
-              onClick={() => navigate('/client/invoices')}
-              className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
-            >
-              <span>Manage Invoices</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          <div className="divide-y divide-slate-100">
-            {recentInvoices.slice(0, 3).map((inv) => (
-              <div key={inv.invoiceId} className="py-3 flex items-center justify-between gap-3">
-                <div className="space-y-0.5 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-900">{inv.invoiceNumber}</span>
-                    <span className="text-3xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                      {inv.status}
-                    </span>
-                  </div>
-                  <p className="text-2xs text-slate-500 truncate">
-                    {inv.eventName || 'Scheduled Service'}
-                  </p>
-                </div>
-                <div className="flex items-center gap-4 shrink-0">
-                  <div className="text-right">
-                    <div className="text-xs font-bold text-slate-900">
-                      ₹{Number(inv.amount).toLocaleString('en-IN')}
-                    </div>
-                    <div className="text-3xs text-slate-400">Due: {inv.dueDate}</div>
-                  </div>
-                  <button
-                    onClick={() => navigate('/client/invoices')}
-                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-2xs font-bold rounded-lg transition"
-                  >
-                    Pay Now
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
