@@ -243,130 +243,167 @@ export const ClientReceipts: React.FC = () => {
         </div>
       </div>
 
-      {/* PRINTABLE OFFICIAL RECEIPT MODAL */}
+      {/* PRINTABLE OFFICIAL RECEIPT MODAL (Perforated Ticket Style) */}
       {selectedReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in zoom-in-95 space-y-6">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 print:hidden">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Official Payment Receipt
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handlePrint}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-3xs font-bold rounded-xl transition inline-flex items-center gap-1.5 shadow-xs"
-                >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Print / PDF</span>
-                </button>
-                <button
-                  onClick={() => setSelectedReceipt(null)}
-                  className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 bg-slate-900/65 backdrop-blur-xs overflow-y-auto">
+          {/* Top Action Pill Row (Hidden when printing) */}
+          <div className="w-full max-w-sm flex items-center justify-between mb-3 print:hidden">
+            <button
+              onClick={handlePrint}
+              className="px-4 py-2 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-full shadow-lg inline-flex items-center gap-1.5 transition"
+            >
+              <Printer className="w-3.5 h-3.5 text-blue-600" />
+              <span>Print / Save PDF</span>
+            </button>
+            <button
+              onClick={() => setSelectedReceipt(null)}
+              className="w-8 h-8 rounded-full bg-white/90 hover:bg-white text-slate-700 flex items-center justify-center shadow-lg transition"
+              aria-label="Close receipt"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* TICKET RECEIPT CARD */}
+          <div
+            id="printable-receipt"
+            className="w-full max-w-sm bg-white rounded-t-3xl shadow-2xl overflow-visible relative animate-in zoom-in-95"
+          >
+            {/* 1. Top Celebration / Confirmation Header */}
+            <div className="px-6 pt-7 pb-5 text-center space-y-2">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-50 to-emerald-50 border border-blue-100 flex items-center justify-center mx-auto shadow-2xs text-2xl">
+                🎉
               </div>
+              <h2 className="text-xl font-black text-slate-900 tracking-tight">Thank you!</h2>
+              <p className="text-xs text-slate-500 leading-relaxed max-w-[230px] mx-auto">
+                Your payment receipt has been issued successfully
+              </p>
             </div>
 
-            <div id="printable-receipt" className="space-y-6 text-slate-800">
-              <div className="flex items-start justify-between">
+            {/* Perforated Divider 1 */}
+            <div className="relative flex items-center px-6">
+              <div className="w-5 h-5 rounded-full bg-slate-900/65 -ml-8.5 shrink-0 print:hidden" />
+              <div className="flex-1 border-t border-dashed border-slate-200 mx-1" />
+              <div className="w-5 h-5 rounded-full bg-slate-900/65 -mr-8.5 shrink-0 print:hidden" />
+            </div>
+
+            {/* 2. Receipt Metadata */}
+            <div className="px-6 py-5 space-y-4">
+              {/* Receipt ID & Amount */}
+              <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-lg mb-2">
-                    GR
-                  </div>
-                  <h2 className="text-base font-black text-slate-900">Go_Repireo Crew</h2>
-                  <p className="text-3xs text-slate-500">Enterprise Facility Management Services</p>
-                  <p className="text-3xs text-slate-400">GSTIN: 27AABCG1234F1Z5</p>
+                  <span className="text-4xs font-bold uppercase tracking-wider text-slate-400 block">
+                    RECEIPT ID
+                  </span>
+                  <span className="text-xs font-bold text-slate-900 font-mono mt-0.5 block">
+                    {selectedReceipt.receiptNumber || selectedReceipt.receiptId}
+                  </span>
                 </div>
                 <div className="text-right">
-                  <div className="inline-block px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-3xs font-extrabold uppercase mb-2">
-                    Payment Receipt
-                  </div>
-                  <p className="text-3xs text-slate-500">
-                    Receipt Ref: <strong>{selectedReceipt.receiptId}</strong>
-                  </p>
-                  <p className="text-3xs text-slate-500">Date: {selectedReceipt.paymentDate}</p>
+                  <span className="text-4xs font-bold uppercase tracking-wider text-slate-400 block">
+                    Amount
+                  </span>
+                  <span className="text-sm font-black text-slate-900 mt-0.5 block">
+                    ₹{Number(selectedReceipt.amount).toLocaleString('en-IN')}
+                  </span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-200/80 text-xs">
-                <div>
-                  <span className="text-3xs font-bold uppercase text-slate-400">Billed To</span>
-                  <p className="font-extrabold text-slate-900 mt-0.5">
+              {/* Date & Time */}
+              <div>
+                <span className="text-4xs font-bold uppercase tracking-wider text-slate-400 block">
+                  DATE & TIME
+                </span>
+                <span className="text-xs font-bold text-slate-900 mt-0.5 block">
+                  {selectedReceipt.paymentDate?.slice(0, 10)} •{' '}
+                  {selectedReceipt.paymentDate?.slice(11, 16) || '12:00'}
+                </span>
+              </div>
+
+              {/* Invoice & Event */}
+              <div>
+                <span className="text-4xs font-bold uppercase tracking-wider text-slate-400 block">
+                  INVOICE & SERVICE
+                </span>
+                <span className="text-xs font-bold text-blue-600 mt-0.5 block">
+                  {selectedReceipt.invoiceNumber}
+                </span>
+                <span className="text-3xs text-slate-600 line-clamp-1">
+                  {selectedReceipt.eventName || 'Contract Maintenance Settlement'}
+                </span>
+              </div>
+
+              {/* Payer & Method Pill Card */}
+              <div className="bg-[#f4f6fa] rounded-2xl p-3 flex items-center gap-3 border border-slate-200/50">
+                <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center shrink-0 shadow-2xs">
+                  <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-slate-900 truncate">
                     {selectedReceipt.organization?.name || 'Apex Corporate Towers'}
                   </p>
-                  <p className="text-3xs text-slate-500">
-                    Attn: {selectedReceipt.organization?.contactPerson || 'Authorized Representative'}
+                  <p className="text-3xs text-slate-500 font-mono truncate">
+                    {selectedReceipt.paymentMethod} • {selectedReceipt.transactionId}
                   </p>
-                  <p className="text-3xs text-slate-500">
-                    {selectedReceipt.organization?.phone} • {selectedReceipt.organization?.email}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-3xs font-bold uppercase text-slate-400">
-                    Transaction Details
-                  </span>
-                  <p className="text-3xs font-mono font-bold text-slate-800 mt-0.5 break-all">
-                    Txn ID: {selectedReceipt.transactionId}
-                  </p>
-                  <p className="text-3xs text-slate-600 mt-1">
-                    Invoice #: <strong>{selectedReceipt.invoiceNumber}</strong>
-                  </p>
-                  <p className="text-3xs text-slate-600">
-                    Method: <strong>{selectedReceipt.paymentMethod}</strong>
-                  </p>
-                </div>
-              </div>
-
-              <div className="border border-slate-200/80 rounded-2xl overflow-hidden">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 text-slate-500 text-3xs font-bold uppercase">
-                    <tr>
-                      <th className="py-2.5 px-4">Description</th>
-                      <th className="py-2.5 px-4 text-right">Settled Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-slate-700">
-                    <tr>
-                      <td className="py-3 px-4">
-                        <div className="font-bold text-slate-900">
-                          {selectedReceipt.eventName || 'Cleaning Work Order'}
-                        </div>
-                        <div className="text-3xs text-slate-400">
-                          Contract Maintenance Settlement
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-right font-black text-slate-900">
-                        ₹{Number(selectedReceipt.amount).toLocaleString('en-IN')}
-                      </td>
-                    </tr>
-                  </tbody>
-                  <tfoot className="bg-slate-50 font-black text-slate-900">
-                    <tr>
-                      <td className="py-3 px-4 text-right uppercase text-3xs">
-                        Total Amount Paid (INR):
-                      </td>
-                      <td className="py-3 px-4 text-right text-sm text-emerald-600">
-                        ₹{Number(selectedReceipt.amount).toLocaleString('en-IN')}
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-
-              <div className="pt-4 border-t border-slate-200/80 flex items-center justify-between text-3xs text-slate-500">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-emerald-600" />
-                  <span>
-                    This is a computer generated receipt verified by Go_Repireo Crew gateway.
-                  </span>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xs font-extrabold text-slate-800">Go_Repireo Accounts</div>
-                  <div className="text-4xs text-slate-400">Authorized Digital Seal</div>
                 </div>
               </div>
             </div>
+
+            {/* Perforated Divider 2 */}
+            <div className="relative flex items-center px-6">
+              <div className="w-4 h-4 rounded-full bg-slate-900/65 -ml-8 shrink-0 print:hidden" />
+              <div className="flex-1 border-t border-dashed border-slate-200 mx-1" />
+              <div className="w-4 h-4 rounded-full bg-slate-900/65 -mr-8 shrink-0 print:hidden" />
+            </div>
+
+            {/* 3. Barcode & Verification Footer */}
+            <div className="px-6 pt-5 pb-6 text-center space-y-2">
+              <svg
+                viewBox="0 0 220 46"
+                className="w-52 h-11 mx-auto text-slate-900"
+                aria-label="Receipt verification barcode"
+              >
+                {Array.from({ length: 44 }).map((_, i) => {
+                  const seed =
+                    (selectedReceipt.transactionId || 'GR2026').charCodeAt(
+                      i % (selectedReceipt.transactionId?.length || 6)
+                    ) + i * 7;
+                  const width = (seed % 3) + 1;
+                  const x = i * 5;
+                  return (
+                    <rect
+                      key={i}
+                      x={x}
+                      y={0}
+                      width={width}
+                      height={44}
+                      fill="currentColor"
+                    />
+                  );
+                })}
+              </svg>
+              <p className="text-4xs font-mono tracking-[0.25em] text-slate-500 uppercase">
+                {(selectedReceipt.transactionId || 'GR2026981240').slice(0, 14)}
+              </p>
+              <p className="text-4xs text-slate-400 pt-1">
+                Go_Repireo Crew • Verified Digital Seal
+              </p>
+            </div>
+
+            {/* Scalloped Bottom Edge */}
+            <div
+              className="h-3 w-full bg-white"
+              style={{
+                maskImage:
+                  'radial-gradient(circle at 10px 12px, transparent 6px, black 6.5px)',
+                maskSize: '20px 12px',
+                maskRepeat: 'repeat-x',
+                WebkitMaskImage:
+                  'radial-gradient(circle at 10px 12px, transparent 6px, black 6.5px)',
+                WebkitMaskSize: '20px 12px',
+                WebkitMaskRepeat: 'repeat-x',
+              }}
+            />
           </div>
         </div>
       )}
