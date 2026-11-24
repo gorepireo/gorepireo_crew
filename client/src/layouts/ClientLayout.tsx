@@ -32,52 +32,52 @@ export const ClientLayout: React.FC = () => {
     <div className="h-[100dvh] bg-slate-950 flex justify-center text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900 overflow-hidden">
       {/* MOBILE-FIRST SHELL CONTAINER (All screen sizes, no PC sidebar) */}
       <div className="w-full max-w-md bg-[#eef3f9] h-full flex flex-col shadow-2xl relative overflow-hidden">
-        {/* TRANSPARENT TOP APP HEADER (Blends seamlessly into Hero, no bar/border) */}
-        <header className="absolute top-0 inset-x-0 z-20 px-4 pt-3.5 pb-2 flex items-center justify-between">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl overflow-hidden bg-slate-900 border border-white/25 flex items-center justify-center shrink-0 shadow-sm">
-              <img
-                src={settings?.orgLogo || '/logo.png'}
-                alt={settings?.orgName || 'Go_Repireo Crew'}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-white text-sm truncate">
-                  {user?.organizationName || 'Apex Corporate Towers'}
-                </span>
-                <span className="text-4xs font-extrabold text-white bg-[#1a63ed] px-2.5 py-0.5 rounded-full shrink-0 shadow-xs">
-                  B2B
-                </span>
-              </div>
-              <p className="text-3xs text-blue-100/85 truncate leading-tight">
-                {user?.displayName || 'Client Portal'}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1 shrink-0">
-            <button
-              onClick={() => navigate('/client/events')}
-              title="Notifications & Updates"
-              className="p-2 rounded-xl text-white/90 hover:text-white hover:bg-white/10 transition-colors relative"
-            >
-              <Bell className="w-4.5 h-4.5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-orange-500" />
-            </button>
-            <button
-              onClick={handleLogout}
-              title="Sign Out"
-              className="p-2 rounded-xl text-white/90 hover:text-white hover:bg-white/10 transition-colors"
-            >
-              <LogOut className="w-4.5 h-4.5" />
-            </button>
-          </div>
-        </header>
-
         {/* MAIN PAGE BODY */}
         <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none pb-4">
+          {/* TRANSPARENT TOP HEADER (Inside scroll flow so it scrolls with hero, not pinned as a navbar) */}
+          <header className="relative z-20 px-4 pt-3.5 pb-2 flex items-center justify-between -mb-14">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 rounded-xl overflow-hidden bg-slate-900 border border-white/25 flex items-center justify-center shrink-0 shadow-sm">
+                <img
+                  src={settings?.orgLogo || '/logo.png'}
+                  alt={settings?.orgName || 'Go_Repireo Crew'}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-white text-sm truncate">
+                    {user?.organizationName || 'Apex Corporate Towers'}
+                  </span>
+                  <span className="text-4xs font-extrabold text-white bg-[#1a63ed] px-2.5 py-0.5 rounded-full shrink-0 shadow-xs">
+                    B2B
+                  </span>
+                </div>
+                <p className="text-3xs text-blue-100/85 truncate leading-tight">
+                  {user?.displayName || 'Client Portal'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={() => navigate('/client/events')}
+                title="Notifications & Updates"
+                className="p-2 rounded-xl text-white/90 hover:text-white hover:bg-white/10 transition-colors relative"
+              >
+                <Bell className="w-4.5 h-4.5" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-orange-500" />
+              </button>
+              <button
+                onClick={handleLogout}
+                title="Sign Out"
+                className="p-2 rounded-xl text-white/90 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <LogOut className="w-4.5 h-4.5" />
+              </button>
+            </div>
+          </header>
+
           <Outlet />
         </main>
 
