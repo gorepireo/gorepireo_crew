@@ -77,8 +77,9 @@ export const ClientLayout: React.FC = () => {
         </header>
 
         {/* MAIN PAGE BODY */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden pb-24">
+        <main className="flex-1 overflow-x-hidden pb-28">
           <Outlet />
+          <div className="h-4 shrink-0" aria-hidden="true" />
         </main>
 
         {/* BOTTOM NAVIGATION BAR (Fixed 5-Column Fluid Grid with Royal Blue Active Pill) */}
