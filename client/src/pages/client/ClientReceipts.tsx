@@ -267,10 +267,10 @@ export const ClientReceipts: React.FC = () => {
           {/* TICKET RECEIPT CARD */}
           <div
             id="printable-receipt"
-            className="w-full max-w-sm bg-white rounded-t-3xl shadow-2xl overflow-visible relative animate-in zoom-in-95"
+            className="w-full max-w-sm drop-shadow-2xl overflow-visible relative animate-in zoom-in-95"
           >
             {/* 1. Top Celebration / Confirmation Header */}
-            <div className="px-6 pt-7 pb-5 text-center space-y-2">
+            <div className="bg-white rounded-t-3xl px-6 pt-7 pb-4 text-center space-y-2">
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-50 to-emerald-50 border border-blue-100 flex items-center justify-center mx-auto shadow-2xs text-2xl">
                 🎉
               </div>
@@ -280,15 +280,25 @@ export const ClientReceipts: React.FC = () => {
               </p>
             </div>
 
-            {/* Perforated Divider 1 */}
-            <div className="relative flex items-center px-6">
-              <div className="w-5 h-5 rounded-full bg-slate-900/65 -ml-8.5 shrink-0 print:hidden" />
-              <div className="flex-1 border-t border-dashed border-slate-200 mx-1" />
-              <div className="w-5 h-5 rounded-full bg-slate-900/65 -mr-8.5 shrink-0 print:hidden" />
+            {/* True Transparent Perforated Divider 1 */}
+            <div className="relative flex items-center h-6 w-full">
+              <div
+                className="w-1/2 h-full"
+                style={{
+                  background: 'radial-gradient(circle at 0% 50%, transparent 10px, #ffffff 10.5px)',
+                }}
+              />
+              <div
+                className="w-1/2 h-full"
+                style={{
+                  background: 'radial-gradient(circle at 100% 50%, transparent 10px, #ffffff 10.5px)',
+                }}
+              />
+              <div className="absolute inset-x-5 top-1/2 -translate-y-1/2 border-t border-dashed border-slate-200" />
             </div>
 
             {/* 2. Receipt Metadata */}
-            <div className="px-6 py-5 space-y-4">
+            <div className="bg-white px-6 py-4 space-y-4">
               {/* Receipt ID & Amount */}
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -349,15 +359,25 @@ export const ClientReceipts: React.FC = () => {
               </div>
             </div>
 
-            {/* Perforated Divider 2 */}
-            <div className="relative flex items-center px-6">
-              <div className="w-4 h-4 rounded-full bg-slate-900/65 -ml-8 shrink-0 print:hidden" />
-              <div className="flex-1 border-t border-dashed border-slate-200 mx-1" />
-              <div className="w-4 h-4 rounded-full bg-slate-900/65 -mr-8 shrink-0 print:hidden" />
+            {/* True Transparent Perforated Divider 2 */}
+            <div className="relative flex items-center h-5 w-full">
+              <div
+                className="w-1/2 h-full"
+                style={{
+                  background: 'radial-gradient(circle at 0% 50%, transparent 8px, #ffffff 8.5px)',
+                }}
+              />
+              <div
+                className="w-1/2 h-full"
+                style={{
+                  background: 'radial-gradient(circle at 100% 50%, transparent 8px, #ffffff 8.5px)',
+                }}
+              />
+              <div className="absolute inset-x-5 top-1/2 -translate-y-1/2 border-t border-dashed border-slate-200" />
             </div>
 
             {/* 3. Barcode & Verification Footer */}
-            <div className="px-6 pt-5 pb-6 text-center space-y-2">
+            <div className="bg-white px-6 pt-4 pb-5 text-center space-y-2">
               <svg
                 viewBox="0 0 220 46"
                 className="w-52 h-11 mx-auto text-slate-900"
@@ -392,16 +412,12 @@ export const ClientReceipts: React.FC = () => {
 
             {/* Scalloped Bottom Edge */}
             <div
-              className="h-3 w-full bg-white"
+              className="h-3 w-full"
               style={{
-                maskImage:
-                  'radial-gradient(circle at 10px 12px, transparent 6px, black 6.5px)',
-                maskSize: '20px 12px',
-                maskRepeat: 'repeat-x',
-                WebkitMaskImage:
-                  'radial-gradient(circle at 10px 12px, transparent 6px, black 6.5px)',
-                WebkitMaskSize: '20px 12px',
-                WebkitMaskRepeat: 'repeat-x',
+                background:
+                  'radial-gradient(circle at 10px 12px, transparent 6px, #ffffff 6.5px)',
+                backgroundSize: '20px 12px',
+                backgroundRepeat: 'repeat-x',
               }}
             />
           </div>
