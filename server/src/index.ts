@@ -92,8 +92,11 @@ for (const [routePath, routeHandler] of routeMap) {
 
 // Error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err instanceof SyntaxError && (err as any).status === 400 && 'body' in err) {
+    return res.status(400).json({ error: 'Invalid JSON request format', details: err.message });
+  }
   console.error('Unhandled server error:', err);
-  res.status(500).json({ error: 'Internal server error', details: err?.message });
+  res.status(err.status || 500).json({ error: err.message || 'Internal server error', details: err?.message });
 });
 
 // Attach self-references so app is callable via default or named import in any bundler

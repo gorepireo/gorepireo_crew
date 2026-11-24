@@ -1153,10 +1153,93 @@ class DatabaseService {
           authToken: tursoToken,
         });
         console.log('[TURSO] Active client connected to:', tursoUrl);
+        await this.ensureTursoB2BSchema();
         await this.syncFromTurso();
       } catch (err: any) {
         console.warn('[TURSO] Could not initialize cloud database client:', err.message);
       }
+    }
+  }
+
+  private async ensureTursoB2BSchema(): Promise<void> {
+    if (!this.tursoClient) return;
+    try {
+      await this.tursoClient.execute(`
+        CREATE TABLE IF NOT EXISTS organizations (
+          organizationId TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          contactPerson TEXT NOT NULL,
+          email TEXT NOT NULL,
+          phone TEXT NOT NULL,
+          address TEXT,
+          serviceLocationIds TEXT,
+          contractStartDate TEXT NOT NULL,
+          contractEndDate TEXT,
+          contractPricing REAL,
+          paymentTerms TEXT,
+          status TEXT DEFAULT 'ACTIVE',
+          notes TEXT,
+          createdAt TEXT,
+          updatedAt TEXT
+        )
+      `);
+
+      await this.tursoClient.execute(`
+        CREATE TABLE IF NOT EXISTS invoices (
+          invoiceId TEXT PRIMARY KEY,
+          invoiceNumber TEXT NOT NULL,
+          organizationId TEXT NOT NULL,
+          organizationName TEXT NOT NULL,
+          assignmentId TEXT,
+          eventName TEXT,
+          issueDate TEXT,
+          dueDate TEXT NOT NULL,
+          amount REAL NOT NULL,
+          amountPaid REAL DEFAULT 0,
+          status TEXT DEFAULT 'PENDING',
+          description TEXT,
+          items TEXT,
+          notes TEXT,
+          createdAt TEXT,
+          updatedAt TEXT
+        )
+      `);
+
+      await this.tursoClient.execute(`
+        CREATE TABLE IF NOT EXISTS payments (
+          paymentId TEXT PRIMARY KEY,
+          receiptNumber TEXT NOT NULL,
+          invoiceId TEXT NOT NULL,
+          invoiceNumber TEXT NOT NULL,
+          organizationId TEXT NOT NULL,
+          organizationName TEXT NOT NULL,
+          assignmentId TEXT,
+          eventName TEXT,
+          amount REAL NOT NULL,
+          paymentDate TEXT NOT NULL,
+          paymentMethod TEXT NOT NULL,
+          transactionId TEXT NOT NULL,
+          status TEXT DEFAULT 'SUCCESS',
+          recordedBy TEXT,
+          recordedByName TEXT,
+          notes TEXT,
+          receiptUrl TEXT,
+          createdAt TEXT,
+          updatedAt TEXT
+        )
+      `);
+
+      // Add columns to existing tables if needed
+      await this.tursoClient.execute('ALTER TABLE users ADD COLUMN organizationId TEXT').catch(() => {});
+      await this.tursoClient.execute('ALTER TABLE users ADD COLUMN organizationName TEXT').catch(() => {});
+      await this.tursoClient.execute('ALTER TABLE assignments ADD COLUMN organizationId TEXT').catch(() => {});
+      await this.tursoClient.execute('ALTER TABLE assignments ADD COLUMN organizationName TEXT').catch(() => {});
+      await this.tursoClient.execute('ALTER TABLE assignments ADD COLUMN cleaningRequirements TEXT').catch(() => {});
+      await this.tursoClient.execute('ALTER TABLE assignments ADD COLUMN requiredWorkersCount INTEGER').catch(() => {});
+      await this.tursoClient.execute('ALTER TABLE assignments ADD COLUMN servicePrice REAL').catch(() => {});
+      await this.tursoClient.execute('ALTER TABLE assignments ADD COLUMN paymentTerms TEXT').catch(() => {});
+    } catch (e: any) {
+      console.warn('[TURSO] Schema check notice:', e.message);
     }
   }
 
@@ -1473,6 +1556,153 @@ class DatabaseService {
           createdAt: r.createdAt,
           updatedAt: r.updatedAt,
         }));
+      }
+
+      // Ensure seed B2B organization exists
+      const existingB2BOrg = this.data.organizations.find((o) => o.organizationId === 'ORG-2026-001');
+      if (!existingB2BOrg) {
+        const seedOrg: Organization = {
+          organizationId: 'ORG-2026-001',
+          name: 'Apex Corporate Towers',
+          contactPerson: 'Vikram Malhotra',
+          email: 'client@apextowers.com',
+          phone: '9800615893',
+          address: 'Tower A & B, DLF CyberCity, Gurugram, Haryana',
+          serviceLocationIds: ['LOC-001', 'LOC-002'],
+          serviceLocations: ['Tower A & B, DLF CyberCity, Gurugram', 'Pier Foundation Hub, Sector 18, Noida'],
+          contractStartDate: '2026-01-01',
+          contractEndDate: '2026-12-31',
+          contractPricing: 125000,
+          paymentTerms: 'Net 15 Days after event completion',
+          status: 'ACTIVE',
+          notes: 'Premier commercial facility contract with weekly deep cleaning and daily lobby sanitization.',
+          createdAt: '2026-01-01T00:00:00Z',
+          updatedAt: '2026-01-01T00:00:00Z',
+        };
+        this.data.organizations.push(seedOrg);
+        if (this.tursoClient) {
+          this.tursoClient.execute({
+            sql: `INSERT OR REPLACE INTO organizations (organizationId, name, contactPerson, email, phone, address, serviceLocationIds, contractStartDate, contractEndDate, contractPricing, paymentTerms, status, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            args: [
+              seedOrg.organizationId,
+              seedOrg.name,
+              seedOrg.contactPerson,
+              seedOrg.email,
+              seedOrg.phone,
+              seedOrg.address || null,
+              JSON.stringify(seedOrg.serviceLocationIds || []),
+              seedOrg.contractStartDate,
+              seedOrg.contractEndDate || null,
+              seedOrg.contractPricing,
+              seedOrg.paymentTerms,
+              seedOrg.status,
+              seedOrg.notes || null,
+              seedOrg.createdAt,
+              seedOrg.updatedAt,
+            ],
+          }).catch(() => {});
+        }
+      }
+
+      // Ensure seed B2B Client user exists
+      const existingB2BUser = this.data.users.find((u) => u.role === 'B2B_CLIENT' || u.phone === '9800615893');
+      if (!existingB2BUser) {
+        const defaultHash = bcrypt.hashSync('password123', 10);
+        const seedUser: User = {
+          uid: 'user-b2b-001',
+          role: 'B2B_CLIENT',
+          displayName: 'Vikram Malhotra',
+          phone: '9800615893',
+          email: 'client@apextowers.com',
+          photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+          organizationId: 'ORG-2026-001',
+          organizationName: 'Apex Corporate Towers',
+          active: true,
+          passwordHash: defaultHash,
+          mustChangePassword: false,
+          failedLoginAttempts: 0,
+          createdAt: '2026-01-01T00:00:00Z',
+          updatedAt: '2026-01-01T00:00:00Z',
+        };
+        this.data.users.push(seedUser);
+        if (this.tursoClient) {
+          this.tursoClient.execute({
+            sql: `INSERT OR REPLACE INTO users (uid, role, displayName, phone, email, photoURL, organizationId, organizationName, active, passwordHash, mustChangePassword, failedLoginAttempts, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            args: [
+              seedUser.uid,
+              seedUser.role,
+              seedUser.displayName,
+              seedUser.phone || null,
+              seedUser.email || null,
+              seedUser.photoURL || null,
+              seedUser.organizationId || null,
+              seedUser.organizationName || null,
+              1,
+              defaultHash,
+              0,
+              0,
+              seedUser.createdAt,
+              seedUser.updatedAt,
+            ],
+          }).catch(() => {});
+        }
+      }
+
+      // Ensure seed Invoices exist
+      if (this.data.invoices.length === 0) {
+        const seedInvoices: Invoice[] = [
+          {
+            invoiceId: 'INV-2026-001',
+            invoiceNumber: 'INV-2026-001',
+            organizationId: 'ORG-2026-001',
+            organizationName: 'Apex Corporate Towers',
+            assignmentId: 'ASN-20260217-001',
+            eventName: 'Cooling Tower Chilled Water Riser Pressure Test & Sanitization',
+            issueDate: '2026-02-17',
+            dueDate: '2026-03-04',
+            amount: 28000,
+            amountPaid: 28000,
+            status: 'PAID',
+            description: 'Commercial facility cooling tower disinfection, riser pressure check, and bio-wash',
+            items: [
+              { description: 'Cooling Tower Disinfection & High Pressure Flush', quantity: 1, unitPrice: 20000, total: 20000 },
+              { description: 'Chemical Biocide & Inhibitor Flush', quantity: 1, unitPrice: 8000, total: 8000 },
+            ],
+            notes: 'Contract invoice settled via online payment gateway.',
+            createdAt: '2026-02-17T17:00:00Z',
+            updatedAt: '2026-02-17T17:00:00Z',
+          },
+          {
+            invoiceId: 'INV-2026-002',
+            invoiceNumber: 'INV-2026-002',
+            organizationId: 'ORG-2026-001',
+            organizationName: 'Apex Corporate Towers',
+            assignmentId: 'ASN-20260218-001',
+            eventName: 'Central Metro Hub - Pier Foundation Site Deep Scrub',
+            issueDate: '2026-02-18',
+            dueDate: '2026-03-05',
+            amount: 45000,
+            amountPaid: 0,
+            status: 'PENDING',
+            description: 'Heavy industrial pressure washing of pier base, concrete spill wash, and waste clearance',
+            items: [
+              { description: 'Foundation Pier Pressure Wash & Chemical Scrubbing', quantity: 1, unitPrice: 30000, total: 30000 },
+              { description: 'Hazardous Waste & Concrete Slurry Clearance', quantity: 1, unitPrice: 15000, total: 15000 },
+            ],
+            notes: 'Standard contract invoice. Due within 15 days.',
+            createdAt: '2026-02-18T08:00:00Z',
+            updatedAt: '2026-02-18T08:00:00Z',
+          },
+        ];
+        this.data.invoices = seedInvoices;
+        if (this.tursoClient) {
+          for (const inv of seedInvoices) {
+            this.tursoClient.execute({
+              sql: `INSERT OR REPLACE INTO invoices (invoiceId, invoiceNumber, organizationId, organizationName, assignmentId, eventName, issueDate, dueDate, amount, amountPaid, status, description, items, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              args: [inv.invoiceId, inv.invoiceNumber, inv.organizationId, inv.organizationName, inv.assignmentId || null, inv.eventName || null, inv.issueDate, inv.dueDate, inv.amount, inv.amountPaid || 0, inv.status, inv.description || null, JSON.stringify(inv.items || []), inv.notes || null, inv.createdAt, inv.updatedAt],
+            }).catch(() => {});
+          }
+        }
       }
 
       this.sanitizeState(this.data);
