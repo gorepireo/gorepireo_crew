@@ -16,6 +16,7 @@ import activityLogRoutes from './routes/activityLogs';
 import leaveRoutes from './routes/leaves';
 import workEvidenceRoutes from './routes/workEvidence';
 import recognitionRoutes, { initializeFacialRecognitionIndex } from './routes/recognition';
+import b2bRoutes from './routes/b2b';
 import { ensureUploadDirs } from './utils/fileStorage';
 import { db } from './db';
 
@@ -81,6 +82,7 @@ const routeMap: [string, any][] = [
   ['/settings', settingsRoutes],
   ['/activity-logs', activityLogRoutes],
   ['/leaves', leaveRoutes],
+  ['/b2b', b2bRoutes],
 ];
 
 for (const [routePath, routeHandler] of routeMap) {

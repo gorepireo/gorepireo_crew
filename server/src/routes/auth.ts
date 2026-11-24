@@ -28,6 +28,9 @@ router.get('/me', authMiddleware, (req: Request, res: Response) => {
   } else if (req.user.role === 'TEAM_LEADER') {
     const leader = db.getLeaderByUserId(req.user.uid);
     additionalData.leader = leader;
+  } else if (req.user.role === 'B2B_CLIENT') {
+    const organization = db.getOrganizationById(fullUser.organizationId || '');
+    additionalData.organization = organization;
   }
 
   // Always return the fresh database user state including latest photoURL
@@ -75,9 +78,9 @@ router.post('/login', (req: Request, res: Response) => {
     }
   }
 
-  // 2. If no user selected yet, test each candidate prioritizing TEAM_LEADER > ADMIN > WORKER
+  // 2. If no user selected yet, test each candidate prioritizing TEAM_LEADER > ADMIN > B2B_CLIENT > WORKER
   if (!user) {
-    const priority: Record<UserRole, number> = { TEAM_LEADER: 1, ADMIN: 2, WORKER: 3 };
+    const priority: Record<UserRole, number> = { TEAM_LEADER: 1, ADMIN: 2, B2B_CLIENT: 3, WORKER: 4 };
     const sorted = [...matchingUsers].sort((a, b) => (priority[a.role] || 99) - (priority[b.role] || 99));
 
     for (const cand of sorted) {
@@ -98,14 +101,14 @@ router.post('/login', (req: Request, res: Response) => {
     password === identifier.trim() ||
     (inputDigits && password === inputDigits)
   )) {
-    const priority: Record<UserRole, number> = { TEAM_LEADER: 1, ADMIN: 2, WORKER: 3 };
+    const priority: Record<UserRole, number> = { TEAM_LEADER: 1, ADMIN: 2, B2B_CLIENT: 3, WORKER: 4 };
     const sorted = [...matchingUsers].sort((a, b) => (priority[a.role] || 99) - (priority[b.role] || 99));
     user = (requestedRole ? matchingUsers.find((u) => u.role === requestedRole) : undefined) || sorted[0];
   }
 
   // 4. If still no user matched, record failed attempt on target candidate
   if (!user) {
-    const priority: Record<UserRole, number> = { TEAM_LEADER: 1, ADMIN: 2, WORKER: 3 };
+    const priority: Record<UserRole, number> = { TEAM_LEADER: 1, ADMIN: 2, B2B_CLIENT: 3, WORKER: 4 };
     const sorted = [...matchingUsers].sort((a, b) => (priority[a.role] || 99) - (priority[b.role] || 99));
     const targetUser = (requestedRole ? matchingUsers.find((u) => u.role === requestedRole) : undefined) || sorted[0];
 
@@ -210,16 +213,21 @@ router.post('/login', (req: Request, res: Response) => {
       email: user.email,
       phone: user.phone,
       photoURL: user.photoURL,
+      organizationId: user.organizationId,
+      organizationName: user.organizationName,
       mustChangePassword: !!user.mustChangePassword,
     },
     worker,
     leader,
+    organization: user.role === 'B2B_CLIENT' ? db.getOrganizationById(user.organizationId || '') : undefined,
     mustChangePassword: !!user.mustChangePassword,
     redirectUrl:
       user.role === 'ADMIN'
         ? '/admin/dashboard'
         : user.role === 'TEAM_LEADER'
         ? '/leader/dashboard'
+        : user.role === 'B2B_CLIENT'
+        ? '/client/overview'
         : '/worker/home',
   });
   } catch (err: any) {
@@ -577,7 +585,7 @@ router.post('/self-reset-password', (req: Request, res: Response) => {
       return res.status(404).json({ error: 'No account registered with this mobile number. Please check the number or register.' });
     }
 
-    const priority: Record<UserRole, number> = { TEAM_LEADER: 1, ADMIN: 2, WORKER: 3 };
+    const priority: Record<UserRole, number> = { TEAM_LEADER: 1, ADMIN: 2, B2B_CLIENT: 3, WORKER: 4 };
     const sorted = [...matchingUsers].sort((a, b) => (priority[a.role] || 99) - (priority[b.role] || 99));
     const targetUser = sorted[0];
 

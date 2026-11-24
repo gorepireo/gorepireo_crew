@@ -30,6 +30,11 @@
       "source": "/admin/(.*)",
       "destination": "/#/admin/$1",
       "permanent": false
+    },
+    {
+      "source": "/client/(.*)",
+      "destination": "/#/client/$1",
+      "permanent": false
     }
   ],
   "rewrites": [

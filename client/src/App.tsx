@@ -20,6 +20,15 @@ import { AdminNotifications } from './pages/admin/AdminNotifications';
 import { AdminActivityLogs } from './pages/admin/AdminActivityLogs';
 import { AdminSettings } from './pages/admin/AdminSettings';
 import { AdminEvidence } from './pages/admin/AdminEvidence';
+import { AdminB2BManagement } from './pages/admin/AdminB2BManagement';
+
+// Client Portal Pages
+import { ClientLayout } from './layouts/ClientLayout';
+import { ClientOverview } from './pages/client/ClientOverview';
+import { ClientEvents } from './pages/client/ClientEvents';
+import { ClientInvoices } from './pages/client/ClientInvoices';
+import { ClientReceipts } from './pages/client/ClientReceipts';
+import { ClientProfile } from './pages/client/ClientProfile';
 
 // Team Leader Pages
 import { LeaderDashboard } from './pages/leader/LeaderDashboard';
@@ -143,6 +152,8 @@ const ProtectedRoute: React.FC<{
         ? '/admin/dashboard'
         : role === 'TEAM_LEADER'
         ? '/leader/dashboard'
+        : role === 'B2B_CLIENT'
+        ? '/client/overview'
         : '/worker/home';
     return <Navigate to={redirectUrl} replace />;
   }
@@ -166,6 +177,7 @@ const RootRedirect: React.FC = () => {
 
   if (role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
   if (role === 'TEAM_LEADER') return <Navigate to="/leader/dashboard" replace />;
+  if (role === 'B2B_CLIENT') return <Navigate to="/client/overview" replace />;
   return <Navigate to="/worker/home" replace />;
 };
 
@@ -194,6 +206,7 @@ export const App: React.FC = () => {
               <Route path="leaders" element={<AdminLeaders />} />
               <Route path="teams" element={<AdminTeams />} />
               <Route path="assignments" element={<AdminAssignments />} />
+              <Route path="b2b" element={<AdminB2BManagement />} />
               <Route path="locations" element={<AdminLocations />} />
               <Route path="attendance" element={<AdminAttendance />} />
               <Route path="evidence" element={<AdminEvidence />} />
@@ -240,6 +253,23 @@ export const App: React.FC = () => {
               <Route path="work" element={<WorkerWork />} />
               <Route path="attendance" element={<WorkerAttendance />} />
               <Route path="profile" element={<WorkerProfile />} />
+            </Route>
+
+            {/* B2B CLIENT INTERFACE */}
+            <Route
+              path="/client"
+              element={
+                <ProtectedRoute allowedRoles={['B2B_CLIENT', 'ADMIN']} targetRole="B2B_CLIENT">
+                  <ClientLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="/client/overview" replace />} />
+              <Route path="overview" element={<ClientOverview />} />
+              <Route path="events" element={<ClientEvents />} />
+              <Route path="invoices" element={<ClientInvoices />} />
+              <Route path="receipts" element={<ClientReceipts />} />
+              <Route path="profile" element={<ClientProfile />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

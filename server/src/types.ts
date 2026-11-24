@@ -1,6 +1,6 @@
 // WorkCrew Types & Data Models matching specifications
 
-export type UserRole = 'ADMIN' | 'TEAM_LEADER' | 'WORKER';
+export type UserRole = 'ADMIN' | 'TEAM_LEADER' | 'WORKER' | 'B2B_CLIENT';
 
 export interface User {
   uid: string;
@@ -9,6 +9,8 @@ export interface User {
   phone: string;
   email?: string;
   photoURL?: string;
+  organizationId?: string;
+  organizationName?: string;
   active: boolean;
   passwordHash?: string;
   mustChangePassword?: boolean;
@@ -112,6 +114,13 @@ export interface Assignment {
   instructions?: string;
   completionNote?: string;
   completionEvidenceUrl?: string;
+  // B2B Event Links
+  organizationId?: string;
+  organizationName?: string;
+  cleaningRequirements?: string;
+  requiredWorkersCount?: number;
+  servicePrice?: number;
+  paymentTerms?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -286,6 +295,7 @@ export interface WorkEvidence {
   reviewedByName?: string;
   reviewedAt?: string;
   reviewNotes?: string;
+  autoVerified?: boolean;
   createdAt: string;
 }
 
@@ -322,7 +332,7 @@ export interface ActivityLog {
   actorName: string;
   actorRole: UserRole;
   action: string;
-  entityType: 'WORKER' | 'LEADER' | 'TEAM' | 'LOCATION' | 'ASSIGNMENT' | 'ATTENDANCE' | 'SETTINGS';
+  entityType: 'WORKER' | 'LEADER' | 'TEAM' | 'LOCATION' | 'ASSIGNMENT' | 'ATTENDANCE' | 'SETTINGS' | 'ORGANIZATION' | 'INVOICE' | 'PAYMENT';
   entityId: string;
   changes?: Record<string, any>;
   timestamp: string;
@@ -369,3 +379,80 @@ export interface OrganizationSettings {
   maxAllowedGPSAccuracyMeters: number;
   photoRetentionDays: number;
 }
+
+// ==================== B2B CLIENT PORTAL ENTITIES ====================
+
+export interface Organization {
+  organizationId: string; // ORG-2026-001
+  orgId?: string; // alias
+  name: string;
+  contactPerson: string;
+  email: string;
+  phone: string;
+  address?: string;
+  serviceLocationIds: string[];
+  serviceLocations?: string[];
+  contractStartDate: string; // YYYY-MM-DD
+  contractEndDate: string; // YYYY-MM-DD
+  contractPricing: number;
+  paymentTerms: string;
+  status: 'ACTIVE' | 'SUSPENDED' | 'INACTIVE';
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type InvoiceStatus = 'PAID' | 'PENDING' | 'OVERDUE' | 'PARTIALLY_PAID';
+
+export interface InvoiceItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
+export interface Invoice {
+  invoiceId: string; // INV-2026-001
+  invoiceNumber: string;
+  organizationId: string;
+  organizationName: string;
+  assignmentId?: string;
+  eventName?: string;
+  issueDate: string; // YYYY-MM-DD
+  invoiceDate?: string; // alias
+  dueDate: string; // YYYY-MM-DD
+  amount: number;
+  amountPaid: number;
+  status: InvoiceStatus;
+  description?: string;
+  items?: InvoiceItem[];
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type PaymentMethod = 'ONLINE' | 'RAZORPAY' | 'BANK_TRANSFER' | 'CASH' | 'CHEQUE' | 'UPI';
+export type PaymentStatus = 'SUCCESS' | 'FAILED' | 'PENDING';
+
+export interface Payment {
+  paymentId: string; // PAY-2026-001
+  receiptNumber: string; // RCPT-2026-001
+  invoiceId: string;
+  invoiceNumber: string;
+  organizationId: string;
+  organizationName: string;
+  assignmentId?: string;
+  eventName?: string;
+  amount: number;
+  paymentDate: string; // ISO string
+  paymentMethod: PaymentMethod;
+  transactionId: string;
+  status: PaymentStatus;
+  recordedBy?: string;
+  recordedByName?: string;
+  notes?: string;
+  receiptUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+

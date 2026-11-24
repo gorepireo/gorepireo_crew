@@ -13,6 +13,8 @@ export interface AuthenticatedUser {
   phone?: string;
   managedTeamIds?: string[];
   workerId?: string;
+  organizationId?: string;
+  organizationName?: string;
 }
 
 declare global {
@@ -52,6 +54,8 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
         phone: user.phone,
         managedTeamIds,
         workerId,
+        organizationId: user.organizationId,
+        organizationName: user.organizationName,
       };
       return next();
     }
@@ -80,6 +84,8 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
         phone: defaultUser.phone,
         managedTeamIds,
         workerId,
+        organizationId: defaultUser.organizationId,
+        organizationName: defaultUser.organizationName,
       };
       return next();
     }
@@ -119,6 +125,8 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
         phone: user.phone,
         managedTeamIds,
         workerId,
+        organizationId: user.organizationId,
+        organizationName: user.organizationName,
       };
       return next();
     }

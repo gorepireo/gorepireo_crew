@@ -403,6 +403,22 @@ export const LoginPage: React.FC = () => {
                     </div>
                     <span className="text-3xs font-extrabold text-slate-600 group-hover:underline">Instant Log In →</span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickLogin('9800615893', 'password123')}
+                    disabled={loading}
+                    className="flex items-center justify-between p-2.5 bg-emerald-50/80 hover:bg-emerald-100/80 border border-emerald-200/70 rounded-xl text-left transition cursor-pointer group"
+                  >
+                    <div>
+                      <div className="text-xs font-black text-emerald-950 flex items-center gap-1.5">
+                        <span>🏢 B2B Client</span>
+                        <span className="text-3xs font-bold text-emerald-700 bg-white px-1.5 py-0.5 rounded shadow-2xs">Apex Towers</span>
+                      </div>
+                      <div className="text-3xs text-slate-500 font-mono mt-0.5">Mobile: 9800615893</div>
+                    </div>
+                    <span className="text-3xs font-extrabold text-emerald-600 group-hover:underline">Instant Log In →</span>
+                  </button>
                 </div>
               </div>
             </>

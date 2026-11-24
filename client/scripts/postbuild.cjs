@@ -19,6 +19,8 @@ const targets = [
   'leader/dashboard/index.html',
   'admin/index.html',
   'admin/dashboard/index.html',
+  'client/index.html',
+  'client/overview/index.html',
 ];
 
 for (const target of targets) {

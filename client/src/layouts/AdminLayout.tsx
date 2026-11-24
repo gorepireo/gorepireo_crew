@@ -31,6 +31,7 @@ export const AdminLayout: React.FC = () => {
     { to: '/admin/leaders', label: 'Team Leaders', icon: Users },
     { to: '/admin/teams', label: 'Teams', icon: Building2 },
     { to: '/admin/assignments', label: 'Work Assignments', icon: Briefcase },
+    { to: '/admin/b2b', label: 'B2B Clients', icon: Building2 },
     { to: '/admin/locations', label: 'Locations', icon: MapPin },
     { to: '/admin/attendance', label: 'Attendance', icon: CalendarCheck },
     { to: '/admin/evidence', label: 'Evidence & Photos', icon: Camera },

@@ -14,6 +14,9 @@ import {
   ActivityLog,
   OrganizationSettings,
   UserRole,
+  Organization,
+  Invoice,
+  Payment,
 } from '../types';
 
 const API_BASE = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
@@ -755,6 +758,129 @@ class ApiService {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
+  }
+
+  // --- B2B CLIENT PORTAL ---
+  async getClientOverview() {
+    return this.request<{
+      summary: {
+        totalEvents: number;
+        upcomingEvents: number;
+        completedEvents: number;
+        pendingPayments: number;
+        totalContractAmount: number;
+        totalPaid: number;
+        outstandingAmount: number;
+      };
+      organization: Organization;
+      upcomingEvents: any[];
+      recentInvoices: Invoice[];
+    }>('/api/b2b/client/overview');
+  }
+
+  async getClientEvents() {
+    return this.request<{ events: any[] }>('/api/b2b/client/events');
+  }
+
+  async getClientEvent(id: string) {
+    return this.request<{ event: any }>('/api/b2b/client/events/' + id);
+  }
+
+  async getClientInvoices() {
+    return this.request<{
+      invoices: Invoice[];
+      summary: {
+        totalContractAmount: number;
+        totalPaid: number;
+        outstandingAmount: number;
+        paymentStatus: string;
+      };
+    }>('/api/b2b/client/invoices');
+  }
+
+  async payClientInvoice(id: string, data: { amount?: number; paymentMethod?: string; transactionId?: string }) {
+    return this.request<{
+      success: boolean;
+      message: string;
+      transactionId: string;
+      receiptId: string;
+      payment: Payment;
+      invoice: Invoice;
+    }>(`/api/b2b/client/invoices/${id}/pay`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getClientPayments() {
+    return this.request<{ payments: Payment[] }>('/api/b2b/client/payments');
+  }
+
+  async getClientReceipt(id: string) {
+    return this.request<{ receipt: any }>('/api/b2b/client/receipts/' + id);
+  }
+
+  async getClientProfile() {
+    return this.request<{ organization: Organization }>('/api/b2b/client/profile');
+  }
+
+  async updateClientProfile(data: { contactPerson?: string; phone?: string; email?: string; notes?: string }) {
+    return this.request<{ success: boolean; organization: Organization }>('/api/b2b/client/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // --- ADMIN B2B MANAGEMENT ---
+  async getAdminB2BOrganizations() {
+    return this.request<{ organizations: (Organization & { eventsCount?: number; totalBilled?: number; totalPaid?: number; clientUser?: any })[] }>('/api/b2b/admin/organizations');
+  }
+
+  async createB2BOrganization(data: any) {
+    return this.request<{ success: boolean; message: string; organization: Organization; user: any }>('/api/b2b/admin/organizations', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateB2BOrganization(id: string, data: Partial<Organization>) {
+    return this.request<{ success: boolean; organization: Organization }>('/api/b2b/admin/organizations/' + id, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getAdminB2BEvents() {
+    return this.request<{ events: any[] }>('/api/b2b/admin/events');
+  }
+
+  async createB2BEvent(data: any) {
+    return this.request<{ success: boolean; message: string; event: Assignment }>('/api/b2b/admin/events', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getAdminB2BInvoices() {
+    return this.request<{ invoices: Invoice[]; summary: any }>('/api/b2b/admin/invoices');
+  }
+
+  async createB2BInvoice(data: any) {
+    return this.request<{ success: boolean; message: string; invoice: Invoice }>('/api/b2b/admin/invoices', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async recordB2BOfflinePayment(id: string, data: { amount: number; paymentMethod: string; transactionId?: string; notes?: string }) {
+    return this.request<{ success: boolean; message: string; payment: Payment; invoice: Invoice }>(`/api/b2b/admin/invoices/${id}/record-payment`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getAdminB2BPayments() {
+    return this.request<{ payments: Payment[] }>('/api/b2b/admin/payments');
   }
 
 }

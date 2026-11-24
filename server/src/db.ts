@@ -22,6 +22,9 @@ import {
   ActivityLog,
   OrganizationSettings,
   PasswordResetRequest,
+  Organization,
+  Invoice,
+  Payment,
 } from './types';
 
 export interface DatabaseSchema {
@@ -40,6 +43,9 @@ export interface DatabaseSchema {
   notifications: Notification[];
   activityLogs: ActivityLog[];
   passwordResetRequests: PasswordResetRequest[];
+  organizations: Organization[];
+  invoices: Invoice[];
+  payments: Payment[];
   settings: OrganizationSettings;
 }
 
@@ -203,6 +209,19 @@ function getSeedData(): DatabaseSchema {
       active: true,
       createdAt: '2026-02-01T08:00:00Z',
       updatedAt: '2026-02-01T08:00:00Z',
+    },
+    {
+      uid: 'user-b2b-001',
+      role: 'B2B_CLIENT',
+      displayName: 'Vikram Malhotra',
+      phone: '9800615893',
+      email: 'client@apextowers.com',
+      photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      organizationId: 'ORG-2026-001',
+      organizationName: 'Apex Corporate Towers',
+      active: true,
+      createdAt: '2026-01-01T08:00:00Z',
+      updatedAt: '2026-01-01T08:00:00Z',
     },
   ];
 
@@ -448,6 +467,12 @@ function getSeedData(): DatabaseSchema {
       priority: 'HIGH',
       status: 'IN_PROGRESS',
       instructions: 'Mandatory PPE: Hardhat, steel-toe boots, hi-vis vest, and safety harness for column cage elevation. Check concrete slump test when transit mixers pull in.',
+      organizationId: 'ORG-2026-001',
+      organizationName: 'Apex Corporate Towers',
+      cleaningRequirements: 'Complete deep industrial pressure washing of pier base, concrete spill wash, and waste disposal before handover.',
+      requiredWorkersCount: 3,
+      servicePrice: 45000,
+      paymentTerms: 'Net 15 Days',
       createdAt: `${today}T06:30:00Z`,
       updatedAt: `${today}T08:15:00Z`,
     },
@@ -470,6 +495,12 @@ function getSeedData(): DatabaseSchema {
       priority: 'CRITICAL',
       status: 'ASSIGNED',
       instructions: 'Ensure circuit isolation lock-out/tag-out (LOTO) verification prior to contact with feeder termination lugs.',
+      organizationId: 'ORG-2026-001',
+      organizationName: 'Apex Corporate Towers',
+      cleaningRequirements: 'Trench sector debris clearance, cable channel dust vacuuming, and terminal room disinfection.',
+      requiredWorkersCount: 2,
+      servicePrice: 32000,
+      paymentTerms: 'Due on Completion',
       createdAt: `${today}T07:00:00Z`,
       updatedAt: `${today}T07:00:00Z`,
     },
@@ -492,6 +523,12 @@ function getSeedData(): DatabaseSchema {
       priority: 'MEDIUM',
       status: 'COMPLETED',
       completionNote: 'Pressure held steady at 12.1 bar for 4.5 hours with zero joint sweating observed. Signed off by MEP consultant.',
+      organizationId: 'ORG-2026-001',
+      organizationName: 'Apex Corporate Towers',
+      cleaningRequirements: 'Complete chemical flush of chiller lines, post-test floor wash, and pipe polishing.',
+      requiredWorkersCount: 2,
+      servicePrice: 28000,
+      paymentTerms: 'Paid Online',
       createdAt: `${yesterday}T07:00:00Z`,
       updatedAt: `${yesterday}T16:20:00Z`,
     },
@@ -937,6 +974,110 @@ function getSeedData(): DatabaseSchema {
     },
   ];
 
+  const organizations: Organization[] = [
+    {
+      organizationId: 'ORG-2026-001',
+      name: 'Apex Corporate Towers',
+      contactPerson: 'Vikram Malhotra',
+      email: 'client@apextowers.com',
+      phone: '9800615893',
+      address: 'Plot 42, Cyber Gateway, Financial District, Sector 18',
+      serviceLocationIds: ['LOC-001', 'LOC-002'],
+      contractStartDate: '2026-01-01',
+      contractEndDate: '2026-12-31',
+      contractPricing: 180000,
+      paymentTerms: 'Net 15 Days',
+      status: 'ACTIVE',
+      notes: 'Premier commercial complex. Requires continuous concourse & facility sanitization.',
+      createdAt: '2026-01-01T08:00:00Z',
+      updatedAt: '2026-01-01T08:00:00Z',
+    },
+    {
+      organizationId: 'ORG-2026-002',
+      name: 'Grand Metro Convention Center',
+      contactPerson: 'Sunita Mehra',
+      email: 'operations@grandmetro.in',
+      phone: '9800615894',
+      address: '77 Heritage Boulevard, Central Hub',
+      serviceLocationIds: ['LOC-002'],
+      contractStartDate: '2026-03-01',
+      contractEndDate: '2027-02-28',
+      contractPricing: 240000,
+      paymentTerms: '50% Advance, 50% Post Event',
+      status: 'ACTIVE',
+      notes: 'Large event and convention halls. Event-based specialized sanitization.',
+      createdAt: '2026-03-01T08:00:00Z',
+      updatedAt: '2026-03-01T08:00:00Z',
+    },
+  ];
+
+  const invoices: Invoice[] = [
+    {
+      invoiceId: 'INV-2026-001',
+      invoiceNumber: 'INV-2026-001',
+      organizationId: 'ORG-2026-001',
+      organizationName: 'Apex Corporate Towers',
+      assignmentId: 'ASN-20260217-001',
+      eventName: 'Cooling Tower Chilled Water Riser Pressure Test & Sanitization',
+      issueDate: yesterday,
+      dueDate: today,
+      amount: 28000,
+      amountPaid: 28000,
+      status: 'PAID',
+      description: 'Comprehensive chemical flush of chiller lines, post-test floor wash, and pipe polishing.',
+      items: [
+        { description: 'Cooling Tower chemical flush & sanitization', quantity: 1, unitPrice: 18000, total: 18000 },
+        { description: 'Industrial Floor scrub & waste clearance', quantity: 1, unitPrice: 10000, total: 10000 },
+      ],
+      notes: 'Paid online via Go_Repireo B2B Instant Gateway.',
+      createdAt: `${yesterday}T16:30:00Z`,
+      updatedAt: `${yesterday}T17:00:00Z`,
+    },
+    {
+      invoiceId: 'INV-2026-002',
+      invoiceNumber: 'INV-2026-002',
+      organizationId: 'ORG-2026-001',
+      organizationName: 'Apex Corporate Towers',
+      assignmentId: 'ASN-20260218-001',
+      eventName: 'Pier Reinforcement Rebar & Pre-Pour Inspection',
+      issueDate: today,
+      dueDate: new Date(Date.now() + 15 * 86400000).toISOString().slice(0, 10),
+      amount: 45000,
+      amountPaid: 0,
+      status: 'PENDING',
+      description: 'Deep industrial pressure washing of pier base, concrete spill wash, and waste disposal before handover.',
+      items: [
+        { description: 'Foundation Pier Pressure Wash & Chemical Scrubbing', quantity: 1, unitPrice: 30000, total: 30000 },
+        { description: 'Hazardous Waste & Concrete Slurry Clearance', quantity: 1, unitPrice: 15000, total: 15000 },
+      ],
+      notes: 'Standard contract invoice. Due within 15 days.',
+      createdAt: `${today}T08:00:00Z`,
+      updatedAt: `${today}T08:00:00Z`,
+    },
+  ];
+
+  const payments: Payment[] = [
+    {
+      paymentId: 'PAY-2026-001',
+      receiptNumber: 'RCPT-2026-001',
+      invoiceId: 'INV-2026-001',
+      invoiceNumber: 'INV-2026-001',
+      organizationId: 'ORG-2026-001',
+      organizationName: 'Apex Corporate Towers',
+      assignmentId: 'ASN-20260217-001',
+      eventName: 'Cooling Tower Chilled Water Riser Pressure Test & Sanitization',
+      amount: 28000,
+      paymentDate: `${yesterday}T17:00:00Z`,
+      paymentMethod: 'ONLINE',
+      transactionId: 'txn_2026_981240192',
+      status: 'SUCCESS',
+      notes: 'Instant settlement confirmed by gateway.',
+      receiptUrl: '/api/b2b/client/receipts/RCPT-2026-001',
+      createdAt: `${yesterday}T17:00:00Z`,
+      updatedAt: `${yesterday}T17:00:00Z`,
+    },
+  ];
+
   return {
     users,
     workers,
@@ -953,6 +1094,9 @@ function getSeedData(): DatabaseSchema {
     notifications,
     activityLogs,
     passwordResetRequests: [],
+    organizations,
+    invoices,
+    payments,
     settings: INITIAL_SETTINGS,
   };
 }
@@ -1019,7 +1163,7 @@ class DatabaseService {
   public async syncFromTurso(): Promise<void> {
     if (!this.tursoClient) return;
     try {
-      const [uRes, wRes, tlRes, tRes, locRes, aRes, attRes, weRes, alRes, sRes] = await Promise.all([
+      const [uRes, wRes, tlRes, tRes, locRes, aRes, attRes, weRes, alRes, sRes, orgRes, invRes, payRes] = await Promise.all([
         this.tursoClient.execute('SELECT * FROM users'),
         this.tursoClient.execute('SELECT * FROM workers'),
         this.tursoClient.execute('SELECT * FROM teamLeaders'),
@@ -1030,6 +1174,9 @@ class DatabaseService {
         this.tursoClient.execute('SELECT * FROM workEvidence'),
         this.tursoClient.execute('SELECT * FROM activityLogs ORDER BY timestamp DESC LIMIT 200'),
         this.tursoClient.execute("SELECT value FROM organizationSettings WHERE key = 'org_settings'").catch(() => ({ rows: [] })),
+        this.tursoClient.execute('SELECT * FROM organizations').catch(() => ({ rows: [] })),
+        this.tursoClient.execute('SELECT * FROM invoices').catch(() => ({ rows: [] })),
+        this.tursoClient.execute('SELECT * FROM payments').catch(() => ({ rows: [] })),
       ]);
 
       // USERS
@@ -1040,6 +1187,8 @@ class DatabaseService {
         phone: r.phone || undefined,
         email: r.email || undefined,
         photoURL: r.photoURL || undefined,
+        organizationId: r.organizationId || undefined,
+        organizationName: r.organizationName || undefined,
         active: Boolean(r.active),
         passwordHash: r.passwordHash || undefined,
         mustChangePassword: Boolean(r.mustChangePassword),
@@ -1153,6 +1302,12 @@ class DatabaseService {
         status: r.status || 'ASSIGNED',
         instructions: r.instructions || undefined,
         completionNote: r.completionNote || undefined,
+        organizationId: r.organizationId || undefined,
+        organizationName: r.organizationName || undefined,
+        cleaningRequirements: r.cleaningRequirements || undefined,
+        requiredWorkersCount: r.requiredWorkersCount ? Number(r.requiredWorkersCount) : undefined,
+        servicePrice: r.servicePrice ? Number(r.servicePrice) : undefined,
+        paymentTerms: r.paymentTerms || undefined,
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
       })) : [];
@@ -1252,6 +1407,74 @@ class DatabaseService {
         }
       }
 
+      // B2B ORGANIZATIONS (Hydrated directly from Turso)
+      if (orgRes && (orgRes as any).rows && (orgRes as any).rows.length > 0) {
+        this.data.organizations = (orgRes as any).rows.map((r: any) => ({
+          organizationId: r.organizationId,
+          name: r.name,
+          contactPerson: r.contactPerson,
+          email: r.email,
+          phone: r.phone,
+          address: r.address || undefined,
+          serviceLocationIds: safeJsonParse<string[]>(r.serviceLocationIds, []),
+          contractStartDate: r.contractStartDate,
+          contractEndDate: r.contractEndDate,
+          contractPricing: Number(r.contractPricing || 0),
+          paymentTerms: r.paymentTerms || 'Net 30',
+          status: r.status || 'ACTIVE',
+          notes: r.notes || undefined,
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+        }));
+      }
+
+      // B2B INVOICES (Hydrated directly from Turso)
+      if (invRes && (invRes as any).rows && (invRes as any).rows.length > 0) {
+        this.data.invoices = (invRes as any).rows.map((r: any) => ({
+          invoiceId: r.invoiceId,
+          invoiceNumber: r.invoiceNumber,
+          organizationId: r.organizationId,
+          organizationName: r.organizationName,
+          assignmentId: r.assignmentId || undefined,
+          eventName: r.eventName || undefined,
+          issueDate: r.issueDate,
+          dueDate: r.dueDate,
+          amount: Number(r.amount || 0),
+          amountPaid: Number(r.amountPaid || 0),
+          status: r.status || 'PENDING',
+          description: r.description || undefined,
+          items: safeJsonParse<any[]>(r.items, []),
+          notes: r.notes || undefined,
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+        }));
+      }
+
+      // B2B PAYMENTS (Hydrated directly from Turso)
+      if (payRes && (payRes as any).rows && (payRes as any).rows.length > 0) {
+        this.data.payments = (payRes as any).rows.map((r: any) => ({
+          paymentId: r.paymentId,
+          receiptNumber: r.receiptNumber,
+          invoiceId: r.invoiceId,
+          invoiceNumber: r.invoiceNumber,
+          organizationId: r.organizationId,
+          organizationName: r.organizationName,
+          assignmentId: r.assignmentId || undefined,
+          eventName: r.eventName || undefined,
+          amount: Number(r.amount || 0),
+          paymentDate: r.paymentDate,
+          paymentMethod: r.paymentMethod,
+          transactionId: r.transactionId,
+          status: r.status || 'SUCCESS',
+          recordedBy: r.recordedBy || undefined,
+          recordedByName: r.recordedByName || undefined,
+          notes: r.notes || undefined,
+          receiptUrl: r.receiptUrl || undefined,
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+        }));
+      }
+
       this.sanitizeState(this.data);
       this.saveData(this.data);
       console.log(`[TURSO] Successfully hydrated in-memory state directly from Turso relational tables: ${this.data.workers.length} workers, ${this.data.teamLeaders.length} leaders, ${this.data.teams.length} teams, ${this.data.locations.length} locations, ${this.data.assignments.length} assignments, ${this.data.attendance.length} attendance.`);
@@ -1287,6 +1510,9 @@ class DatabaseService {
     if (!data.workEvidence) data.workEvidence = [];
     if (!data.activityLogs) data.activityLogs = [];
     if (!data.passwordResetRequests) data.passwordResetRequests = [];
+    if (!data.organizations) data.organizations = [];
+    if (!data.invoices) data.invoices = [];
+    if (!data.payments) data.payments = [];
 
     data.workers.forEach((w) => {
       if (!w.teamAssignmentStatus) {
@@ -1420,8 +1646,8 @@ class DatabaseService {
       const match = list.find(u => u.role === preferredRole);
       if (match) return match;
     }
-    // If multiple accounts match, prioritize TEAM_LEADER > ADMIN > WORKER
-    const priority: Record<UserRole, number> = { TEAM_LEADER: 1, ADMIN: 2, WORKER: 3 };
+    // If multiple accounts match, prioritize TEAM_LEADER > ADMIN > B2B_CLIENT > WORKER
+    const priority: Record<UserRole, number> = { TEAM_LEADER: 1, ADMIN: 2, B2B_CLIENT: 3, WORKER: 4 };
     list.sort((a, b) => (priority[a.role] || 99) - (priority[b.role] || 99));
     return list[0];
   }
@@ -2070,6 +2296,193 @@ class DatabaseService {
       return this.data.passwordResetRequests[idx];
     }
     return null;
+  }
+
+  // --- B2B CLIENT PORTAL ENTITIES ---
+  public getOrganizations(): Organization[] {
+    if (!this.data.organizations) this.data.organizations = [];
+    return this.data.organizations;
+  }
+
+  public getOrganizationById(id: string): Organization | undefined {
+    return this.getOrganizations().find(o => o.organizationId === id);
+  }
+
+  public createOrganization(org: Organization): Organization {
+    if (!this.data.organizations) this.data.organizations = [];
+    this.data.organizations.push(org);
+    this.persist();
+    if (this.tursoClient) {
+      this.tursoClient.execute({
+        sql: `INSERT OR REPLACE INTO organizations (organizationId, name, contactPerson, email, phone, address, serviceLocationIds, contractStartDate, contractEndDate, contractPricing, paymentTerms, status, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          org.organizationId,
+          org.name,
+          org.contactPerson,
+          org.email,
+          org.phone,
+          org.address || null,
+          JSON.stringify(org.serviceLocationIds || []),
+          org.contractStartDate,
+          org.contractEndDate,
+          org.contractPricing,
+          org.paymentTerms,
+          org.status,
+          org.notes || null,
+          org.createdAt,
+          org.updatedAt,
+        ],
+      }).catch((e: any) => console.warn('[TURSO] createOrganization error:', e.message));
+    }
+    return org;
+  }
+
+  public updateOrganization(id: string, updates: Partial<Organization>): Organization | undefined {
+    if (!this.data.organizations) this.data.organizations = [];
+    const idx = this.data.organizations.findIndex(o => o.organizationId === id);
+    if (idx === -1) return undefined;
+    this.data.organizations[idx] = {
+      ...this.data.organizations[idx],
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+    const org = this.data.organizations[idx];
+    this.persist();
+    if (this.tursoClient) {
+      this.tursoClient.execute({
+        sql: `UPDATE organizations SET name=?, contactPerson=?, email=?, phone=?, address=?, serviceLocationIds=?, contractStartDate=?, contractEndDate=?, contractPricing=?, paymentTerms=?, status=?, notes=?, updatedAt=? WHERE organizationId=?`,
+        args: [
+          org.name,
+          org.contactPerson,
+          org.email,
+          org.phone,
+          org.address || null,
+          JSON.stringify(org.serviceLocationIds || []),
+          org.contractStartDate,
+          org.contractEndDate,
+          org.contractPricing,
+          org.paymentTerms,
+          org.status,
+          org.notes || null,
+          org.updatedAt,
+          id,
+        ],
+      }).catch((e: any) => console.warn('[TURSO] updateOrganization error:', e.message));
+    }
+    return org;
+  }
+
+  public getInvoices(organizationId?: string): Invoice[] {
+    if (!this.data.invoices) this.data.invoices = [];
+    if (organizationId) {
+      return this.data.invoices.filter(i => i.organizationId === organizationId);
+    }
+    return this.data.invoices;
+  }
+
+  public getInvoiceById(id: string): Invoice | undefined {
+    if (!this.data.invoices) this.data.invoices = [];
+    return this.data.invoices.find(i => i.invoiceId === id || i.invoiceNumber === id);
+  }
+
+  public createInvoice(inv: Invoice): Invoice {
+    if (!this.data.invoices) this.data.invoices = [];
+    this.data.invoices.unshift(inv);
+    this.persist();
+    if (this.tursoClient) {
+      this.tursoClient.execute({
+        sql: `INSERT OR REPLACE INTO invoices (invoiceId, invoiceNumber, organizationId, organizationName, assignmentId, eventName, issueDate, dueDate, amount, amountPaid, status, description, items, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          inv.invoiceId,
+          inv.invoiceNumber,
+          inv.organizationId,
+          inv.organizationName,
+          inv.assignmentId || null,
+          inv.eventName || null,
+          inv.issueDate,
+          inv.dueDate,
+          inv.amount,
+          inv.amountPaid,
+          inv.status,
+          inv.description || null,
+          JSON.stringify(inv.items || []),
+          inv.notes || null,
+          inv.createdAt,
+          inv.updatedAt,
+        ],
+      }).catch((e: any) => console.warn('[TURSO] createInvoice error:', e.message));
+    }
+    return inv;
+  }
+
+  public updateInvoice(id: string, updates: Partial<Invoice>): Invoice | undefined {
+    if (!this.data.invoices) this.data.invoices = [];
+    const idx = this.data.invoices.findIndex(i => i.invoiceId === id || i.invoiceNumber === id);
+    if (idx === -1) return undefined;
+    this.data.invoices[idx] = {
+      ...this.data.invoices[idx],
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+    const inv = this.data.invoices[idx];
+    this.persist();
+    if (this.tursoClient) {
+      this.tursoClient.execute({
+        sql: `UPDATE invoices SET amountPaid=?, status=?, notes=?, updatedAt=? WHERE invoiceId=? OR invoiceNumber=?`,
+        args: [inv.amountPaid, inv.status, inv.notes || null, inv.updatedAt, id, id],
+      }).catch((e: any) => console.warn('[TURSO] updateInvoice error:', e.message));
+    }
+    return inv;
+  }
+
+  public getPayments(organizationId?: string): Payment[] {
+    if (!this.data.payments) this.data.payments = [];
+    if (organizationId) {
+      return this.data.payments.filter(p => p.organizationId === organizationId);
+    }
+    return this.data.payments;
+  }
+
+  public getPaymentById(id: string): Payment | undefined {
+    if (!this.data.payments) this.data.payments = [];
+    return this.data.payments.find(p => p.paymentId === id || p.receiptNumber === id || p.transactionId === id);
+  }
+
+  public createPayment(payment: Payment): Payment {
+    if (!this.data.payments) this.data.payments = [];
+    this.data.payments.unshift(payment);
+    this.persist();
+    if (this.tursoClient) {
+      this.tursoClient.execute({
+        sql: `INSERT OR REPLACE INTO payments (paymentId, receiptNumber, invoiceId, invoiceNumber, organizationId, organizationName, assignmentId, eventName, amount, paymentDate, paymentMethod, transactionId, status, recordedBy, recordedByName, notes, receiptUrl, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          payment.paymentId,
+          payment.receiptNumber,
+          payment.invoiceId,
+          payment.invoiceNumber,
+          payment.organizationId,
+          payment.organizationName,
+          payment.assignmentId || null,
+          payment.eventName || null,
+          payment.amount,
+          payment.paymentDate,
+          payment.paymentMethod,
+          payment.transactionId,
+          payment.status,
+          payment.recordedBy || null,
+          payment.recordedByName || null,
+          payment.notes || null,
+          payment.receiptUrl || null,
+          payment.createdAt,
+          payment.updatedAt,
+        ],
+      }).catch((e: any) => console.warn('[TURSO] createPayment error:', e.message));
+    }
+    return payment;
+  }
+
+  public getEventsForOrganization(organizationId: string): Assignment[] {
+    return this.data.assignments.filter(a => a.organizationId === organizationId);
   }
 
   // --- SETTINGS ---
