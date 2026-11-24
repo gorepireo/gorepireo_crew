@@ -16,7 +16,7 @@ export const WorkerLayout: React.FC = () => {
       {/* MOBILE SHELL CONTAINER - Centered on desktop, full-width responsive on mobile */}
       <div className="w-full max-w-md bg-[#f4f7fb] min-h-screen flex flex-col shadow-2xl relative overflow-x-hidden">
         {/* MAIN PAGE BODY (Scrolls cleanly with zero horizontal overflow) */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain p-3.5 sm:p-4 space-y-3.5 pb-20">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-none p-3.5 sm:p-4 space-y-3.5 pb-20">
           <Outlet />
         </main>
 
