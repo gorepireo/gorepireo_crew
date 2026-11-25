@@ -466,13 +466,37 @@ export const WorkerHome: React.FC = () => {
           <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm px-3 py-2.5 flex items-center justify-between gap-2">
             <span
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wide shrink-0 ${
-                todayAttendance?.status === 'PRESENT' || isCheckedIn
+                isCheckedOut
+                  ? 'bg-blue-50 text-blue-700'
+                  : todayAttendance?.status === 'LATE'
+                  ? 'bg-amber-50 text-amber-700'
+                  : todayAttendance?.status === 'PRESENT' || isCheckedIn
                   ? 'bg-[#dcfce7] text-[#15803d]'
-                  : 'bg-[#dcfce7] text-[#15803d]'
+                  : todayAssignment
+                  ? 'bg-[#dcfce7] text-[#15803d]'
+                  : 'bg-slate-100 text-slate-600'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-[#16a34a]" />
-              {todayAttendance?.status === 'PRESENT' || isCheckedIn ? 'PRESENT' : 'READY'}
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  isCheckedOut
+                    ? 'bg-blue-600'
+                    : todayAttendance?.status === 'LATE'
+                    ? 'bg-amber-500'
+                    : todayAttendance?.status === 'PRESENT' || isCheckedIn || todayAssignment
+                    ? 'bg-[#16a34a]'
+                    : 'bg-slate-400'
+                }`}
+              />
+              {isCheckedOut
+                ? 'COMPLETED'
+                : todayAttendance?.status === 'LATE'
+                ? 'LATE'
+                : todayAttendance?.status === 'PRESENT' || isCheckedIn
+                ? 'PRESENT'
+                : todayAssignment
+                ? 'READY'
+                : 'NO SHIFT'}
             </span>
 
             <div className="w-px h-4 bg-slate-200 shrink-0" />

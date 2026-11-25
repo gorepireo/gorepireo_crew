@@ -284,18 +284,42 @@ export const WorkerAttendance: React.FC = () => {
           </div>
         </div>
 
-        {/* Verified Site Attendance Row */}
-        <div className="bg-[#e6f9f0] border border-emerald-100 rounded-full py-2.5 px-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-800 min-w-0">
-            <MapPin className="w-4 h-4 text-[#16a34a] fill-[#16a34a]/20 shrink-0" />
-            <span className="truncate">
-              {todayRecord?.checkInAddress || 'Verified Site Attendance'}
-            </span>
+        {/* Data-Driven Site Verification Row */}
+        {todayRecord?.checkInTime ? (
+          todayRecord.verificationStatus === 'VERIFIED' ? (
+            <div className="bg-[#e6f9f0] border border-emerald-100 rounded-full py-2.5 px-4 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800 min-w-0">
+                <MapPin className="w-4 h-4 text-[#16a34a] fill-[#16a34a]/20 shrink-0" />
+                <span className="truncate">
+                  {todayRecord.checkInAddress || 'Verified Site Attendance'}
+                </span>
+              </div>
+              <div className="w-4.5 h-4.5 rounded-full bg-[#16a34a] text-white flex items-center justify-center shrink-0 ml-2">
+                <CheckCircle2 className="w-3 h-3 stroke-[3]" />
+              </div>
+            </div>
+          ) : (
+            <div className="bg-amber-50 border border-amber-200/80 rounded-full py-2.5 px-4 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-900 min-w-0">
+                <MapPin className="w-4 h-4 text-amber-600 shrink-0" />
+                <span className="truncate">
+                  {todayRecord.checkInAddress || 'Checked in (verification pending)'}
+                </span>
+              </div>
+              <div className="w-4.5 h-4.5 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 ml-2">
+                <Clock className="w-3 h-3 stroke-[3]" />
+              </div>
+            </div>
+          )
+        ) : (
+          <div className="bg-slate-50 border border-slate-200/80 rounded-full py-2.5 px-4 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 min-w-0">
+              <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
+              <span className="truncate">No check-in recorded for today</span>
+            </div>
+            <Clock className="w-4 h-4 text-slate-400 shrink-0 ml-2" />
           </div>
-          <div className="w-4.5 h-4.5 rounded-full bg-[#16a34a] text-white flex items-center justify-center shrink-0 ml-2">
-            <CheckCircle2 className="w-3 h-3 stroke-[3]" />
-          </div>
-        </div>
+        )}
 
         {/* Action Buttons: Check In & Check Out */}
         <div className="grid grid-cols-2 gap-3 pt-1">
