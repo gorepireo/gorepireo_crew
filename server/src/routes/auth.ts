@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { db } from '../db';
-import { authMiddleware, requireRole, JWT_SECRET } from '../middleware/auth';
+import { authMiddleware, requireRole, JWT_SECRET, HARDCODED_ADMIN } from '../middleware/auth';
 import { saveProfilePhoto } from '../utils/fileStorage';
 import { autoUploadWorkerPhotoToDrive } from '../utils/googleDriveSync';
 import { indexPersonFace } from '../utils/facialRecognition';
@@ -14,6 +14,13 @@ const router = Router();
 router.get('/me', authMiddleware, (req: Request, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  if (req.user.uid === HARDCODED_ADMIN.uid) {
+    return res.json({
+      user: HARDCODED_ADMIN,
+      settings: db.getSettings(),
+    });
   }
 
   const fullUser = db.getUserByUid(req.user.uid);
@@ -55,6 +62,31 @@ router.post('/login', (req: Request, res: Response) => {
 
   if (!identifier || !password) {
     return res.status(400).json({ error: 'Mobile number and password are required' });
+  }
+
+  // Hardcoded Admin Authentication (not stored in database)
+  if (identifier === 'Ansh') {
+    if (password !== 'Ansh@123') {
+      return res.status(401).json({ error: 'Invalid mobile number or password.' });
+    }
+    const token = jwt.sign(
+      {
+        uid: HARDCODED_ADMIN.uid,
+        role: HARDCODED_ADMIN.role,
+        phone: HARDCODED_ADMIN.phone,
+        displayName: HARDCODED_ADMIN.displayName,
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+    return res.json({
+      success: true,
+      token,
+      user: HARDCODED_ADMIN,
+      worker: null,
+      leader: null,
+      settings: db.getSettings(),
+    });
   }
 
   // Find all user accounts matching normalized mobile or email identifier

