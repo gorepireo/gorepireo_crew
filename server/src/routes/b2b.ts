@@ -188,10 +188,14 @@ router.get('/client/events/:id', authMiddleware, requireRole(['B2B_CLIENT', 'ADM
 
     return {
       workerId: wId,
+      workerCode: wId,
       name: worker?.name || 'Assigned Specialist',
       phone: worker?.phone || '',
       photoURL: worker?.photoURL || '',
+      isCheckedIn: Boolean(att?.checkInTime),
       checkInStatus: att ? att.status : 'PENDING',
+      verificationStatus: att?.verificationStatus || 'PENDING',
+      gpsStatus: att?.gpsStatus || 'UNAVAILABLE',
       checkInTime: att?.checkInTime || null,
       checkOutTime: att?.checkOutTime || null,
       gpsVerified: att?.verificationStatus === 'VERIFIED',

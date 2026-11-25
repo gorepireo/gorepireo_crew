@@ -160,16 +160,19 @@ export const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({
   };
 
   const fallbackSiteCoordinates = (reason?: string) => {
-    // If real GPS denied, use target location coordinates for smooth demonstration
-    const fallbackLat = targetLocation?.latitude || assignment?.locationLatitude || 28.5356;
-    const fallbackLon = targetLocation?.longitude || assignment?.locationLongitude || 77.3911;
-    const c = {
-      latitude: fallbackLat,
-      longitude: fallbackLon,
-      accuracy: 12,
-    };
-    setCoords(c);
-    verifyWithServer(c.latitude, c.longitude, c.accuracy);
+    // Never substitute site coordinates as verified worker GPS.
+    // Mark location unavailable so the worker can retry GPS or submit an attendance exception.
+    setCoords(null);
+    setDetectingGps(false);
+    setDetectedAddress(reason ? `Location unavailable: ${reason}` : 'Device GPS location unavailable');
+    setVerificationResult({
+      status: 'POOR_ACCURACY',
+      isWithinGeofence: false,
+      distanceMeters: 0,
+      geofenceRadiusMeters: targetLocation?.geofenceRadiusMeters || 100,
+      accuracyMeters: 0,
+      message: 'Location unavailable — please enable GPS or submit an exception',
+    });
   };
 
   const verifyWithServer = async (lat: number, lon: number, acc: number) => {
@@ -233,7 +236,8 @@ export const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({
   // Submit Verified Check-In or Check-Out
   const handleConfirmSubmit = async () => {
     if (!coords) {
-      alert('GPS location is still being detected. Please wait a moment.');
+      setShowExceptionForm(true);
+      setSubmitError('Genuine device GPS is unavailable. Please enable location or submit an attendance exception below.');
       return;
     }
 
@@ -471,7 +475,11 @@ export const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({
                 )}
                 <div>
                   <span className="font-bold text-2xs block">
-                    {verificationResult.isWithinGeofence
+                    {!coords
+                      ? 'Location Unavailable (GPS Required)'
+                      : verificationResult.status === 'POOR_ACCURACY'
+                      ? 'Poor GPS Accuracy — Retry or Request Exception'
+                      : verificationResult.isWithinGeofence
                       ? 'Inside Geofence (Verified)'
                       : `Outside Site Perimeter (${verificationResult.distanceMeters}m)`}
                   </span>

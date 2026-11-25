@@ -17,6 +17,23 @@ import {
 
 const router = Router();
 
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10MB limit
+
+function validateBase64Image(dataUrl: string): { valid: boolean; error?: string } {
+  if (typeof dataUrl !== 'string' || !dataUrl.trim()) {
+    return { valid: false, error: 'Image payload is empty' };
+  }
+  const match = dataUrl.match(/^data:image\/(jpeg|jpg|png|webp);base64,([A-Za-z0-9+/=]+)$/i);
+  if (!match) {
+    return { valid: false, error: 'Invalid image format. Only JPEG, PNG, or WebP base64 images are accepted.' };
+  }
+  const approxBytes = Math.ceil((match[2].length * 3) / 4);
+  if (approxBytes > MAX_IMAGE_BYTES) {
+    return { valid: false, error: 'Image size exceeds maximum allowed 10MB limit.' };
+  }
+  return { valid: true };
+}
+
 // GET /api/attendance
 router.get('/', authMiddleware, (req: Request, res: Response) => {
   const { date, workerId, teamId, status } = req.query;
@@ -295,35 +312,73 @@ router.post('/check-in', authMiddleware, (req: Request, res: Response) => {
   const settings = db.getSettings();
   const radius = targetLocation?.geofenceRadiusMeters || settings.defaultGeofenceRadiusMeters || 100;
   const maxAllowedAcc = settings.maxAllowedGPSAccuracyMeters || 50;
-  const targetLat = targetLocation ? targetLocation.latitude : latitude;
-  const targetLon = targetLocation ? targetLocation.longitude : longitude;
 
-  const geoValidation = validateGeofence(
-    Number(latitude),
-    Number(longitude),
-    targetLat,
-    targetLon,
-    radius,
-    accuracy ? Number(accuracy) : undefined
-  );
+  const hasValidCoords =
+    latitude !== undefined &&
+    longitude !== undefined &&
+    latitude !== null &&
+    longitude !== null &&
+    !isNaN(Number(latitude)) &&
+    !isNaN(Number(longitude));
 
-  const isVerified = geoValidation.isWithinGeofence;
+  const targetLat = targetLocation ? targetLocation.latitude : Number(latitude);
+  const targetLon = targetLocation ? targetLocation.longitude : Number(longitude);
+
+  const geoValidation = hasValidCoords
+    ? validateGeofence(
+        Number(latitude),
+        Number(longitude),
+        targetLat,
+        targetLon,
+        radius,
+        accuracy ? Number(accuracy) : undefined
+      )
+    : { isWithinGeofence: false, distanceMeters: 0, message: 'GPS coordinates unavailable' };
+
   const acc = accuracy ? Number(accuracy) : 10;
-  const accuracyAcceptable = acc <= maxAllowedAcc;
+  const accuracyAcceptable = hasValidCoords && acc <= maxAllowedAcc;
+  const isVerified = hasValidCoords && accuracyAcceptable && geoValidation.isWithinGeofence;
 
   let gpsStatus: GPSVerificationStatus = 'VERIFIED';
-  if (!accuracyAcceptable) {
+  if (!hasValidCoords) {
+    gpsStatus = 'UNAVAILABLE';
+  } else if (!accuracyAcceptable) {
     gpsStatus = 'POOR_ACCURACY';
-  } else if (!isVerified) {
+  } else if (!geoValidation.isWithinGeofence) {
     gpsStatus = 'OUTSIDE_GEOFENCE';
   }
 
-  const resolvedAddress = detectedAddress || resolveReadableAddress(Number(latitude), Number(longitude), db.getLocations());
+  const resolvedAddress =
+    detectedAddress ||
+    (hasValidCoords ? resolveReadableAddress(Number(latitude), Number(longitude), db.getLocations()) : 'Location unavailable');
 
-  // Save photo if attached
+  // Validate and save photo if attached, plus optional biometric check
   let photoUrl: string | undefined;
   let photoRecord: AttendancePhoto | undefined;
+  let biometricResult: { status: string; confidence: number } | undefined;
+
   if (photo) {
+    const imgCheck = validateBase64Image(photo);
+    if (!imgCheck.valid) {
+      return res.status(400).json({ error: imgCheck.error });
+    }
+
+    initializeFacialRecognitionIndex();
+    const bioCheck = verifyTeamAttendanceBiometrics(
+      photo,
+      [{ workerId: worker.workerId, name: worker.name }],
+      85.0
+    );
+    if (bioCheck.presentWorkers.length > 0) {
+      biometricResult = { status: 'VERIFIED', confidence: bioCheck.presentWorkers[0].confidence };
+    } else if (bioCheck.ambiguousWorkers.length > 0) {
+      biometricResult = { status: 'REVIEW_REQUIRED', confidence: bioCheck.ambiguousWorkers[0].confidence };
+    } else if (bioCheck.absentWorkers[0]?.reason?.includes('No registered profile photo')) {
+      biometricResult = { status: 'NOT_ENROLLED', confidence: 0 };
+    } else {
+      biometricResult = { status: 'MISMATCH', confidence: bioCheck.absentWorkers[0]?.confidence || 0 };
+    }
+
     photoUrl = saveBase64Image(photo, 'attendance_photos', `selfie_in_${worker.workerId}`);
     const photoId = `photo-att-${Date.now()}`;
     photoRecord = {
@@ -336,8 +391,8 @@ router.post('/check-in', authMiddleware, (req: Request, res: Response) => {
       photoType: 'CHECK_IN',
       storagePath: photoUrl,
       thumbnailPath: photoUrl,
-      latitude: Number(latitude),
-      longitude: Number(longitude),
+      latitude: hasValidCoords ? Number(latitude) : 0,
+      longitude: hasValidCoords ? Number(longitude) : 0,
       accuracyMeters: acc,
       detectedAddress: resolvedAddress,
       deviceCapturedAt: deviceTimestamp || now,
@@ -435,6 +490,7 @@ router.post('/check-in', authMiddleware, (req: Request, res: Response) => {
     attendance: newAttendance,
     photo: photoRecord,
     geofence: geoValidation,
+    biometric: biometricResult,
     message: isVerified
       ? 'Check-in verified successfully with photo on worksite'
       : `Check-in recorded with location flag (${geoValidation.distanceMeters}m from site)`,

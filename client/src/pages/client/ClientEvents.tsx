@@ -387,11 +387,33 @@ export const ClientEvents: React.FC = () => {
                                 <div className="text-3xs text-slate-400">{w.workerCode}</div>
                               </div>
                             </div>
-                            <div>
-                              {w.isCheckedIn ? (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-3xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <div className="flex flex-col items-end gap-1">
+                              {w.checkInStatus === 'ABSENT' ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-3xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                  Absent
+                                </span>
+                              ) : w.isCheckedIn ? (
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-3xs font-bold border ${
+                                    w.checkInStatus === 'LATE'
+                                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                      : w.gpsVerified
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                      : 'bg-amber-50 text-amber-700 border-amber-200'
+                                  }`}
+                                >
                                   <CheckCircle2 className="w-3 h-3" />
-                                  Checked In {w.checkInTime ? `at ${w.checkInTime}` : ''}
+                                  {w.checkInStatus === 'LATE'
+                                    ? 'Late Check-in'
+                                    : w.gpsVerified
+                                    ? 'Verified'
+                                    : 'Flagged'}
+                                  {w.checkInTime
+                                    ? ` · ${new Date(w.checkInTime).toLocaleTimeString([], {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                      })}`
+                                    : ''}
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-3xs font-medium bg-slate-100 text-slate-500">
