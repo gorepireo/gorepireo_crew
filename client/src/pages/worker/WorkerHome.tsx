@@ -323,7 +323,7 @@ export const WorkerHome: React.FC = () => {
                 <span>Worker ID</span>
               </div>
               <span className="font-mono font-bold text-blue-600 text-xs">
-                {worker?.workerId || 'WC-2026-016'}
+                {worker?.workerId || '—'}
               </span>
             </div>
 

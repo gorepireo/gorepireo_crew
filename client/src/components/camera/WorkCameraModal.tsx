@@ -206,16 +206,16 @@ export const WorkCameraModal: React.FC<WorkCameraModalProps> = ({
     // Auto-generate visual watermark in background (Prompt Req 5)
     try {
       const wm = await generateWatermarkedPhoto(photoDataUrl, {
-        workerName: worker?.name || user?.displayName || 'Rahul Kumar',
-        workerId: worker?.workerId || 'WC-2026-001',
+        workerName: worker?.name || user?.displayName || 'Worker',
+        workerId: worker?.workerId || '—',
         assignmentTitle: assignment.title,
         assignmentId: assignment.assignmentId,
         locationAddress: detectedAddress,
         dateStr: new Date().toLocaleDateString('en-GB'),
         timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        latitude: coords?.latitude || 28.5355,
-        longitude: coords?.longitude || 77.3910,
-        accuracyMeters: coords?.accuracy || 10,
+        latitude: coords?.latitude ?? 0,
+        longitude: coords?.longitude ?? 0,
+        accuracyMeters: coords?.accuracy ?? 0,
       });
       setWatermarkedPhoto(wm);
     } catch (wmErr) {
@@ -234,16 +234,16 @@ export const WorkCameraModal: React.FC<WorkCameraModalProps> = ({
 
       try {
         const wm = await generateWatermarkedPhoto(dataUrl, {
-          workerName: worker?.name || user?.displayName || 'Rahul Kumar',
-          workerId: worker?.workerId || 'WC-2026-001',
+          workerName: worker?.name || user?.displayName || 'Worker',
+          workerId: worker?.workerId || '—',
           assignmentTitle: assignment.title,
           assignmentId: assignment.assignmentId,
           locationAddress: detectedAddress,
           dateStr: new Date().toLocaleDateString('en-GB'),
           timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          latitude: coords?.latitude || 28.5355,
-          longitude: coords?.longitude || 77.3910,
-          accuracyMeters: coords?.accuracy || 10,
+          latitude: coords?.latitude ?? 0,
+          longitude: coords?.longitude ?? 0,
+          accuracyMeters: coords?.accuracy ?? 0,
         });
         setWatermarkedPhoto(wm);
       } catch {

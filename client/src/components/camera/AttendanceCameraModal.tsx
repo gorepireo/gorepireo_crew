@@ -333,7 +333,7 @@ export const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({
                 {mode === 'CHECK_IN' ? 'Attendance Check-In' : 'Attendance Check-Out'}
               </h3>
               <p className="text-[11px] text-slate-500 font-medium">
-                Live selfie verification · {worker?.workerId || 'WC-2026-001'}
+                Live selfie verification · {worker?.workerId || '—'}
               </p>
             </div>
           </div>
