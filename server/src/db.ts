@@ -1558,95 +1558,6 @@ class DatabaseService {
         }));
       }
 
-      // If B2B organization is not in database yet, add it
-      if (this.data.organizations.length === 0) {
-        const seedOrg: Organization = {
-          organizationId: 'ORG-2026-001',
-          name: 'Apex Corporate Towers',
-          contactPerson: 'Vikram Malhotra',
-          email: 'client@apextowers.com',
-          phone: '9800615893',
-          address: 'Tower A & B, DLF CyberCity, Gurugram, Haryana',
-          serviceLocationIds: ['LOC-001', 'LOC-002'],
-          serviceLocations: ['Tower A & B, DLF CyberCity, Gurugram', 'Pier Foundation Hub, Sector 18, Noida'],
-          contractStartDate: '2026-01-01',
-          contractEndDate: '2026-12-31',
-          contractPricing: 125000,
-          paymentTerms: 'Net 15 Days after event completion',
-          status: 'ACTIVE',
-          notes: 'Premier commercial facility contract with weekly deep cleaning and daily lobby sanitization.',
-          createdAt: '2026-01-01T00:00:00Z',
-          updatedAt: '2026-01-01T00:00:00Z',
-        };
-        this.data.organizations.push(seedOrg);
-        if (this.tursoClient) {
-          this.tursoClient.execute({
-            sql: `INSERT OR IGNORE INTO organizations (organizationId, name, contactPerson, email, phone, address, serviceLocationIds, contractStartDate, contractEndDate, contractPricing, paymentTerms, status, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            args: [
-              seedOrg.organizationId,
-              seedOrg.name,
-              seedOrg.contactPerson,
-              seedOrg.email,
-              seedOrg.phone,
-              seedOrg.address || null,
-              JSON.stringify(seedOrg.serviceLocationIds || []),
-              seedOrg.contractStartDate,
-              seedOrg.contractEndDate || null,
-              seedOrg.contractPricing,
-              seedOrg.paymentTerms,
-              seedOrg.status,
-              seedOrg.notes || null,
-              seedOrg.createdAt,
-              seedOrg.updatedAt,
-            ],
-          }).catch(() => {});
-        }
-      }
-
-      // If B2B Client account is not in database yet, add it
-      const existingB2BUser = this.data.users.find((u) => u.role === 'B2B_CLIENT' || u.phone === '9800615893');
-      if (!existingB2BUser) {
-        const defaultHash = bcrypt.hashSync('password123', 10);
-        const seedUser: User = {
-          uid: 'user-b2b-001',
-          role: 'B2B_CLIENT',
-          displayName: 'Vikram Malhotra',
-          phone: '9800615893',
-          email: 'client@apextowers.com',
-          photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-          organizationId: 'ORG-2026-001',
-          organizationName: 'Apex Corporate Towers',
-          active: true,
-          passwordHash: defaultHash,
-          mustChangePassword: false,
-          failedLoginAttempts: 0,
-          createdAt: '2026-01-01T00:00:00Z',
-          updatedAt: '2026-01-01T00:00:00Z',
-        };
-        this.data.users.push(seedUser);
-        if (this.tursoClient) {
-          this.tursoClient.execute({
-            sql: `INSERT OR IGNORE INTO users (uid, role, displayName, phone, email, photoURL, organizationId, organizationName, active, passwordHash, mustChangePassword, failedLoginAttempts, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            args: [
-              seedUser.uid,
-              seedUser.role,
-              seedUser.displayName,
-              seedUser.phone || null,
-              seedUser.email || null,
-              seedUser.photoURL || null,
-              seedUser.organizationId || null,
-              seedUser.organizationName || null,
-              1,
-              defaultHash,
-              0,
-              0,
-              seedUser.createdAt,
-              seedUser.updatedAt,
-            ],
-          }).catch(() => {});
-        }
-      }
-
       // If invoices are not in database yet, add initial invoices
       if (this.data.invoices.length === 0) {
         const seedInvoices: Invoice[] = [
@@ -2629,6 +2540,54 @@ class DatabaseService {
       }).catch((e: any) => console.warn('[TURSO] updateOrganization error:', e.message));
     }
     return org;
+  }
+
+  public deleteOrganization(id: string): boolean {
+    if (!this.data.organizations) this.data.organizations = [];
+    const idx = this.data.organizations.findIndex(o => o.organizationId === id);
+    if (idx === -1) return false;
+
+    this.data.organizations.splice(idx, 1);
+
+    // Clean up linked B2B client users, invoices, and payments
+    const linkedUserIds = (this.data.users || [])
+      .filter(u => u.organizationId === id && u.role === 'B2B_CLIENT')
+      .map(u => u.uid);
+    if (this.data.users) {
+      this.data.users = this.data.users.filter(u => !(u.organizationId === id && u.role === 'B2B_CLIENT'));
+    }
+    if (this.data.invoices) {
+      this.data.invoices = this.data.invoices.filter(i => i.organizationId !== id);
+    }
+    if (this.data.payments) {
+      this.data.payments = this.data.payments.filter(p => p.organizationId !== id);
+    }
+
+    this.persist();
+
+    if (this.tursoClient) {
+      this.tursoClient.execute({
+        sql: `DELETE FROM organizations WHERE organizationId = ?`,
+        args: [id],
+      }).catch((e: any) => console.warn('[TURSO] deleteOrganization error:', e.message));
+
+      for (const uid of linkedUserIds) {
+        this.tursoClient.execute({
+          sql: `DELETE FROM users WHERE uid = ?`,
+          args: [uid],
+        }).catch(() => {});
+      }
+      this.tursoClient.execute({
+        sql: `DELETE FROM invoices WHERE organizationId = ?`,
+        args: [id],
+      }).catch(() => {});
+      this.tursoClient.execute({
+        sql: `DELETE FROM payments WHERE organizationId = ?`,
+        args: [id],
+      }).catch(() => {});
+    }
+
+    return true;
   }
 
   public getInvoices(organizationId?: string): Invoice[] {

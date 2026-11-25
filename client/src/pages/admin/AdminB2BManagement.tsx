@@ -21,6 +21,7 @@ import {
   Lock,
   ArrowRight,
   Filter,
+  Trash2,
 } from 'lucide-react';
 
 export const AdminB2BManagement: React.FC = () => {
@@ -119,6 +120,22 @@ export const AdminB2BManagement: React.FC = () => {
       setError(err?.message || 'Failed to load B2B management data.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteOrganization = async (org: Organization & { orgId?: string }) => {
+    const id = org.organizationId || org.orgId;
+    if (!id) return;
+    if (!window.confirm(`Delete "${org.name}" and its linked B2B login/invoices from the database?`)) {
+      return;
+    }
+    try {
+      await api.deleteB2BOrganization(id);
+      setOrganizations((prev) => prev.filter((o: any) => (o.organizationId || o.orgId) !== id));
+      setActionSuccess(`Deleted "${org.name}" from database`);
+      loadAllData();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to delete organization');
     }
   };
 
@@ -364,9 +381,19 @@ export const AdminB2BManagement: React.FC = () => {
                       <div className="p-2.5 bg-blue-50 text-blue-600 rounded-2xl">
                         <Building2 className="w-5 h-5" />
                       </div>
-                      <span className="text-4xs font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase">
-                        {org.status}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-4xs font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase">
+                          {org.status}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteOrganization(org)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                          title="Delete organization"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
 
                     <div>

@@ -850,6 +850,12 @@ class ApiService {
     });
   }
 
+  async deleteB2BOrganization(id: string) {
+    return this.request<{ success: boolean; message: string }>('/api/b2b/admin/organizations/' + id, {
+      method: 'DELETE',
+    });
+  }
+
   async getAdminB2BEvents() {
     return this.request<{ events: any[] }>('/api/b2b/admin/events');
   }

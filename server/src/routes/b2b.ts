@@ -656,6 +656,31 @@ router.put('/admin/organizations/:id', authMiddleware, requireRole(['ADMIN']), (
   res.json({ success: true, organization: updated });
 });
 
+// 3b. Admin: Delete B2B Organization (and linked B2B client user / invoices / payments)
+router.delete('/admin/organizations/:id', authMiddleware, requireRole(['ADMIN']), (req: Request, res: Response) => {
+  const id = req.params.id as string;
+  const existing = db.getOrganizationById(id);
+  if (!existing) {
+    return res.status(404).json({ error: 'Organization not found' });
+  }
+
+  db.deleteOrganization(id);
+
+  db.logActivity({
+    logId: `act-${Date.now()}`,
+    actorId: req.user?.uid || 'admin',
+    actorName: req.user?.displayName || 'Admin',
+    actorRole: 'ADMIN',
+    action: 'DELETE_ORGANIZATION',
+    entityType: 'ORGANIZATION',
+    entityId: id,
+    changes: { name: existing.name },
+    timestamp: new Date().toISOString(),
+  });
+
+  res.json({ success: true, message: `Organization "${existing.name}" deleted from database` });
+});
+
 // 4. Admin: Get all B2B Events
 router.get('/admin/events', authMiddleware, requireRole(['ADMIN']), (req: Request, res: Response) => {
   const assignments = db.getAssignments().filter((a) => Boolean(a.organizationId));
