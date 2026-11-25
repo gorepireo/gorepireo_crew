@@ -16,7 +16,7 @@ export const AdminLeaders: React.FC = () => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('+91 ');
   const [email, setEmail] = useState('');
-  const [temporaryPassword, setTemporaryPassword] = useState('password123');
+  const [temporaryPassword, setTemporaryPassword] = useState('');
   const [status, setStatus] = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE');
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]);
   const [canAddWorkers, setCanAddWorkers] = useState(true);
@@ -27,7 +27,7 @@ export const AdminLeaders: React.FC = () => {
 
   // Reset Password Modal
   const [resetLeader, setResetLeader] = useState<TeamLeader | null>(null);
-  const [resetPasswordVal, setResetPasswordVal] = useState('password123');
+  const [resetPasswordVal, setResetPasswordVal] = useState('');
   const [submittingReset, setSubmittingReset] = useState(false);
 
   const [activeTab, setActiveTab] = useState<'ALL' | 'ASSIGNED' | 'UNASSIGNED'>('ALL');
@@ -79,7 +79,7 @@ export const AdminLeaders: React.FC = () => {
       setName('');
       setPhone('+91 ');
       setEmail('');
-      setTemporaryPassword('password123');
+      setTemporaryPassword('');
       setSelectedTeamIds([]);
       loadData();
       alert('Team Leader created successfully.');
@@ -270,7 +270,7 @@ export const AdminLeaders: React.FC = () => {
                       title="Reset Leader Password"
                       onClick={() => {
                         setResetLeader(leader);
-                        setResetPasswordVal('password123');
+                        setResetPasswordVal('');
                       }}
                       className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
                     >

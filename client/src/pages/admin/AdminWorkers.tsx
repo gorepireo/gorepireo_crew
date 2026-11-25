@@ -45,12 +45,12 @@ export const AdminWorkers: React.FC = () => {
   const [newAddress, setNewAddress] = useState('');
   const [newTeamId, setNewTeamId] = useState('');
   const [newJoiningDate, setNewJoiningDate] = useState(new Date().toISOString().slice(0, 10));
-  const [newTemporaryPassword, setNewTemporaryPassword] = useState('password123');
+  const [newTemporaryPassword, setNewTemporaryPassword] = useState('');
   const [submittingAdd, setSubmittingAdd] = useState(false);
 
   // Reset Password Modal
   const [resetWorker, setResetWorker] = useState<Worker | null>(null);
-  const [resetPasswordVal, setResetPasswordVal] = useState('password123');
+  const [resetPasswordVal, setResetPasswordVal] = useState('');
   const [submittingReset, setSubmittingReset] = useState(false);
 
   // Edit Worker Modal
@@ -125,7 +125,7 @@ export const AdminWorkers: React.FC = () => {
       setNewPhone('+91 ');
       setNewEmail('');
       setNewAddress('');
-      setNewTemporaryPassword('password123');
+      setNewTemporaryPassword('');
       loadData();
       alert('Worker successfully created with unique sequential ID!');
     } catch (err: any) {
@@ -421,7 +421,7 @@ export const AdminWorkers: React.FC = () => {
                             <button
                               onClick={() => {
                                 setResetWorker(w);
-                                setResetPasswordVal('password123');
+                                setResetPasswordVal('');
                               }}
                               title="Reset Password"
                               className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"

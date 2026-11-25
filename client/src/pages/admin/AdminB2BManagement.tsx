@@ -54,7 +54,7 @@ export const AdminB2BManagement: React.FC = () => {
     contractEndDate: '',
     contractPricing: 50000,
     paymentTerms: 'Net 15 Days after event completion',
-    initialPassword: 'password123',
+    initialPassword: '',
   });
 
   // New Event Form
