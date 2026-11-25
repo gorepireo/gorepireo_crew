@@ -163,51 +163,49 @@ export const WorkerAttendance: React.FC = () => {
 
   return (
     <div className="space-y-3.5 pb-4">
-      {/* 1. TOP HERO HEADER (Full-Bleed Exact Match) */}
-      <div className="-mx-3 -mt-4 bg-[#3b52ec] text-white pt-5 pb-6 px-4 rounded-b-[28px] shadow-sm relative overflow-hidden flex items-center justify-between">
-        {/* Real Wavy Ribbon Background Banner */}
+      {/* 1. TOP HERO HEADER (Clean Full-Bleed with Integrated Apply Leave) */}
+      <div className="-mx-3.5 sm:-mx-4 -mt-3.5 sm:-mt-4 bg-gradient-to-br from-[#0b66e4] via-[#1070f0] to-[#084ec4] text-white pt-4 pb-5 px-4 rounded-b-3xl shadow-sm relative overflow-hidden flex items-center justify-between gap-2">
         <img
           src="/header-bg-wave.jpg"
           alt=""
-          className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none"
+          className="absolute inset-0 w-full h-full object-cover object-center opacity-25 mix-blend-overlay pointer-events-none select-none"
         />
 
-        <div className="space-y-1 relative z-10 min-w-0 pr-2">
-          <div className="flex items-center gap-2.5">
-            <Calendar className="w-6 h-6 text-white stroke-[2.4]" />
-            <h1 className="text-xl font-black text-white tracking-tight leading-tight">
-              Attendance
-            </h1>
+        <div className="space-y-2.5 relative z-10 min-w-0 flex-1">
+          <div>
+            <div className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-white stroke-[2.3]" />
+              <h1 className="text-lg font-black text-white tracking-tight leading-tight">
+                Attendance
+              </h1>
+            </div>
+            <p className="text-[11px] text-blue-100/95 font-medium mt-0.5">
+              Daily duty history &amp; working hours
+            </p>
           </div>
-          <p className="text-xs text-blue-100/90 font-medium">
-            Daily duty history & working hours
-          </p>
+
+          <button
+            type="button"
+            onClick={() => setLeaveModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white text-[#0b66e4] hover:bg-blue-50 active:scale-97 font-bold text-xs rounded-full shadow-xs transition-all"
+          >
+            <Plus className="w-3.5 h-3.5 stroke-[2.8]" />
+            <span>Apply Leave</span>
+          </button>
         </div>
 
-        {/* 3D Calendar Illustration with checkmark */}
-        <div className="relative z-10 shrink-0 -my-1">
+        {/* 3D Calendar Illustration */}
+        <div className="relative z-10 shrink-0">
           <img
             src="/attendance-header-graphic.png"
             alt="Attendance"
-            className="w-28 sm:w-32 h-auto object-contain drop-shadow-md select-none transform translate-x-1"
+            className="w-24 sm:w-28 h-auto object-contain drop-shadow-md select-none"
           />
         </div>
       </div>
 
-      {/* 2. APPLY LEAVE BUTTON (Top-Right Floating Pill) */}
-      <div className="flex justify-end pt-1">
-        <button
-          type="button"
-          onClick={() => setLeaveModalOpen(true)}
-          className="min-h-[38px] px-4 py-2 bg-gradient-to-r from-[#4352f5] to-[#5f49f8] hover:opacity-95 active:scale-95 text-white font-bold text-xs rounded-full shadow-sm shadow-indigo-500/20 flex items-center gap-1.5 transition-all"
-        >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>Apply Leave</span>
-        </button>
-      </div>
-
-      {/* 3. TODAY'S ATTENDANCE CARD */}
-      <div className="bg-white rounded-[26px] p-4.5 border border-slate-100 shadow-xs space-y-3.5">
+      {/* 2. TODAY'S ATTENDANCE CARD */}
+      <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs space-y-3.5">
         {/* Card Header: Date & Status Pill */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -322,11 +320,16 @@ export const WorkerAttendance: React.FC = () => {
         )}
 
         {/* Action Buttons: Check In & Check Out */}
-        <div className="grid grid-cols-2 gap-3 pt-1">
+        <div className="grid grid-cols-2 gap-3 pt-0.5">
           <button
             type="button"
             onClick={handleStartCheckIn}
-            className="min-h-[44px] py-3 px-4 bg-[#2f55d4] hover:bg-blue-700 active:scale-[0.98] text-white font-bold text-xs rounded-2xl shadow-sm shadow-blue-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+            disabled={!!todayRecord?.checkInTime}
+            className={`min-h-[46px] py-3 px-4 font-bold text-xs rounded-2xl flex items-center justify-center gap-2 transition-all ${
+              !todayRecord?.checkInTime
+                ? 'bg-[#106ee8] hover:bg-[#0d5ec9] active:scale-[0.98] text-white shadow-sm cursor-pointer'
+                : 'bg-[#106ee8]/80 text-white opacity-80 cursor-default'
+            }`}
           >
             <LogIn className="w-4 h-4 stroke-[2.5]" />
             <span>Check In</span>
@@ -335,7 +338,12 @@ export const WorkerAttendance: React.FC = () => {
           <button
             type="button"
             onClick={handleStartCheckOut}
-            className="min-h-[44px] py-3 px-4 bg-[#eef1fa] hover:bg-[#e4e8f7] active:scale-[0.98] text-[#374151] font-bold text-xs rounded-2xl flex items-center justify-center gap-2 transition-all cursor-pointer"
+            disabled={!todayRecord?.checkInTime || !!todayRecord?.checkOutTime}
+            className={`min-h-[46px] py-3 px-4 font-bold text-xs rounded-2xl flex items-center justify-center gap-2 transition-all ${
+              todayRecord?.checkInTime && !todayRecord?.checkOutTime
+                ? 'bg-slate-900 hover:bg-slate-800 active:scale-[0.98] text-white shadow-sm cursor-pointer'
+                : 'bg-[#f1f5f9] border border-slate-200/80 text-slate-500 cursor-default'
+            }`}
           >
             <LogOut className="w-4 h-4 stroke-[2.5]" />
             <span>Check Out</span>
@@ -343,19 +351,19 @@ export const WorkerAttendance: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. ATTENDANCE HISTORY CARD */}
-      <div className="bg-white rounded-[26px] p-5 border border-slate-100 shadow-xs space-y-4">
+      {/* 3. ATTENDANCE HISTORY CARD */}
+      <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs space-y-3.5">
         {/* Header Row */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <BarChart2 className="w-4.5 h-4.5 text-[#4352f5] stroke-[2.5]" />
-            <h3 className="text-sm font-black text-slate-800">Attendance History</h3>
+            <BarChart2 className="w-4 h-4 text-[#106ee8] stroke-[2.5]" />
+            <h3 className="text-xs font-bold text-slate-900">Attendance History</h3>
           </div>
 
           <button
             type="button"
             onClick={() => setShowAllHistory(!showAllHistory)}
-            className="text-xs font-bold text-[#4352f5] hover:text-blue-700 flex items-center gap-0.5 transition-colors"
+            className="text-[11px] font-bold text-[#106ee8] hover:underline flex items-center gap-0.5 transition-colors"
           >
             <span>{showAllHistory ? 'Show Less' : 'View All'}</span>
             <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -364,16 +372,16 @@ export const WorkerAttendance: React.FC = () => {
 
         {/* Content: Empty State or Historical List */}
         {attendance.length === 0 ? (
-          <div className="py-6 flex flex-col items-center justify-center text-center">
+          <div className="py-4 flex flex-col items-center justify-center text-center">
             <img
               src="/no-attendance.png"
               alt="No Attendance History"
-              className="w-52 max-w-[220px] h-auto object-contain mx-auto mb-3 select-none"
+              className="w-28 h-auto object-contain mx-auto mb-2.5 select-none"
             />
-            <h4 className="text-sm font-black text-slate-800">
+            <h4 className="text-xs font-bold text-slate-800">
               No Attendance History Yet
             </h4>
-            <p className="text-xs text-slate-400 font-normal mt-1 max-w-[260px]">
+            <p className="text-[11px] text-slate-500 font-normal mt-0.5 max-w-[240px]">
               Your check-in and check-out records will appear here.
             </p>
           </div>
