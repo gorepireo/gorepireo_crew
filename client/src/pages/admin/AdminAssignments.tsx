@@ -242,13 +242,22 @@ export const AdminAssignments: React.FC = () => {
               required
               value={locationId}
               onChange={(e) => setLocationId(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 bg-white text-slate-900 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600"
             >
-              {locations.map((loc) => (
-                <option key={loc.locationId} value={loc.locationId}>
-                  {loc.name}
-                </option>
-              ))}
+              {locations.length === 0 ? (
+                <option value="">No work locations found — add one in Locations first</option>
+              ) : (
+                <>
+                  <option value="" disabled>
+                    Select a work location...
+                  </option>
+                  {locations.map((loc) => (
+                    <option key={loc.locationId} value={loc.locationId} className="text-slate-900 bg-white">
+                      {loc.name}
+                    </option>
+                  ))}
+                </>
+              )}
             </select>
           </div>
 
