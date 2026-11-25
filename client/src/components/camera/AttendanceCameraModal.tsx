@@ -314,186 +314,220 @@ export const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({
   const isPoorAccuracy = verificationResult?.status === 'POOR_ACCURACY';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-2 sm:p-4">
-      <div className="bg-slate-900 border border-slate-800 text-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/50 backdrop-blur-xs p-0 sm:p-4">
+      <div className="bg-white text-slate-900 rounded-t-3xl sm:rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[94dvh]">
         {/* TOP MODAL HEADER */}
-        <div className="p-3.5 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
-          <div className="flex items-center gap-2">
-            <div className={`p-1.5 rounded-xl ${mode === 'CHECK_IN' ? 'bg-blue-600' : 'bg-emerald-600'} text-white`}>
+        <div className="px-4 py-3.5 flex items-center justify-between bg-white shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div
+              className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                mode === 'CHECK_IN'
+                  ? 'bg-[#edf2fe] text-[#106ee8]'
+                  : 'bg-emerald-50 text-emerald-600'
+              }`}
+            >
               <Camera className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-xs font-bold text-white tracking-wide">
-                {mode === 'CHECK_IN' ? 'Attendance Check-In Camera' : 'Attendance Check-Out Camera'}
+              <h3 className="text-sm font-bold text-slate-900 leading-tight">
+                {mode === 'CHECK_IN' ? 'Attendance Check-In' : 'Attendance Check-Out'}
               </h3>
-              <p className="text-3xs text-slate-400">
+              <p className="text-[11px] text-slate-500 font-medium">
                 Live selfie verification · {worker?.workerId || 'WC-2026-001'}
               </p>
             </div>
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-full text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+            aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* CAMERA PREVIEW & VIEWFINDER */}
-        <div className="relative bg-black flex-1 min-h-[300px] flex items-center justify-center overflow-hidden">
-          {!capturedPhoto ? (
-            <>
-              {cameraError ? (
-                <div className="p-6 text-center space-y-3">
-                  <AlertCircle className="w-10 h-10 text-amber-400 mx-auto" />
-                  <p className="text-xs text-slate-300">{cameraError}</p>
-                  <label className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs">
-                    <Upload className="w-4 h-4" />
-                    <span>Upload Live Selfie</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      capture="user"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-              ) : (
-                <>
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className={`w-full h-full object-cover min-h-[320px] ${
-                      facingMode === 'user' ? 'scale-x-[-1]' : ''
-                    }`}
-                  />
-
-                  {/* Face alignment guideline overlay */}
-                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                    <div className="w-48 h-56 border-2 border-dashed border-white/40 rounded-full flex items-center justify-center shadow-lg">
-                      <span className="text-3xs text-white/60 font-semibold bg-black/40 px-2 py-0.5 rounded-full">
-                        Center Face Here
-                      </span>
-                    </div>
+        {/* SCROLLABLE BODY */}
+        <div className="flex-1 overflow-y-auto px-4 pb-3 space-y-3">
+          {/* CAMERA PREVIEW & VIEWFINDER */}
+          <div className="relative bg-slate-900 rounded-2xl aspect-[4/3.6] min-h-[250px] flex items-center justify-center overflow-hidden">
+            {!capturedPhoto ? (
+              <>
+                {cameraError ? (
+                  <div className="p-6 text-center space-y-3">
+                    <AlertCircle className="w-10 h-10 text-amber-400 mx-auto" />
+                    <p className="text-xs text-slate-200">{cameraError}</p>
+                    <label className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#106ee8] hover:bg-[#0d5ec9] text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs">
+                      <Upload className="w-4 h-4" />
+                      <span>Upload Live Selfie</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="user"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+                    </label>
                   </div>
+                ) : (
+                  <>
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className={`w-full h-full object-cover ${
+                        facingMode === 'user' ? 'scale-x-[-1]' : ''
+                      }`}
+                    />
 
-                  {/* Camera switch toggle button */}
-                  <button
-                    type="button"
-                    onClick={toggleCamera}
-                    className="absolute top-3 right-3 p-2 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white backdrop-blur-xs transition-colors border border-white/20"
-                    title="Flip camera"
-                  >
-                    <RotateCw className="w-4 h-4" />
-                  </button>
-                </>
-              )}
-            </>
-          ) : (
-            <div className="relative w-full h-full">
-              <img
-                src={capturedPhoto}
-                alt="Captured Selfie"
-                className="w-full h-full object-cover min-h-[320px]"
-              />
-              {isInside && !isPoorAccuracy ? (
-                <span className="absolute top-3 left-3 bg-emerald-500/95 text-white px-3 py-1 rounded-full text-3xs font-extrabold flex items-center gap-1.5 shadow-md">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>On-Site Verified</span>
-                </span>
-              ) : (
-                <span className="absolute top-3 left-3 bg-rose-600/95 text-white px-3 py-1 rounded-full text-3xs font-extrabold flex items-center gap-1.5 shadow-md">
-                  <AlertCircle className="w-3.5 h-3.5" />
-                  <span>Not Verified · Retake Needed</span>
-                </span>
-              )}
-            </div>
-          )}
+                    {/* Corner bracket face alignment overlay */}
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                      <div className="relative w-48 h-48 flex items-center justify-center">
+                        <span className="absolute top-0 left-0 w-7 h-7 border-t-[3px] border-l-[3px] border-white/90 rounded-tl-xl" />
+                        <span className="absolute top-0 right-0 w-7 h-7 border-t-[3px] border-r-[3px] border-white/90 rounded-tr-xl" />
+                        <span className="absolute bottom-0 left-0 w-7 h-7 border-b-[3px] border-l-[3px] border-white/90 rounded-bl-xl" />
+                        <span className="absolute bottom-0 right-0 w-7 h-7 border-b-[3px] border-r-[3px] border-white/90 rounded-br-xl" />
+                        <span className="text-xs text-white font-bold drop-shadow-sm">
+                          Center Face Here
+                        </span>
+                      </div>
+                    </div>
 
-          {/* OVERLAY: LIVE TIME & ACCURACY PILL */}
-          <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none">
-            <span className="bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded-lg text-3xs text-slate-300 font-mono">
-              {currentTime.toLocaleTimeString()} · {worker?.name?.split(' ')[0]}
-            </span>
+                    {/* Camera switch toggle button */}
+                    <button
+                      type="button"
+                      onClick={toggleCamera}
+                      className="absolute top-3 right-3 w-9 h-9 rounded-xl bg-black/45 hover:bg-black/65 text-white backdrop-blur-xs flex items-center justify-center transition-colors"
+                      title="Flip camera"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </button>
 
-            <span
-              className={`px-2 py-0.5 rounded-lg text-3xs font-bold flex items-center gap-1 backdrop-blur-xs ${
-                detectingGps
-                  ? 'bg-amber-500/70 text-white'
-                  : isPoorAccuracy
-                  ? 'bg-amber-600/80 text-white'
-                  : 'bg-emerald-600/80 text-white'
-              }`}
-            >
-              <Radio className="w-3 h-3 animate-pulse" />
-              {detectingGps ? 'Locating...' : `GPS ±${coords?.accuracy || 10}m`}
-            </span>
-          </div>
-        </div>
-
-        {/* LOCATION & GEOFENCE METADATA PANEL */}
-        <div className="p-3.5 bg-slate-900 space-y-2.5 border-t border-slate-800">
-          <div className="flex items-start justify-between gap-2">
-            <div className="space-y-0.5 flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-200">
-                <MapPin className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                <span className="truncate">{targetLocation?.name || assignment?.locationName || 'Worksite'}</span>
+                    {/* Discreet photo upload fallback */}
+                    <label
+                      className="absolute bottom-11 left-3 w-8 h-8 rounded-xl bg-black/45 hover:bg-black/65 text-white backdrop-blur-xs flex items-center justify-center cursor-pointer transition-colors"
+                      title="Upload selfie"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="user"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </>
+                )}
+              </>
+            ) : (
+              <div className="relative w-full h-full">
+                <img
+                  src={capturedPhoto}
+                  alt="Captured Selfie"
+                  className="w-full h-full object-cover"
+                />
+                {isInside && !isPoorAccuracy ? (
+                  <span className="absolute top-3 left-3 bg-emerald-600/95 text-white px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-md">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>On-Site Verified</span>
+                  </span>
+                ) : (
+                  <span className="absolute top-3 left-3 bg-rose-600/95 text-white px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-md">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    <span>Not Verified · Retake Needed</span>
+                  </span>
+                )}
               </div>
-              <p className="text-3xs text-slate-400 truncate pl-5">
-                {detectedAddress}
-              </p>
+            )}
+
+            {/* OVERLAY: LIVE TIME & ACCURACY PILL */}
+            <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none">
+              <span className="bg-black/55 backdrop-blur-xs px-3 py-1 rounded-full text-[11px] text-white font-semibold">
+                {currentTime.toLocaleTimeString()} · {worker?.name?.split(' ')[0]}
+              </span>
+
+              <span
+                className={`px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 backdrop-blur-xs ${
+                  detectingGps
+                    ? 'bg-amber-500/90 text-white'
+                    : !coords || isPoorAccuracy
+                    ? 'bg-amber-600/90 text-white'
+                    : 'bg-[#15803d] text-white'
+                }`}
+              >
+                <Radio className="w-3 h-3" />
+                {detectingGps
+                  ? 'Locating...'
+                  : coords
+                  ? `GPS ±${coords.accuracy} m`
+                  : 'No GPS'}
+              </span>
+            </div>
+          </div>
+
+          {/* SITE & RADIUS ROW */}
+          <div className="flex items-center justify-between gap-3 pt-0.5">
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+              <div className="w-9 h-9 rounded-full bg-[#edf2fe] text-[#106ee8] flex items-center justify-center shrink-0">
+                <MapPin className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-slate-900 truncate">
+                  {targetLocation?.name || assignment?.locationName || 'Worksite'}
+                </p>
+                <p className="text-[11px] text-slate-500 truncate">
+                  {verificationResult
+                    ? `Site radius: ${verificationResult.geofenceRadiusMeters} m`
+                    : detectedAddress}
+                </p>
+              </div>
             </div>
 
             <button
+              type="button"
               onClick={detectLocation}
               disabled={detectingGps}
-              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors shrink-0"
+              className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors shrink-0 disabled:opacity-50"
               title="Refresh GPS"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${detectingGps ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${detectingGps ? 'animate-spin' : ''}`} />
             </button>
           </div>
 
-          {/* GEOFENCE RESULT BADGE */}
+          {/* GEOFENCE RESULT BANNER */}
           {verificationResult && (
             <div
-              className={`p-2.5 rounded-xl text-xs flex items-center justify-between border ${
-                verificationResult.isWithinGeofence
-                  ? 'bg-emerald-950/60 border-emerald-800 text-emerald-300'
-                  : 'bg-amber-950/60 border-amber-800 text-amber-300'
+              className={`px-3.5 py-2.5 rounded-2xl flex items-center justify-between gap-2 border ${
+                verificationResult.isWithinGeofence && coords
+                  ? 'bg-[#eaf7ee] border-emerald-200 text-emerald-800'
+                  : 'bg-[#fff3e6] border-amber-200/80 text-[#9a3412]'
               }`}
             >
-              <div className="flex items-center gap-2">
-                {verificationResult.isWithinGeofence ? (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <div className="flex items-center gap-2 min-w-0">
+                {verificationResult.isWithinGeofence && coords ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 ) : (
-                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                  <AlertTriangle className="w-4 h-4 text-[#b45309] shrink-0" />
                 )}
-                <div>
-                  <span className="font-bold text-2xs block">
-                    {!coords
-                      ? 'Location Unavailable (GPS Required)'
-                      : verificationResult.status === 'POOR_ACCURACY'
-                      ? 'Poor GPS Accuracy — Retry or Request Exception'
-                      : verificationResult.isWithinGeofence
-                      ? 'Inside Geofence (Verified)'
-                      : `Outside Site Perimeter (${verificationResult.distanceMeters}m)`}
-                  </span>
-                  <span className="text-3xs opacity-80">
-                    Site radius: {verificationResult.geofenceRadiusMeters}m
-                  </span>
-                </div>
+                <span className="font-bold text-xs truncate">
+                  {!coords
+                    ? 'Location Unavailable (GPS Required)'
+                    : verificationResult.status === 'POOR_ACCURACY'
+                    ? 'Poor GPS Accuracy — Retry'
+                    : verificationResult.isWithinGeofence
+                    ? 'Inside Geofence (Verified)'
+                    : `Outside Perimeter (${verificationResult.distanceMeters}m)`}
+                </span>
               </div>
 
-              {!verificationResult.isWithinGeofence && (
+              {(!verificationResult.isWithinGeofence || !coords) && (
                 <button
                   type="button"
                   onClick={() => setShowExceptionForm(true)}
-                  className="px-2 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-3xs font-bold transition-colors"
+                  className="px-3 py-1 bg-white hover:bg-amber-50 border border-amber-300 text-[#b45309] rounded-full text-[11px] font-bold transition-colors shrink-0"
                 >
                   Request Exception
                 </button>
@@ -503,16 +537,19 @@ export const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({
 
           {/* EXCEPTION REASON ACCORDION (If requested) */}
           {showExceptionForm && (
-            <form onSubmit={handleSubmitException} className="p-3 bg-slate-800/80 rounded-xl space-y-2 border border-slate-700">
+            <form
+              onSubmit={handleSubmitException}
+              className="p-3.5 bg-slate-50 rounded-2xl space-y-2.5 border border-slate-200"
+            >
               <div className="flex items-center justify-between">
-                <span className="text-2xs font-bold text-amber-300 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" />
+                <span className="text-xs font-bold text-amber-800 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-amber-600" />
                   Attendance Exception Justification
                 </span>
                 <button
                   type="button"
                   onClick={() => setShowExceptionForm(false)}
-                  className="text-3xs text-slate-400 hover:text-white"
+                  className="text-[11px] font-semibold text-slate-500 hover:text-slate-800"
                 >
                   Cancel
                 </button>
@@ -524,13 +561,13 @@ export const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({
                 value={exceptionReason}
                 onChange={(e) => setExceptionReason(e.target.value)}
                 placeholder="Explain why you are off-site (e.g. client redirected to gate 4, underground basement signal loss)..."
-                className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-amber-500"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-amber-500"
               />
 
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>{submitting ? 'Submitting Exception...' : 'Submit Exception for Leader Review'}</span>
@@ -539,35 +576,37 @@ export const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({
           )}
 
           {submitError && (
-            <div className="p-2 bg-rose-950/80 border border-rose-800 text-rose-300 text-3xs rounded-xl flex items-center gap-1.5">
-              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+            <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{submitError}</span>
             </div>
           )}
         </div>
 
         {/* BOTTOM ACTION BAR */}
-        <div className="p-4 border-t border-slate-800 flex flex-col gap-2.5 bg-slate-900/95">
+        <div className="px-4 pb-4 pt-1 bg-white shrink-0">
           {!capturedPhoto ? (
             <button
               type="button"
               onClick={handleCapture}
-              className={`w-full min-h-[54px] text-white font-black text-sm rounded-2xl transition-all shadow-md flex items-center justify-center gap-2.5 active:scale-98 ${
-                mode === 'CHECK_IN' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-emerald-600 hover:bg-emerald-500'
+              className={`w-full min-h-[52px] text-white font-bold text-xs tracking-wide uppercase rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2 active:scale-98 ${
+                mode === 'CHECK_IN'
+                  ? 'bg-[#106ee8] hover:bg-[#0d5ec9]'
+                  : 'bg-emerald-600 hover:bg-emerald-700'
               }`}
             >
-              <Camera className="w-5 h-5" />
+              <Camera className="w-4 h-4" />
               <span>TAKE SELFIE FOR ATTENDANCE</span>
             </button>
           ) : !isInside || isPoorAccuracy ? (
             /* ATTENDANCE NOT VERIFIED: REQUIRE RETAKE */
             <div className="space-y-2.5 w-full">
-              <div className="p-3 bg-rose-950/90 border border-rose-700 text-rose-200 rounded-2xl text-xs space-y-1">
-                <div className="flex items-center gap-2 font-black text-rose-300">
-                  <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs space-y-1">
+                <div className="flex items-center gap-2 font-bold text-rose-700">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
                   <span>ATTENDANCE NOT VERIFIED</span>
                 </div>
-                <p className="text-3xs text-rose-300 leading-relaxed">
+                <p className="text-[11px] text-rose-700 leading-relaxed">
                   {verificationResult?.distanceMeters
                     ? `You are ${verificationResult.distanceMeters}m outside the designated site perimeter (${verificationResult.geofenceRadiusMeters}m radius).`
                     : 'GPS coordinates could not be verified on-site.'}
@@ -579,7 +618,7 @@ export const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({
                 <button
                   type="button"
                   onClick={handleRetake}
-                  className="flex-1 min-h-[52px] bg-rose-600 hover:bg-rose-500 text-white font-black text-xs rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 active:scale-98"
+                  className="flex-1 min-h-[48px] bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2 active:scale-98"
                 >
                   <RotateCw className="w-4 h-4" />
                   <span>RETAKE PHOTO</span>
@@ -588,7 +627,7 @@ export const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowExceptionForm(true)}
-                  className="px-3.5 min-h-[52px] bg-slate-800 hover:bg-slate-700 text-slate-300 text-3xs font-extrabold rounded-2xl border border-slate-700 transition-colors"
+                  className="px-3.5 min-h-[48px] bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold rounded-2xl border border-slate-200 transition-colors"
                 >
                   Request Exception
                 </button>
@@ -601,7 +640,7 @@ export const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({
                 type="button"
                 onClick={handleRetake}
                 disabled={submitting}
-                className="min-h-[52px] px-5 py-3 bg-slate-800 hover:bg-slate-700 active:scale-98 text-slate-200 font-bold text-xs rounded-2xl transition-colors border border-slate-700"
+                className="min-h-[50px] px-5 py-3 bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 font-bold text-xs rounded-2xl transition-colors border border-slate-200"
               >
                 Retake
               </button>
@@ -610,11 +649,13 @@ export const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({
                 type="button"
                 onClick={handleConfirmSubmit}
                 disabled={submitting}
-                className={`flex-1 min-h-[52px] text-white font-black text-sm rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 active:scale-98 ${
-                  mode === 'CHECK_IN' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-emerald-600 hover:bg-emerald-500'
+                className={`flex-1 min-h-[50px] text-white font-bold text-xs tracking-wide uppercase rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2 active:scale-98 ${
+                  mode === 'CHECK_IN'
+                    ? 'bg-[#106ee8] hover:bg-[#0d5ec9]'
+                    : 'bg-emerald-600 hover:bg-emerald-700'
                 } disabled:opacity-50`}
               >
-                <CheckCircle2 className="w-5 h-5" />
+                <CheckCircle2 className="w-4 h-4" />
                 <span>
                   {submitting
                     ? 'Submitting...'
