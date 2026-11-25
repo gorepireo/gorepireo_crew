@@ -22,8 +22,6 @@ import {
   Globe,
   Bell,
   X,
-  HardDrive,
-  ExternalLink,
   CheckCircle2,
   Loader2,
   Trash2,
@@ -63,10 +61,6 @@ export const WorkerProfile: React.FC = () => {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoSyncSuccess, setPhotoSyncSuccess] = useState(false);
   const [photoSyncError, setPhotoSyncError] = useState<string | null>(null);
-
-  const GOOGLE_DRIVE_FOLDER_URL =
-    'https://drive.google.com/drive/folders/1xBiZLYm1gGaMJ5KZWNvlO1mOkhI0wcZN?usp=sharing';
-  const GOOGLE_DRIVE_FOLDER_ID = '1xBiZLYm1gGaMJ5KZWNvlO1mOkhI0wcZN';
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,9 +160,10 @@ export const WorkerProfile: React.FC = () => {
     navigate('/login');
   };
 
-  const workerCode = worker?.workerId || 'WC-2026-016';
+  const workerCode = worker?.workerId || '—';
   const teamName = worker?.primaryTeamName || (worker?.primaryTeamId ? 'Assigned' : 'Unassigned');
   const avatarUrl = customPhoto || worker?.photoURL || user?.photoURL || '/worker-illustration.png';
+  const accountStatus = worker?.status || (user as any)?.status || 'ACTIVE';
 
   const joinedDateFormatted = worker?.joiningDate
     ? new Date(worker.joiningDate).toLocaleDateString('en-GB', {
@@ -182,7 +177,7 @@ export const WorkerProfile: React.FC = () => {
         month: 'short',
         year: 'numeric',
       })
-    : '18 Nov 2026';
+    : '—';
 
   return (
     <div className="space-y-3.5 pb-4">
@@ -275,19 +270,39 @@ export const WorkerProfile: React.FC = () => {
         {/* Divider */}
         <div className="h-9 w-px bg-white/20 mx-2 relative z-10" />
 
-        {/* Valid Till */}
+        {/* Account Status from Database */}
         <div className="flex items-center gap-2.5 relative z-10">
-          <Calendar className="w-6 h-6 text-white stroke-[2]" />
+          <ShieldCheck className="w-6 h-6 text-white stroke-[2]" />
           <div>
             <span className="text-3xs text-blue-100/80 font-medium block">
-              Valid Till
+              Account Status
             </span>
-            <strong className="text-xs font-black text-white block leading-tight">
-              Dec 2028
+            <strong className="text-xs font-black text-white block leading-tight uppercase">
+              {accountStatus}
             </strong>
           </div>
         </div>
       </div>
+
+      {/* Photo Upload Feedback Banner */}
+      {uploadingPhoto && (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-2 text-xs font-bold text-blue-700">
+          <Loader2 className="w-4 h-4 animate-spin text-blue-600 shrink-0" />
+          <span>Updating profile photo...</span>
+        </div>
+      )}
+      {photoSyncSuccess && (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-2 text-xs font-bold text-emerald-700">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>Profile photo updated!</span>
+        </div>
+      )}
+      {photoSyncError && (
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-2xl flex items-center gap-2 text-xs font-bold text-rose-700">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>{photoSyncError}</span>
+        </div>
+      )}
 
       {/* 3. SECTION 1: OPERATIONAL ASSIGNMENT */}
       <div className="bg-white rounded-[26px] p-4.5 border border-slate-100 shadow-xs space-y-3.5 relative overflow-hidden">
@@ -445,82 +460,7 @@ export const WorkerProfile: React.FC = () => {
         </div>
       </div>
 
-      {/* 6. GOOGLE DRIVE WORKER PHOTO REPOSITORY (ANTI-MIXUP GUARANTEE) */}
-      <div className="bg-white rounded-[26px] p-4.5 border border-slate-100 shadow-xs space-y-3.5 relative overflow-hidden">
-        {/* Decorative subtle corner wave */}
-        <div className="absolute top-0 right-0 w-28 h-28 bg-linear-to-bl from-blue-100/40 via-indigo-50/20 to-transparent rounded-bl-full pointer-events-none" />
-
-        {/* Header */}
-        <div className="flex items-center justify-between relative z-10">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-              <HardDrive className="w-4.5 h-4.5 stroke-[2.2]" />
-            </div>
-            <div>
-              <h3 className="text-sm font-black text-slate-800">Profile Photo Storage</h3>
-              <p className="text-3xs text-slate-500 font-medium">Mapped to Google Drive Folder</p>
-            </div>
-          </div>
-          <span className="text-4xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200">
-            Anti-Mixup
-          </span>
-        </div>
-
-        {uploadingPhoto && (
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-2 text-xs font-bold text-blue-700">
-            <Loader2 className="w-4 h-4 animate-spin text-blue-600 shrink-0" />
-            <span>Syncing photo with unique ID mapping...</span>
-          </div>
-        )}
-
-        {photoSyncSuccess && (
-          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-2 text-xs font-bold text-emerald-700">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>Profile photo synced cleanly as {workerCode}.jpg!</span>
-          </div>
-        )}
-
-        {photoSyncError && (
-          <div className="p-3 bg-rose-50 border border-rose-200 rounded-2xl flex items-center gap-2 text-xs font-bold text-rose-700">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-            <span>{photoSyncError}</span>
-          </div>
-        )}
-
-        <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1.5 text-xs text-slate-600 relative z-10">
-          <div className="flex justify-between items-center">
-            <span className="text-slate-400 font-medium">Canonical Filename:</span>
-            <span className="font-mono text-2xs font-extrabold bg-white border border-slate-200 px-2 py-0.5 rounded text-slate-800">
-              {workerCode}.jpg
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-slate-400 font-medium">Anti-Mixup Key:</span>
-            <span className="font-mono text-2xs font-bold text-blue-700">
-              {workerCode} (1-to-1 Bound)
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-slate-400 font-medium">Drive Folder ID:</span>
-            <span className="font-mono text-3xs font-medium text-slate-500 truncate max-w-[150px]">
-              {GOOGLE_DRIVE_FOLDER_ID}
-            </span>
-          </div>
-        </div>
-
-        <a
-          href={GOOGLE_DRIVE_FOLDER_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full py-2.5 px-3.5 bg-blue-50 hover:bg-blue-100 active:scale-98 text-blue-700 font-bold text-xs rounded-2xl border border-blue-200 flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer relative z-10"
-        >
-          <HardDrive className="w-4 h-4 text-blue-600" />
-          <span>Open Photos Folder in Google Drive</span>
-          <ExternalLink className="w-3.5 h-3.5 text-blue-500" />
-        </a>
-      </div>
-
-      {/* 7. SIGN OUT BUTTON */}
+      {/* 6. SIGN OUT BUTTON */}
       <button
         type="button"
         onClick={handleLogout}

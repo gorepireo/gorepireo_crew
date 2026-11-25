@@ -202,7 +202,7 @@ export const WorkerHome: React.FC = () => {
                 <Contact className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                 <span className="shrink-0">Worker ID:</span>
                 <span className="text-blue-600 font-bold font-mono">
-                  {worker?.workerId || 'WC-2026-001'}
+                  {worker?.workerId || '—'}
                 </span>
               </div>
             </div>
