@@ -390,6 +390,12 @@ class ApiService {
     });
   }
 
+  async deleteLocation(id: string) {
+    return this.request<{ success: boolean; message: string }>(`/api/locations/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
 
   // --- ASSIGNMENTS ---
   async getAssignments(params?: { date?: string; workerId?: string; teamId?: string; status?: string }) {

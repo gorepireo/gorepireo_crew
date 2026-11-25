@@ -8,9 +8,9 @@ import { autoUploadLocationPhotoToDrive } from '../utils/googleDriveSync';
 
 const router = Router();
 
-// GET /api/locations
-router.get('/', authMiddleware, (req: Request, res: Response) => {
-  const locations = db.getLocations();
+// GET /api/locations (Always reads live from Turso so all serverless instances stay in sync)
+router.get('/', authMiddleware, async (req: Request, res: Response) => {
+  const locations = await db.fetchLocationsFromTurso();
   const assignments = db.getAssignments();
 
   // Enrich with active assignments count
@@ -35,7 +35,7 @@ router.post('/', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), async (r
     return res.status(400).json({ error: 'Location name, latitude, and longitude are required' });
   }
 
-  const existing = db.getLocations();
+  const existing = await db.fetchLocationsFromTurso();
   const maxNum = existing.reduce((max, l) => {
     const m = l.locationId.match(/^LOC-(\d+)$/);
     return m ? Math.max(max, Number(m[1])) : max;
@@ -141,6 +141,32 @@ router.get('/:id', authMiddleware, (req: Request, res: Response) => {
   const loc = db.getLocationById(id);
   if (!loc) return res.status(404).json({ error: 'Location not found' });
   res.json(loc);
+});
+
+// DELETE /api/locations/:id
+router.delete('/:id', authMiddleware, requireRole(['ADMIN']), async (req: Request, res: Response) => {
+  const id = req.params.id as string;
+  await db.fetchLocationsFromTurso();
+  const loc = db.getLocationById(id);
+  if (!loc) {
+    return res.status(404).json({ error: 'Location not found' });
+  }
+
+  await db.deleteLocation(id);
+
+  db.logActivity({
+    logId: `log-${Date.now()}`,
+    actorId: req.user!.uid,
+    actorName: req.user!.displayName,
+    actorRole: req.user!.role,
+    action: 'DELETE_LOCATION',
+    entityType: 'LOCATION',
+    entityId: id,
+    changes: { name: loc.name },
+    timestamp: new Date().toISOString(),
+  });
+
+  res.json({ success: true, message: `Location "${loc.name}" deleted` });
 });
 
 // POST /api/locations/verify (or /api/location/verify)

@@ -14,6 +14,7 @@ import {
   X,
   Cloud,
   CheckCircle2,
+  Trash2,
 } from 'lucide-react';
 
 export const AdminLocations: React.FC = () => {
@@ -51,6 +52,19 @@ export const AdminLocations: React.FC = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleDeleteLocation = async (loc: WorkLocation) => {
+    if (!window.confirm(`Delete work location "${loc.name}" from the database?`)) {
+      return;
+    }
+    try {
+      await api.deleteLocation(loc.locationId);
+      setLocations((prev) => prev.filter((l) => l.locationId !== loc.locationId));
+      loadData();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to delete location');
+    }
+  };
 
   const openCreateModal = () => {
     setEditingLocation(null);
@@ -242,13 +256,24 @@ export const AdminLocations: React.FC = () => {
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
 
-                <button
-                  onClick={() => openEditModal(loc)}
-                  className="text-2xs font-semibold text-slate-600 hover:text-blue-600 flex items-center gap-1 px-2.5 py-1 rounded-md hover:bg-slate-100 transition"
-                >
-                  <Edit2 className="w-3.5 h-3.5" />
-                  <span>Edit Location</span>
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => openEditModal(loc)}
+                    className="text-2xs font-semibold text-slate-600 hover:text-blue-600 flex items-center gap-1 px-2.5 py-1 rounded-md hover:bg-slate-100 transition"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteLocation(loc)}
+                    className="text-2xs font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1 px-2 py-1 rounded-md hover:bg-rose-50 transition cursor-pointer"
+                    title="Delete location"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>

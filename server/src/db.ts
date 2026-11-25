@@ -1942,6 +1942,48 @@ class DatabaseService {
   // --- LOCATIONS ---
   public getLocations() { return this.data.locations; }
   public getLocationById(locationId: string) { return this.data.locations.find(l => l.locationId === locationId); }
+
+  public async fetchLocationsFromTurso(): Promise<WorkLocation[]> {
+    if (!this.tursoClient) return this.data.locations;
+    try {
+      await this.ensureTursoB2BSchema();
+      const locRes = await this.tursoClient.execute('SELECT * FROM locations');
+      this.data.locations = locRes.rows
+        ? locRes.rows.map((r: any) => ({
+            locationId: r.locationId,
+            name: r.name,
+            address: r.address || '',
+            latitude: Number(r.latitude),
+            longitude: Number(r.longitude),
+            geofenceRadiusMeters: Number(r.geofenceRadiusMeters || 100),
+            status: r.status || 'ACTIVE',
+            photoURL: r.photoURL || undefined,
+            googleDriveFileId: r.googleDriveFileId || undefined,
+            createdAt: r.createdAt,
+            updatedAt: r.updatedAt,
+          }))
+        : [];
+      this.persist();
+    } catch (e: any) {
+      console.warn('[TURSO] fetchLocationsFromTurso error:', e.message);
+    }
+    return this.data.locations;
+  }
+
+  public async deleteLocation(locationId: string): Promise<boolean> {
+    const idx = this.data.locations.findIndex(l => l.locationId === locationId);
+    if (idx !== -1) {
+      this.data.locations.splice(idx, 1);
+      this.persist();
+    }
+    if (this.tursoClient) {
+      await this.tursoClient.execute({
+        sql: `DELETE FROM locations WHERE locationId = ?`,
+        args: [locationId],
+      });
+    }
+    return idx !== -1;
+  }
   public addLocation(location: WorkLocation) {
     this.data.locations.push(location);
     this.persist();
