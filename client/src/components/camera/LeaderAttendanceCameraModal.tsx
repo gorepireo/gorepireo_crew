@@ -18,6 +18,8 @@ import {
   Sparkles,
   RefreshCw,
   Check,
+  ArrowLeft,
+  ChevronDown,
 } from 'lucide-react';
 
 interface LeaderAttendanceCameraModalProps {
@@ -392,51 +394,48 @@ export const LeaderAttendanceCameraModal: React.FC<LeaderAttendanceCameraModalPr
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-2 sm:p-4 animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-800 text-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[94vh]">
-        {/* HEADER */}
-        <div className="p-3.5 border-b border-slate-800 flex items-center justify-between bg-slate-900/90 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-xs">
-              <Camera className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="font-extrabold text-sm tracking-tight flex items-center gap-1.5">
-                <span>Photo & Auto GPS Attendance</span>
-                <span className="text-4xs font-bold uppercase tracking-wider bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/30">
-                  Drive & Turso
-                </span>
-              </h3>
-              <p className="text-3xs text-slate-400">
-                Live Geofence Verification & Biometric Scans
-              </p>
-            </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200">
+      <div className="bg-[#f8fafc] text-slate-900 w-full h-full sm:h-auto sm:max-h-[92vh] sm:max-w-md sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+        {/* TOP HEADER */}
+        <div className="px-4 h-14 bg-white flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 -ml-1.5 text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
+              aria-label="Back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h3 className="font-bold text-base text-slate-900 tracking-tight">
+              Photo &amp; GPS Attendance
+            </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-all cursor-pointer"
+            className="p-1.5 text-slate-500 hover:text-slate-900 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+            aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* MODE TABS */}
-        <div className="px-3.5 pt-2.5 bg-slate-900/60 border-b border-slate-800/80 shrink-0 flex items-center gap-1.5">
+        {/* 2-TAB UNDERLINE BAR */}
+        <div className="px-4 bg-white border-b border-slate-200/80 shrink-0 grid grid-cols-2">
           <button
             type="button"
             onClick={() => {
               setModalMode('CREW');
               if (capturedPhoto) handleRetake();
             }}
-            className={`flex-1 py-2 px-2 rounded-t-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all border-b-2 ${
+            className={`py-2.5 text-xs font-bold text-center transition-all border-b-2 cursor-pointer ${
               modalMode === 'CREW'
-                ? 'border-blue-500 text-blue-400 bg-slate-800/60'
-                : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                ? 'border-[#106ee8] text-slate-900'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Users className="w-3.5 h-3.5" />
-            <span>Crew Photo (AI)</span>
+            Crew Photo (AI)
           </button>
 
           <button
@@ -445,114 +444,117 @@ export const LeaderAttendanceCameraModal: React.FC<LeaderAttendanceCameraModalPr
               setModalMode('SINGLE');
               if (capturedPhoto) handleRetake();
             }}
-            className={`flex-1 py-2 px-2 rounded-t-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all border-b-2 ${
-              modalMode === 'SINGLE'
-                ? 'border-blue-500 text-blue-400 bg-slate-800/60'
-                : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+            className={`py-2.5 text-xs font-bold text-center transition-all border-b-2 cursor-pointer ${
+              modalMode === 'SINGLE' || modalMode === 'SELF'
+                ? 'border-[#106ee8] text-slate-900'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <UserCheck className="w-3.5 h-3.5" />
-            <span>Single Worker</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setModalMode('SELF');
-              setFacingMode('user');
-              if (capturedPhoto) handleRetake();
-            }}
-            className={`flex-1 py-2 px-2 rounded-t-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all border-b-2 ${
-              modalMode === 'SELF'
-                ? 'border-blue-500 text-blue-400 bg-slate-800/60'
-                : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
-            }`}
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Leader Self</span>
+            Single Worker
           </button>
         </div>
 
         {/* MODAL BODY */}
-        <div className="p-3.5 space-y-3 overflow-y-auto flex-1">
-          {/* SELECTORS BASED ON MODE */}
-          {modalMode === 'CREW' && teams.length > 0 && (
-            <div className="flex items-center justify-between bg-slate-800/60 p-2.5 rounded-2xl border border-slate-700/60 text-xs">
-              <span className="font-semibold text-slate-300 flex items-center gap-1.5">
-                <Users className="w-4 h-4 text-blue-400" />
-                Target Crew:
-              </span>
-              <select
-                value={selectedTeamId}
-                onChange={(e) => setSelectedTeamId(e.target.value)}
-                className="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1 text-white font-bold text-xs focus:ring-1 focus:ring-blue-500"
-              >
-                {teams.map((t) => (
-                  <option key={t.teamId} value={t.teamId}>
-                    {t.name} ({t.memberWorkerIds?.length || 1} workers)
-                  </option>
-                ))}
-              </select>
+        <div className="p-4 space-y-3 overflow-y-auto flex-1 flex flex-col">
+          {/* TARGET CREW / WORKER SELECTOR */}
+          {modalMode === 'CREW' && (
+            <div className="relative bg-white border border-slate-200/80 rounded-2xl px-4 py-3 flex items-center justify-between shadow-2xs shrink-0">
+              <span className="text-xs font-medium text-slate-700">Target Crew</span>
+              <div className="relative flex items-center">
+                <select
+                  value={selectedTeamId}
+                  onChange={(e) => setSelectedTeamId(e.target.value)}
+                  className="appearance-none bg-transparent pr-6 text-right text-xs font-bold text-slate-900 focus:outline-hidden cursor-pointer"
+                >
+                  {teams.length > 0 ? (
+                    teams.map((t) => (
+                      <option key={t.teamId} value={t.teamId}>
+                        {t.name} ({t.memberWorkerIds?.length || relevantWorkers.length} worker{(t.memberWorkerIds?.length || relevantWorkers.length) === 1 ? '' : 's'})
+                      </option>
+                    ))
+                  ) : (
+                    <option value="">All Workers ({workers.length})</option>
+                  )}
+                </select>
+                <ChevronDown className="w-4 h-4 text-slate-500 absolute right-0 pointer-events-none" />
+              </div>
             </div>
           )}
 
-          {modalMode === 'SINGLE' && (
-            <div className="flex items-center justify-between bg-slate-800/60 p-2.5 rounded-2xl border border-slate-700/60 text-xs">
-              <span className="font-semibold text-slate-300 flex items-center gap-1.5">
-                <UserCheck className="w-4 h-4 text-blue-400" />
-                Select Worker:
-              </span>
-              <select
-                value={selectedWorkerId}
-                onChange={(e) => setSelectedWorkerId(e.target.value)}
-                className="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1 text-white font-bold text-xs focus:ring-1 focus:ring-blue-500 max-w-[200px]"
-              >
-                {workers.map((w) => (
-                  <option key={w.workerId} value={w.workerId}>
-                    {w.name} ({w.workerId})
-                  </option>
-                ))}
-              </select>
+          {(modalMode === 'SINGLE' || modalMode === 'SELF') && (
+            <div className="relative bg-white border border-slate-200/80 rounded-2xl px-4 py-3 flex items-center justify-between shadow-2xs shrink-0">
+              <span className="text-xs font-medium text-slate-700">Target Worker</span>
+              <div className="relative flex items-center">
+                <select
+                  value={modalMode === 'SELF' ? '__SELF__' : selectedWorkerId}
+                  onChange={(e) => {
+                    if (e.target.value === '__SELF__') {
+                      setModalMode('SELF');
+                      setFacingMode('user');
+                    } else {
+                      setModalMode('SINGLE');
+                      setSelectedWorkerId(e.target.value);
+                    }
+                  }}
+                  className="appearance-none bg-transparent pr-6 text-right text-xs font-bold text-slate-900 focus:outline-hidden cursor-pointer max-w-[200px]"
+                >
+                  <option value="__SELF__">Leader Self Check-In</option>
+                  {workers.map((w) => (
+                    <option key={w.workerId} value={w.workerId}>
+                      {w.name} ({w.workerId})
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 text-slate-500 absolute right-0 pointer-events-none" />
+              </div>
             </div>
           )}
 
-          {/* LIVE AUTO GPS STATUS PILL */}
-          <div className="bg-slate-800/80 rounded-2xl p-2.5 border border-slate-700/80 space-y-1.5">
-            <div className="flex items-center justify-between text-2xs">
-              <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <MapPin className="w-3.5 h-3.5" />
-                <span>Auto Geolocation Detected</span>
-              </div>
-              <span className="font-mono text-slate-400 text-3xs">
-                {coords
-                  ? `${coords.latitude.toFixed(4)}° N, ${coords.longitude.toFixed(4)}° E`
-                  : 'Detecting GPS...'}
+          {/* GPS VERIFIED PILL */}
+          <div
+            className={`rounded-2xl px-4 py-2.5 flex items-center justify-between gap-2 shrink-0 border ${
+              detectingGps
+                ? 'bg-blue-50 border-blue-200/70'
+                : verificationResult?.isWithinGeofence === false
+                ? 'bg-amber-50 border-amber-200/70'
+                : 'bg-[#eaf7ee] border-emerald-200/70'
+            }`}
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <MapPin
+                className={`w-4 h-4 shrink-0 ${
+                  detectingGps
+                    ? 'text-blue-600 animate-pulse'
+                    : verificationResult?.isWithinGeofence === false
+                    ? 'text-amber-600'
+                    : 'text-[#16a34a]'
+                }`}
+              />
+              <span
+                className={`text-xs font-bold truncate ${
+                  detectingGps
+                    ? 'text-blue-700'
+                    : verificationResult?.isWithinGeofence === false
+                    ? 'text-amber-700'
+                    : 'text-[#16a34a]'
+                }`}
+              >
+                {detectingGps
+                  ? 'Detecting GPS...'
+                  : verificationResult?.isWithinGeofence === false
+                  ? `Outside Perimeter (${verificationResult.distanceMeters}m)`
+                  : 'GPS Verified'}
               </span>
             </div>
-
-            <p className="text-3xs text-slate-300 font-medium truncate flex items-center gap-1">
-              <span className="text-slate-400">Site:</span>
-              <strong className="text-white font-bold">{detectedAddress}</strong>
-            </p>
-
-            {verificationResult && (
-              <div className="pt-1 border-t border-slate-700/60 flex items-center justify-between text-4xs">
-                <span className="text-emerald-400 font-black flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" />
-                  <span>
-                    GPS Verified ({verificationResult.distanceMeters ?? 12}m from assigned worksite)
-                  </span>
-                </span>
-                <span className="text-slate-400 font-mono">
-                  Accuracy ±{coords?.accuracy || 10}m
-                </span>
-              </div>
-            )}
+            <span className="text-2xs font-medium text-slate-600 shrink-0 tabular-nums">
+              {coords
+                ? `${coords.latitude.toFixed(4)}° N, ${coords.longitude.toFixed(4)}° E`
+                : 'Locating...'}
+            </span>
           </div>
 
-          {/* CAMERA VIEWFINDER OR CAPTURED PHOTO */}
-          <div className="relative aspect-4/3 sm:aspect-16/10 bg-black rounded-2xl overflow-hidden border border-slate-700 shadow-inner flex items-center justify-center">
+          {/* LARGE CAMERA VIEWFINDER */}
+          <div className="relative flex-1 min-h-[260px] bg-[#e5e9f0] rounded-2xl overflow-hidden border border-slate-200/80 flex items-center justify-center">
             {capturedPhoto ? (
               <img
                 src={capturedPhoto}
@@ -560,13 +562,15 @@ export const LeaderAttendanceCameraModal: React.FC<LeaderAttendanceCameraModalPr
                 className="w-full h-full object-cover"
               />
             ) : cameraError ? (
-              <div className="p-4 text-center space-y-2">
-                <AlertTriangle className="w-8 h-8 text-amber-400 mx-auto" />
-                <p className="text-2xs text-slate-300">{cameraError}</p>
+              <div className="p-6 text-center space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-white/80 text-slate-500 flex items-center justify-center mx-auto shadow-2xs">
+                  <Camera className="w-6 h-6" />
+                </div>
+                <p className="text-xs text-slate-600 max-w-xs mx-auto">{cameraError}</p>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-2xs font-bold inline-flex items-center gap-1.5"
+                  className="px-4 py-2 bg-[#106ee8] hover:bg-[#0d5ec9] text-white rounded-xl text-xs font-bold inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Upload className="w-3.5 h-3.5" />
                   <span>Upload Photo from Device</span>
@@ -584,24 +588,40 @@ export const LeaderAttendanceCameraModal: React.FC<LeaderAttendanceCameraModalPr
                   }`}
                 />
 
-                {/* Face Targeting Reticle Overlay */}
+                {/* Clean Viewfinder Corner Brackets Overlay */}
                 <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                  <div className="w-48 h-56 sm:w-64 sm:h-64 border-2 border-dashed border-white/40 rounded-3xl relative">
-                    <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-4xs uppercase tracking-widest font-black bg-black/60 px-2 py-0.5 rounded-full text-slate-300 border border-white/20">
-                      {modalMode === 'CREW' ? 'Frame Crew Members' : 'Frame Face'}
-                    </span>
+                  <div className="w-44 h-44 relative">
+                    <span className="absolute top-0 left-0 w-6 h-6 border-t-[2.5px] border-l-[2.5px] border-slate-600/70 rounded-tl-xl" />
+                    <span className="absolute top-0 right-0 w-6 h-6 border-t-[2.5px] border-r-[2.5px] border-slate-600/70 rounded-tr-xl" />
+                    <span className="absolute bottom-0 left-0 w-6 h-6 border-b-[2.5px] border-l-[2.5px] border-slate-600/70 rounded-bl-xl" />
+                    <span className="absolute bottom-0 right-0 w-6 h-6 border-b-[2.5px] border-r-[2.5px] border-slate-600/70 rounded-br-xl" />
+                    {!stream && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Camera className="w-10 h-10 text-slate-500/80 stroke-[1.6]" />
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Flip camera button */}
-                <button
-                  type="button"
-                  onClick={toggleCamera}
-                  className="absolute top-2.5 right-2.5 p-2 bg-slate-900/80 hover:bg-slate-800 text-white rounded-xl border border-white/20 shadow-md backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
-                  title="Switch Camera"
-                >
-                  <RotateCw className="w-4 h-4" />
-                </button>
+                {/* Discreet Top-Right Camera Flip & Upload Buttons */}
+                <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-2 bg-white/85 hover:bg-white text-slate-700 rounded-xl border border-slate-200/80 shadow-xs backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
+                    title="Upload Photo"
+                  >
+                    <Upload className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={toggleCamera}
+                    className="p-2 bg-white/85 hover:bg-white text-slate-700 rounded-xl border border-slate-200/80 shadow-xs backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
+                    title="Switch Camera"
+                  >
+                    <RotateCw className="w-4 h-4" />
+                  </button>
+                </div>
               </>
             )}
 
@@ -617,12 +637,12 @@ export const LeaderAttendanceCameraModal: React.FC<LeaderAttendanceCameraModalPr
 
           {/* AI SCANNING STATUS (In CREW Mode) */}
           {modalMode === 'CREW' && analyzingBiometrics && (
-            <div className="bg-blue-950/60 border border-blue-800/80 rounded-2xl p-3 text-center space-y-1.5 animate-pulse">
-              <div className="flex items-center justify-center gap-2 text-blue-400 font-extrabold text-xs">
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3 text-center space-y-1 animate-pulse shrink-0">
+              <div className="flex items-center justify-center gap-2 text-blue-700 font-bold text-xs">
                 <Sparkles className="w-4 h-4 animate-spin" />
                 <span>Scanning 128-D Biometric Face Descriptors...</span>
               </div>
-              <p className="text-3xs text-blue-300">
+              <p className="text-3xs text-blue-600">
                 Matching detected individuals against team profile database...
               </p>
             </div>
@@ -630,16 +650,18 @@ export const LeaderAttendanceCameraModal: React.FC<LeaderAttendanceCameraModalPr
 
           {/* CREW VERIFICATION RESULTS CHECKLIST (After photo taken) */}
           {modalMode === 'CREW' && capturedPhoto && !analyzingBiometrics && (
-            <div className="bg-slate-800/60 rounded-2xl p-3 border border-slate-700/60 space-y-2">
-              <div className="flex items-center justify-between text-2xs font-extrabold">
-                <span className="text-slate-200 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Team Members Attendance ({selectedPresentWorkerIds.size}/{relevantWorkers.length})</span>
+            <div className="bg-white rounded-2xl p-3 border border-slate-200/80 space-y-2 shrink-0 shadow-2xs">
+              <div className="flex items-center justify-between text-2xs font-bold">
+                <span className="text-slate-800 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>
+                    Team Members Attendance ({selectedPresentWorkerIds.size}/{relevantWorkers.length})
+                  </span>
                 </span>
                 <span className="text-3xs text-slate-400">Tap to toggle</span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-36 overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-32 overflow-y-auto">
                 {relevantWorkers.map((w) => {
                   const isMarked = selectedPresentWorkerIds.has(w.workerId);
                   return (
@@ -649,19 +671,19 @@ export const LeaderAttendanceCameraModal: React.FC<LeaderAttendanceCameraModalPr
                       onClick={() => toggleWorkerPresent(w.workerId)}
                       className={`p-2 rounded-xl text-left border flex items-center justify-between transition-all cursor-pointer ${
                         isMarked
-                          ? 'bg-emerald-950/40 border-emerald-500/60 text-emerald-200'
-                          : 'bg-slate-800/40 border-slate-700/60 text-slate-400'
+                          ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                          : 'bg-slate-50 border-slate-200 text-slate-500'
                       }`}
                     >
                       <div className="min-w-0 pr-2">
-                        <div className="font-bold text-2xs truncate text-white">{w.name}</div>
+                        <div className="font-bold text-2xs truncate text-slate-900">{w.name}</div>
                         <div className="text-4xs text-slate-400 font-mono">{w.workerId}</div>
                       </div>
                       <div
                         className={`w-5 h-5 rounded-lg flex items-center justify-center shrink-0 border ${
                           isMarked
-                            ? 'bg-emerald-500 border-emerald-400 text-white'
-                            : 'bg-slate-800 border-slate-600 text-transparent'
+                            ? 'bg-emerald-600 border-emerald-500 text-white'
+                            : 'bg-white border-slate-300 text-transparent'
                         }`}
                       >
                         <Check className="w-3 h-3 stroke-[3]" />
@@ -675,42 +697,31 @@ export const LeaderAttendanceCameraModal: React.FC<LeaderAttendanceCameraModalPr
 
           {/* ERROR ALERT */}
           {submitError && (
-            <div className="bg-rose-950/60 border border-rose-800 rounded-xl p-2.5 text-rose-300 text-2xs flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
+            <div className="bg-rose-50 border border-rose-200 rounded-xl p-2.5 text-rose-700 text-2xs flex items-center gap-2 shrink-0">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500" />
               <span>{submitError}</span>
             </div>
           )}
         </div>
 
-        {/* MODAL FOOTER */}
-        <div className="p-3.5 border-t border-slate-800 bg-slate-900/90 flex items-center justify-between gap-2.5 shrink-0">
+        {/* BOTTOM CTA FOOTER */}
+        <div className="p-4 pt-2 bg-[#f8fafc] flex items-center justify-between gap-2.5 shrink-0">
           {!capturedPhoto ? (
-            <>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="py-2.5 px-3 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-2xs font-extrabold flex items-center gap-1.5 transition-all cursor-pointer"
-              >
-                <Upload className="w-3.5 h-3.5" />
-                <span>Upload</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleCapture}
-                className="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 active:scale-98 text-white font-black text-xs shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
-              >
-                <Camera className="w-4 h-4 stroke-[2.5]" />
-                <span>Snap Attendance Photo</span>
-              </button>
-            </>
+            <button
+              type="button"
+              onClick={handleCapture}
+              className="w-full py-3.5 px-4 rounded-2xl bg-[#106ee8] hover:bg-[#0d5ec9] active:scale-99 text-white font-bold text-sm shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <Camera className="w-4.5 h-4.5 stroke-[2.2]" />
+              <span>Snap Attendance Photo</span>
+            </button>
           ) : (
             <>
               <button
                 type="button"
                 onClick={handleRetake}
                 disabled={submitting}
-                className="py-2.5 px-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-2xs font-extrabold flex items-center gap-1.5 transition-all cursor-pointer"
+                className="py-3 px-4 rounded-2xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>Retake</span>
@@ -720,16 +731,16 @@ export const LeaderAttendanceCameraModal: React.FC<LeaderAttendanceCameraModalPr
                 type="button"
                 onClick={handleConfirmSubmit}
                 disabled={submitting || (modalMode === 'CREW' && selectedPresentWorkerIds.size === 0)}
-                className="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-98 disabled:opacity-50 text-white font-black text-xs shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                className="flex-1 py-3 px-4 rounded-2xl bg-[#106ee8] hover:bg-[#0d5ec9] active:scale-99 disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 {submitting ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Syncing to Turso & Drive...</span>
+                    <span>Saving Attendance...</span>
                   </>
                 ) : (
                   <>
-                    <Send className="w-4 h-4 stroke-[2.5]" />
+                    <Send className="w-4 h-4 stroke-[2.2]" />
                     <span>
                       {modalMode === 'CREW'
                         ? `Confirm & Mark Present (${selectedPresentWorkerIds.size})`
