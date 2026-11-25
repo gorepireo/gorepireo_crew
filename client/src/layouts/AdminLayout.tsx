@@ -42,8 +42,8 @@ export const AdminLayout: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col text-slate-800">
-      <div className="flex-1 flex flex-col lg:flex-row min-w-0 overflow-x-hidden">
+    <div className="h-[100dvh] bg-slate-50 flex flex-col text-slate-800 overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col lg:flex-row min-w-0 overflow-hidden">
         {/* DESKTOP SIDEBAR */}
         <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200 shrink-0">
           <div className="p-5 border-b border-slate-100 flex items-center gap-3">
@@ -165,7 +165,7 @@ export const AdminLayout: React.FC = () => {
         </div>
 
         {/* MAIN OUTLET */}
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full min-w-0">
+        <main className="flex-1 min-h-0 p-4 md:p-8 overflow-y-auto overflow-x-hidden max-w-7xl mx-auto w-full min-w-0">
           <Outlet />
         </main>
       </div>

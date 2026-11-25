@@ -12,18 +12,17 @@ export const WorkerLayout: React.FC = () => {
   const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen bg-slate-900 flex justify-center text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900">
+    <div className="h-[100dvh] bg-slate-900 flex justify-center text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900 overflow-hidden">
       {/* MOBILE SHELL CONTAINER - Centered on desktop, full-width responsive on mobile */}
-      <div className="w-full max-w-md bg-[#f4f7fb] min-h-screen flex flex-col shadow-2xl relative overflow-x-hidden">
+      <div className="w-full max-w-md bg-[#f4f7fb] h-full flex flex-col shadow-2xl relative overflow-hidden">
         {/* MAIN PAGE BODY (Scrolls cleanly with zero horizontal overflow) */}
-        <main className="flex-1 overflow-x-hidden p-3.5 sm:p-4 space-y-3.5 pb-20">
+        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3.5 sm:p-4 space-y-3.5 pb-4">
           <Outlet />
         </main>
 
-        {/* BOTTOM NAVIGATION BAR (Permanently Fixed Equal 4-Column Fluid Grid - Zero Overflow & Zero Shifting) */}
-        <footer className="fixed bottom-0 left-0 right-0 z-40 flex justify-center pointer-events-none">
-          <div className="w-full max-w-md bg-white/98 backdrop-blur-md border-t border-slate-200/80 pt-1.5 pb-3 px-2 shadow-[0_-4px_24px_rgba(0,0,0,0.06)] pointer-events-auto">
-            <nav className="grid grid-cols-4 w-full items-center gap-1">
+        {/* BOTTOM NAVIGATION BAR (Flex Sibling - Never Overlays Content) */}
+        <footer className="shrink-0 z-40 bg-white/98 backdrop-blur-md border-t border-slate-200/80 pt-1.5 pb-3 px-2 shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
+          <nav className="grid grid-cols-4 w-full items-center gap-1">
               {/* 1. Home Tab */}
               <div className="flex justify-center w-full">
                 <NavLink
@@ -108,7 +107,6 @@ export const WorkerLayout: React.FC = () => {
                 </NavLink>
               </div>
             </nav>
-          </div>
         </footer>
       </div>
     </div>
