@@ -33,7 +33,7 @@ export const ClientLayout: React.FC = () => {
       {/* MOBILE-FIRST SHELL CONTAINER (All screen sizes, no PC sidebar) */}
       <div className="w-full max-w-md bg-[#eef3f9] h-full flex flex-col shadow-2xl relative overflow-hidden">
         {/* MAIN PAGE BODY */}
-        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pb-4">
+        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-y-none pb-4">
           {/* TRANSPARENT TOP HEADER (Inside scroll flow so it scrolls with hero, exact h-14 -mb-14 = 0px gap) */}
           <header className="relative z-20 px-4 h-14 flex items-center justify-between -mb-14">
             <div className="flex items-center gap-2.5 min-w-0">

@@ -94,7 +94,7 @@ export const LeaderLayout: React.FC = () => {
           className={`flex flex-col bg-[#f4f7fb] w-full h-full sm:max-w-[400px] sm:h-[844px] sm:max-h-full sm:rounded-[42px] sm:border-[8px] sm:border-slate-900 sm:shadow-2xl sm:ring-1 sm:ring-slate-800 transition-all relative overflow-hidden`}
         >
           {/* MAIN PAGE CONTENT (Scrolls cleanly inside the phone frame) */}
-          <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 space-y-3">
+          <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-y-none p-3 space-y-3">
             <Outlet />
           </main>
 
