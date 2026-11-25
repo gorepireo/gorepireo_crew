@@ -390,38 +390,63 @@ export const WorkerHome: React.FC = () => {
         </div>
       )}
 
-      {/* 1. CLEAN LIGHT HERO GREETING + STATUS PILL BAR */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#f5f8ff] via-white to-[#e8f1ff] p-4 border border-slate-200/60 shadow-2xs">
-        {/* Subtle architectural glass building accent on right */}
+      {/* 1. SEAMLESS HERO GREETING + STATUS PILL BAR (No Card Box) */}
+      <div className="relative -mx-3.5 sm:-mx-4 -mt-3.5 sm:-mt-4 px-4 pt-3.5 pb-1 overflow-hidden bg-gradient-to-b from-[#e4effe] via-[#eff5fe] to-[#f4f7fb]">
+        {/* Soft sky clouds / atmospheric glow */}
+        <div className="absolute -top-6 right-12 w-52 h-28 bg-white/60 rounded-full blur-2xl pointer-events-none" />
+
+        {/* Architectural glass building silhouette on right */}
         <svg
-          viewBox="0 0 180 140"
-          className="absolute right-0 top-0 h-full w-44 pointer-events-none opacity-80 select-none"
+          viewBox="0 0 220 150"
+          className="absolute right-0 bottom-5 h-36 w-52 pointer-events-none select-none"
           aria-hidden="true"
         >
           <defs>
-            <linearGradient id="glassBuildingGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.35" />
-              <stop offset="100%" stopColor="#1e3a8a" stopOpacity="0.55" />
+            <linearGradient id="glassFacade" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#93c5fd" stopOpacity="0.45" />
+              <stop offset="55%" stopColor="#3b82f6" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="#1e3a8a" stopOpacity="0.65" />
             </linearGradient>
+            <linearGradient id="glassSide" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#1e40af" stopOpacity="0.22" />
+              <stop offset="100%" stopColor="#1e3a8a" stopOpacity="0.45" />
+            </linearGradient>
+            <linearGradient id="fadeMaskGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="white" stopOpacity="1" />
+              <stop offset="75%" stopColor="white" stopOpacity="0.85" />
+              <stop offset="100%" stopColor="white" stopOpacity="0" />
+            </linearGradient>
+            <mask id="buildingBottomFade">
+              <rect x="0" y="0" width="220" height="150" fill="url(#fadeMaskGrad)" />
+            </mask>
           </defs>
-          <polygon points="95,12 175,38 175,140 65,140" fill="url(#glassBuildingGrad)" />
-          <polygon points="95,12 65,140 42,140 78,24" fill="#1d4ed8" fillOpacity="0.18" />
-          <line x1="95" y1="12" x2="175" y2="38" stroke="#ffffff" strokeOpacity="0.6" strokeWidth="1.5" />
-          <line x1="87" y1="42" x2="175" y2="68" stroke="#ffffff" strokeOpacity="0.35" strokeWidth="1" />
-          <line x1="79" y1="72" x2="175" y2="98" stroke="#ffffff" strokeOpacity="0.35" strokeWidth="1" />
-          <line x1="71" y1="102" x2="175" y2="128" stroke="#ffffff" strokeOpacity="0.3" strokeWidth="1" />
-          <line x1="120" y1="20" x2="105" y2="140" stroke="#ffffff" strokeOpacity="0.3" strokeWidth="1" />
-          <line x1="148" y1="29" x2="138" y2="140" stroke="#ffffff" strokeOpacity="0.3" strokeWidth="1" />
+          <g mask="url(#buildingBottomFade)">
+            {/* Left angled wing */}
+            <polygon points="145,18 62,145 92,145 152,26" fill="url(#glassSide)" />
+            {/* Main right facade */}
+            <polygon points="145,18 220,48 220,145 88,145" fill="url(#glassFacade)" />
+            {/* Roof highlight */}
+            <polyline points="62,145 145,18 220,48" fill="none" stroke="#ffffff" strokeOpacity="0.8" strokeWidth="1.8" />
+            {/* Horizontal window mullions */}
+            <line x1="133" y1="38" x2="220" y2="70" stroke="#ffffff" strokeOpacity="0.45" strokeWidth="1" />
+            <line x1="122" y1="58" x2="220" y2="92" stroke="#ffffff" strokeOpacity="0.4" strokeWidth="1" />
+            <line x1="110" y1="78" x2="220" y2="114" stroke="#ffffff" strokeOpacity="0.35" strokeWidth="1" />
+            <line x1="99" y1="98" x2="220" y2="136" stroke="#ffffff" strokeOpacity="0.3" strokeWidth="1" />
+            {/* Vertical window mullions */}
+            <line x1="164" y1="26" x2="124" y2="145" stroke="#ffffff" strokeOpacity="0.35" strokeWidth="1" />
+            <line x1="184" y1="34" x2="154" y2="145" stroke="#ffffff" strokeOpacity="0.35" strokeWidth="1" />
+            <line x1="204" y1="42" x2="184" y2="145" stroke="#ffffff" strokeOpacity="0.3" strokeWidth="1" />
+          </g>
         </svg>
 
-        <div className="relative z-10 space-y-3">
-          <div>
+        <div className="relative z-10 space-y-3.5">
+          <div className="pr-16">
             <div className="flex items-center gap-1.5 text-slate-600 text-xs font-medium">
               <Calendar className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span>{todayDateFormatted}</span>
             </div>
 
-            <p className="text-base sm:text-lg font-medium text-slate-700 mt-1.5 leading-tight">
+            <p className="text-base sm:text-lg font-medium text-slate-800 mt-1.5 leading-tight">
               {timeGreeting},
             </p>
             <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-tight truncate">
@@ -437,8 +462,8 @@ export const WorkerHome: React.FC = () => {
             </div>
           </div>
 
-          {/* STATUS / SHIFT / WORK TIME PILL BAR */}
-          <div className="bg-white/95 backdrop-blur-xs rounded-2xl border border-slate-200/80 shadow-xs px-3 py-2.5 flex items-center justify-between gap-2">
+          {/* FLOATING STATUS / SHIFT / WORK TIME PILL BAR */}
+          <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm px-3 py-2.5 flex items-center justify-between gap-2">
             <span
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wide shrink-0 ${
                 todayAttendance?.status === 'PRESENT' || isCheckedIn
