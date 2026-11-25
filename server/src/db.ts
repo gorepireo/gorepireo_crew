@@ -974,42 +974,7 @@ function getSeedData(): DatabaseSchema {
     },
   ];
 
-  const organizations: Organization[] = [
-    {
-      organizationId: 'ORG-2026-001',
-      name: 'Apex Corporate Towers',
-      contactPerson: 'Vikram Malhotra',
-      email: 'client@apextowers.com',
-      phone: '9800615893',
-      address: 'Plot 42, Cyber Gateway, Financial District, Sector 18',
-      serviceLocationIds: ['LOC-001', 'LOC-002'],
-      contractStartDate: '2026-01-01',
-      contractEndDate: '2026-12-31',
-      contractPricing: 180000,
-      paymentTerms: 'Net 15 Days',
-      status: 'ACTIVE',
-      notes: 'Premier commercial complex. Requires continuous concourse & facility sanitization.',
-      createdAt: '2026-01-01T08:00:00Z',
-      updatedAt: '2026-01-01T08:00:00Z',
-    },
-    {
-      organizationId: 'ORG-2026-002',
-      name: 'Grand Metro Convention Center',
-      contactPerson: 'Sunita Mehra',
-      email: 'operations@grandmetro.in',
-      phone: '9800615894',
-      address: '77 Heritage Boulevard, Central Hub',
-      serviceLocationIds: ['LOC-002'],
-      contractStartDate: '2026-03-01',
-      contractEndDate: '2027-02-28',
-      contractPricing: 240000,
-      paymentTerms: '50% Advance, 50% Post Event',
-      status: 'ACTIVE',
-      notes: 'Large event and convention halls. Event-based specialized sanitization.',
-      createdAt: '2026-03-01T08:00:00Z',
-      updatedAt: '2026-03-01T08:00:00Z',
-    },
-  ];
+  const organizations: Organization[] = [];
 
   const invoices: Invoice[] = [
     {
@@ -1490,160 +1455,73 @@ class DatabaseService {
         }
       }
 
-      // B2B ORGANIZATIONS (Hydrated directly from Turso)
-      if (orgRes && (orgRes as any).rows && (orgRes as any).rows.length > 0) {
-        this.data.organizations = (orgRes as any).rows.map((r: any) => ({
-          organizationId: r.organizationId,
-          name: r.name,
-          contactPerson: r.contactPerson,
-          email: r.email,
-          phone: r.phone,
-          address: r.address || undefined,
-          serviceLocationIds: safeJsonParse<string[]>(r.serviceLocationIds, []),
-          contractStartDate: r.contractStartDate,
-          contractEndDate: r.contractEndDate,
-          contractPricing: Number(r.contractPricing || 0),
-          paymentTerms: r.paymentTerms || 'Net 30',
-          status: r.status || 'ACTIVE',
-          notes: r.notes || undefined,
-          createdAt: r.createdAt,
-          updatedAt: r.updatedAt,
-        }));
-      }
+      // B2B ORGANIZATIONS (Hydrated strictly from Turso)
+      this.data.organizations = orgRes && (orgRes as any).rows
+        ? (orgRes as any).rows.map((r: any) => ({
+            organizationId: r.organizationId,
+            name: r.name,
+            contactPerson: r.contactPerson,
+            email: r.email,
+            phone: r.phone,
+            address: r.address || undefined,
+            serviceLocationIds: safeJsonParse<string[]>(r.serviceLocationIds, []),
+            contractStartDate: r.contractStartDate,
+            contractEndDate: r.contractEndDate,
+            contractPricing: Number(r.contractPricing || 0),
+            paymentTerms: r.paymentTerms || 'Net 30',
+            status: r.status || 'ACTIVE',
+            notes: r.notes || undefined,
+            createdAt: r.createdAt,
+            updatedAt: r.updatedAt,
+          }))
+        : [];
 
-      // B2B INVOICES (Hydrated directly from Turso)
-      if (invRes && (invRes as any).rows && (invRes as any).rows.length > 0) {
-        this.data.invoices = (invRes as any).rows.map((r: any) => ({
-          invoiceId: r.invoiceId,
-          invoiceNumber: r.invoiceNumber,
-          organizationId: r.organizationId,
-          organizationName: r.organizationName,
-          assignmentId: r.assignmentId || undefined,
-          eventName: r.eventName || undefined,
-          issueDate: r.issueDate,
-          dueDate: r.dueDate,
-          amount: Number(r.amount || 0),
-          amountPaid: Number(r.amountPaid || 0),
-          status: r.status || 'PENDING',
-          description: r.description || undefined,
-          items: safeJsonParse<any[]>(r.items, []),
-          notes: r.notes || undefined,
-          createdAt: r.createdAt,
-          updatedAt: r.updatedAt,
-        }));
-      }
+      // B2B INVOICES (Hydrated strictly from Turso)
+      this.data.invoices = invRes && (invRes as any).rows
+        ? (invRes as any).rows.map((r: any) => ({
+            invoiceId: r.invoiceId,
+            invoiceNumber: r.invoiceNumber,
+            organizationId: r.organizationId,
+            organizationName: r.organizationName,
+            assignmentId: r.assignmentId || undefined,
+            eventName: r.eventName || undefined,
+            issueDate: r.issueDate,
+            dueDate: r.dueDate,
+            amount: Number(r.amount || 0),
+            amountPaid: Number(r.amountPaid || 0),
+            status: r.status || 'PENDING',
+            description: r.description || undefined,
+            items: safeJsonParse<any[]>(r.items, []),
+            notes: r.notes || undefined,
+            createdAt: r.createdAt,
+            updatedAt: r.updatedAt,
+          }))
+        : [];
 
-      // B2B PAYMENTS (Hydrated directly from Turso)
-      if (payRes && (payRes as any).rows && (payRes as any).rows.length > 0) {
-        this.data.payments = (payRes as any).rows.map((r: any) => ({
-          paymentId: r.paymentId,
-          receiptNumber: r.receiptNumber,
-          invoiceId: r.invoiceId,
-          invoiceNumber: r.invoiceNumber,
-          organizationId: r.organizationId,
-          organizationName: r.organizationName,
-          assignmentId: r.assignmentId || undefined,
-          eventName: r.eventName || undefined,
-          amount: Number(r.amount || 0),
-          paymentDate: r.paymentDate,
-          paymentMethod: r.paymentMethod,
-          transactionId: r.transactionId,
-          status: r.status || 'SUCCESS',
-          recordedBy: r.recordedBy || undefined,
-          recordedByName: r.recordedByName || undefined,
-          notes: r.notes || undefined,
-          receiptUrl: r.receiptUrl || undefined,
-          createdAt: r.createdAt,
-          updatedAt: r.updatedAt,
-        }));
-      }
-
-      // If invoices are not in database yet, add initial invoices
-      if (this.data.invoices.length === 0) {
-        const seedInvoices: Invoice[] = [
-          {
-            invoiceId: 'INV-2026-001',
-            invoiceNumber: 'INV-2026-001',
-            organizationId: 'ORG-2026-001',
-            organizationName: 'Apex Corporate Towers',
-            assignmentId: 'ASN-20260217-001',
-            eventName: 'Cooling Tower Chilled Water Riser Pressure Test & Sanitization',
-            issueDate: '2026-02-17',
-            dueDate: '2026-03-04',
-            amount: 28000,
-            amountPaid: 28000,
-            status: 'PAID',
-            description: 'Commercial facility cooling tower disinfection, riser pressure check, and bio-wash',
-            items: [
-              { description: 'Cooling Tower Disinfection & High Pressure Flush', quantity: 1, unitPrice: 20000, total: 20000 },
-              { description: 'Chemical Biocide & Inhibitor Flush', quantity: 1, unitPrice: 8000, total: 8000 },
-            ],
-            notes: 'Contract invoice settled via online payment gateway.',
-            createdAt: '2026-02-17T17:00:00Z',
-            updatedAt: '2026-02-17T17:00:00Z',
-          },
-          {
-            invoiceId: 'INV-2026-002',
-            invoiceNumber: 'INV-2026-002',
-            organizationId: 'ORG-2026-001',
-            organizationName: 'Apex Corporate Towers',
-            assignmentId: 'ASN-20260218-001',
-            eventName: 'Central Metro Hub - Pier Foundation Site Deep Scrub',
-            issueDate: '2026-02-18',
-            dueDate: '2026-03-05',
-            amount: 45000,
-            amountPaid: 0,
-            status: 'PENDING',
-            description: 'Heavy industrial pressure washing of pier base, concrete spill wash, and waste clearance',
-            items: [
-              { description: 'Foundation Pier Pressure Wash & Chemical Scrubbing', quantity: 1, unitPrice: 30000, total: 30000 },
-              { description: 'Hazardous Waste & Concrete Slurry Clearance', quantity: 1, unitPrice: 15000, total: 15000 },
-            ],
-            notes: 'Standard contract invoice. Due within 15 days.',
-            createdAt: '2026-02-18T08:00:00Z',
-            updatedAt: '2026-02-18T08:00:00Z',
-          },
-        ];
-        this.data.invoices = seedInvoices;
-        if (this.tursoClient) {
-          for (const inv of seedInvoices) {
-            this.tursoClient.execute({
-              sql: `INSERT OR IGNORE INTO invoices (invoiceId, invoiceNumber, organizationId, organizationName, assignmentId, eventName, issueDate, dueDate, amount, amountPaid, status, description, items, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-              args: [inv.invoiceId, inv.invoiceNumber, inv.organizationId, inv.organizationName, inv.assignmentId || null, inv.eventName || null, inv.issueDate, inv.dueDate, inv.amount, inv.amountPaid || 0, inv.status, inv.description || null, JSON.stringify(inv.items || []), inv.notes || null, inv.createdAt, inv.updatedAt],
-            }).catch(() => {});
-          }
-        }
-      }
-
-      // If payments are not in database yet, add initial payment receipt
-      if (this.data.payments.length === 0) {
-        const seedPayment: Payment = {
-          paymentId: 'PAY-2026-001',
-          receiptNumber: 'RCPT-2026-001',
-          invoiceId: 'INV-2026-001',
-          invoiceNumber: 'INV-2026-001',
-          organizationId: 'ORG-2026-001',
-          organizationName: 'Apex Corporate Towers',
-          assignmentId: 'ASN-20260217-001',
-          eventName: 'Cooling Tower Chilled Water Riser Pressure Test & Sanitization',
-          amount: 28000,
-          paymentDate: '2026-02-17T17:00:00Z',
-          paymentMethod: 'ONLINE',
-          transactionId: 'txn_2026_981240192',
-          status: 'SUCCESS',
-          notes: 'Instant settlement confirmed by gateway.',
-          receiptUrl: '/api/b2b/client/receipts/PAY-2026-001',
-          createdAt: '2026-02-17T17:00:00Z',
-          updatedAt: '2026-02-17T17:00:00Z',
-        };
-        this.data.payments.push(seedPayment);
-        if (this.tursoClient) {
-          this.tursoClient.execute({
-            sql: `INSERT OR IGNORE INTO payments (paymentId, receiptNumber, invoiceId, invoiceNumber, organizationId, organizationName, assignmentId, eventName, amount, paymentDate, paymentMethod, transactionId, status, recordedBy, recordedByName, notes, receiptUrl, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            args: [seedPayment.paymentId, seedPayment.receiptNumber, seedPayment.invoiceId, seedPayment.invoiceNumber, seedPayment.organizationId, seedPayment.organizationName, seedPayment.assignmentId || null, seedPayment.eventName || null, seedPayment.amount, seedPayment.paymentDate, seedPayment.paymentMethod, seedPayment.transactionId, seedPayment.status, null, null, seedPayment.notes || null, seedPayment.receiptUrl || null, seedPayment.createdAt, seedPayment.updatedAt],
-          }).catch(() => {});
-        }
-      }
+      // B2B PAYMENTS (Hydrated strictly from Turso)
+      this.data.payments = payRes && (payRes as any).rows
+        ? (payRes as any).rows.map((r: any) => ({
+            paymentId: r.paymentId,
+            receiptNumber: r.receiptNumber,
+            invoiceId: r.invoiceId,
+            invoiceNumber: r.invoiceNumber,
+            organizationId: r.organizationId,
+            organizationName: r.organizationName,
+            assignmentId: r.assignmentId || undefined,
+            eventName: r.eventName || undefined,
+            amount: Number(r.amount || 0),
+            paymentDate: r.paymentDate,
+            paymentMethod: r.paymentMethod,
+            transactionId: r.transactionId,
+            status: r.status || 'SUCCESS',
+            recordedBy: r.recordedBy || undefined,
+            recordedByName: r.recordedByName || undefined,
+            notes: r.notes || undefined,
+            receiptUrl: r.receiptUrl || undefined,
+            createdAt: r.createdAt,
+            updatedAt: r.updatedAt,
+          }))
+        : [];
 
       this.sanitizeState(this.data);
       this.saveData(this.data);
