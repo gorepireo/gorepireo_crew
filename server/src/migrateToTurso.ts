@@ -98,6 +98,8 @@ async function migrate() {
       longitude REAL NOT NULL,
       geofenceRadiusMeters REAL DEFAULT 100,
       status TEXT DEFAULT 'ACTIVE',
+      photoURL TEXT,
+      googleDriveFileId TEXT,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL
     )

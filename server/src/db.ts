@@ -1130,6 +1130,28 @@ class DatabaseService {
     if (!this.tursoClient) return;
     try {
       await this.tursoClient.execute(`
+        CREATE TABLE IF NOT EXISTS locations (
+          locationId TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          address TEXT NOT NULL,
+          latitude REAL NOT NULL,
+          longitude REAL NOT NULL,
+          geofenceRadiusMeters REAL DEFAULT 100,
+          status TEXT DEFAULT 'ACTIVE',
+          photoURL TEXT,
+          googleDriveFileId TEXT,
+          createdAt TEXT NOT NULL,
+          updatedAt TEXT NOT NULL
+        )
+      `);
+      try {
+        await this.tursoClient.execute(`ALTER TABLE locations ADD COLUMN photoURL TEXT`);
+      } catch {}
+      try {
+        await this.tursoClient.execute(`ALTER TABLE locations ADD COLUMN googleDriveFileId TEXT`);
+      } catch {}
+
+      await this.tursoClient.execute(`
         CREATE TABLE IF NOT EXISTS organizations (
           organizationId TEXT PRIMARY KEY,
           name TEXT NOT NULL,
@@ -1929,7 +1951,7 @@ class DatabaseService {
         args: [
           location.locationId,
           location.name,
-          location.address,
+          location.address || '',
           location.latitude,
           location.longitude,
           location.geofenceRadiusMeters || 100,
@@ -1943,6 +1965,28 @@ class DatabaseService {
     }
     return location;
   }
+
+  public async persistLocationToTurso(location: WorkLocation): Promise<void> {
+    if (!this.tursoClient) return;
+    await this.ensureTursoB2BSchema();
+    await this.tursoClient.execute({
+      sql: `INSERT OR REPLACE INTO locations (locationId, name, address, latitude, longitude, geofenceRadiusMeters, status, photoURL, googleDriveFileId, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        location.locationId,
+        location.name,
+        location.address || '',
+        location.latitude,
+        location.longitude,
+        location.geofenceRadiusMeters || 100,
+        location.status || 'ACTIVE',
+        location.photoURL || null,
+        location.googleDriveFileId || null,
+        location.createdAt,
+        location.updatedAt,
+      ],
+    });
+  }
+
   public updateLocation(locationId: string, updates: Partial<WorkLocation>) {
     const idx = this.data.locations.findIndex(l => l.locationId === locationId);
     if (idx !== -1) {
@@ -1954,7 +1998,7 @@ class DatabaseService {
           sql: `UPDATE locations SET name = ?, address = ?, latitude = ?, longitude = ?, geofenceRadiusMeters = ?, status = ?, photoURL = ?, googleDriveFileId = ?, updatedAt = ? WHERE locationId = ?`,
           args: [
             loc.name,
-            loc.address,
+            loc.address || '',
             loc.latitude,
             loc.longitude,
             loc.geofenceRadiusMeters || 100,

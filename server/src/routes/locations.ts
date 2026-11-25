@@ -36,7 +36,11 @@ router.post('/', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), async (r
   }
 
   const existing = db.getLocations();
-  const nextNum = (existing.length + 1).toString().padStart(3, '0');
+  const maxNum = existing.reduce((max, l) => {
+    const m = l.locationId.match(/^LOC-(\d+)$/);
+    return m ? Math.max(max, Number(m[1])) : max;
+  }, 0);
+  const nextNum = (maxNum + 1).toString().padStart(3, '0');
   const locationId = `LOC-${nextNum}`;
   const now = new Date().toISOString();
 
@@ -68,6 +72,12 @@ router.post('/', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), async (r
   }
 
   db.addLocation(newLocation);
+  try {
+    await db.persistLocationToTurso(newLocation);
+  } catch (err: any) {
+    console.error('[LOCATIONS] Failed to persist location to Turso:', err?.message);
+    return res.status(500).json({ error: 'Failed to save work location to database' });
+  }
 
   db.logActivity({
     logId: `log-${Date.now()}`,
@@ -114,6 +124,14 @@ router.patch('/:id', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), asyn
   }
 
   const updated = db.updateLocation(loc.locationId, updates);
+  if (updated) {
+    try {
+      await db.persistLocationToTurso(updated);
+    } catch (err: any) {
+      console.error('[LOCATIONS] Failed to update location in Turso:', err?.message);
+      return res.status(500).json({ error: 'Failed to update work location in database' });
+    }
+  }
   res.json(updated);
 });
 
