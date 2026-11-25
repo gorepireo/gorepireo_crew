@@ -366,7 +366,7 @@ export const WorkerHome: React.FC = () => {
   }
 
   return (
-    <div className="space-y-3.5">
+    <div className="space-y-3.5 pb-4">
       {/* FEEDBACK BANNER (If any) */}
       {feedback && (
         <div
@@ -386,76 +386,109 @@ export const WorkerHome: React.FC = () => {
         </div>
       )}
 
-      {/* 1. BLUE TODAY STATUS BANNER */}
-      <div className="bg-gradient-to-r from-[#1752d5] via-[#1a58dd] to-[#1244b7] text-white p-4 sm:p-4.5 rounded-3xl shadow-sm relative overflow-hidden">
-        {/* Subtle decorative wave */}
-        <div className="absolute -bottom-8 -left-8 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+      {/* 1. CLEAN LIGHT HERO GREETING + STATUS PILL BAR */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#f5f8ff] via-white to-[#e8f1ff] p-4 border border-slate-200/60 shadow-2xs">
+        {/* Subtle architectural glass building accent on right */}
+        <svg
+          viewBox="0 0 180 140"
+          className="absolute right-0 top-0 h-full w-44 pointer-events-none opacity-80 select-none"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient id="glassBuildingGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="#1e3a8a" stopOpacity="0.55" />
+            </linearGradient>
+          </defs>
+          <polygon points="95,12 175,38 175,140 65,140" fill="url(#glassBuildingGrad)" />
+          <polygon points="95,12 65,140 42,140 78,24" fill="#1d4ed8" fillOpacity="0.18" />
+          <line x1="95" y1="12" x2="175" y2="38" stroke="#ffffff" strokeOpacity="0.6" strokeWidth="1.5" />
+          <line x1="87" y1="42" x2="175" y2="68" stroke="#ffffff" strokeOpacity="0.35" strokeWidth="1" />
+          <line x1="79" y1="72" x2="175" y2="98" stroke="#ffffff" strokeOpacity="0.35" strokeWidth="1" />
+          <line x1="71" y1="102" x2="175" y2="128" stroke="#ffffff" strokeOpacity="0.3" strokeWidth="1" />
+          <line x1="120" y1="20" x2="105" y2="140" stroke="#ffffff" strokeOpacity="0.3" strokeWidth="1" />
+          <line x1="148" y1="29" x2="138" y2="140" stroke="#ffffff" strokeOpacity="0.3" strokeWidth="1" />
+        </svg>
 
-        <div className="flex items-start justify-between gap-2.5 relative z-10">
-          {/* Left Column: Date, Greeting & ID */}
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 text-blue-100 text-2xs font-semibold">
-              <Calendar className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">{todayDateFormatted}</span>
+        <div className="relative z-10 space-y-3">
+          <div>
+            <div className="flex items-center gap-1.5 text-slate-600 text-xs font-medium">
+              <Calendar className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+              <span>{todayDateFormatted}</span>
             </div>
 
-            <h2 className="text-base sm:text-lg font-black text-white mt-1 leading-tight tracking-tight flex items-baseline flex-wrap gap-x-1.5 gap-y-0.5">
-              <span className="opacity-95">{timeGreeting},</span>
-              <span className="truncate max-w-full font-extrabold">{workerName}</span>
+            <p className="text-base sm:text-lg font-medium text-slate-700 mt-1.5 leading-tight">
+              {timeGreeting},
+            </p>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-tight truncate">
+              {workerName}
             </h2>
 
-            <div className="flex items-center gap-1.5 text-3xs text-blue-100 font-medium mt-1 whitespace-nowrap">
-              <Contact className="w-3 h-3 shrink-0 text-blue-200" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 mt-2 rounded-full bg-white/95 border border-slate-200/80 shadow-2xs text-[11px] font-semibold text-slate-600">
+              <Contact className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span>ID:</span>
-              <span className="font-mono font-bold text-white bg-white/15 px-1.5 py-0.5 rounded text-4xs">
+              <span className="font-mono font-bold text-slate-800">
                 {worker?.workerId || 'WC-2026-001'}
               </span>
             </div>
           </div>
 
-          {/* Right Column: Present Badge & Work Time */}
-          <div className="text-right shrink-0 flex flex-col items-end">
-            <span className="bg-[#bbf7d0] text-[#14532d] px-2.5 py-0.5 rounded-full text-3xs sm:text-2xs font-black uppercase tracking-wider shadow-2xs whitespace-nowrap">
+          {/* STATUS / SHIFT / WORK TIME PILL BAR */}
+          <div className="bg-white/95 backdrop-blur-xs rounded-2xl border border-slate-200/80 shadow-xs px-3 py-2.5 flex items-center justify-between gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wide shrink-0 ${
+                todayAttendance?.status === 'PRESENT' || isCheckedIn
+                  ? 'bg-[#dcfce7] text-[#15803d]'
+                  : 'bg-[#dcfce7] text-[#15803d]'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-[#16a34a]" />
               {todayAttendance?.status === 'PRESENT' || isCheckedIn ? 'PRESENT' : 'READY'}
             </span>
 
-            <div className="mt-1.5 text-right">
-              <span className="text-3xs text-blue-100 flex items-center justify-end gap-1 font-semibold whitespace-nowrap">
-                <Clock className="w-3 h-3 shrink-0" />
-                <span>Work Time</span>
-              </span>
-              <div className="text-lg sm:text-xl font-black text-white tracking-tight mt-0.5 font-mono">
-                {checkInDisplayTime}
-              </div>
-              <span className="text-4xs text-blue-100/90 font-medium block mt-0.5 whitespace-nowrap">
+            <div className="w-px h-4 bg-slate-200 shrink-0" />
+
+            <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-700 min-w-0 truncate">
+              <Clock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+              <span className="truncate">
                 Shift: {todayAssignment?.startTime || '09:00'} – {todayAssignment?.endTime || '17:30'}
+              </span>
+            </div>
+
+            <div className="w-px h-4 bg-slate-200 shrink-0" />
+
+            <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-700 whitespace-nowrap shrink-0">
+              <Briefcase className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+              <span>
+                Work Time:{' '}
+                <strong className="font-mono font-bold text-slate-900">{checkInDisplayTime}</strong>
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. DUAL ACTION CARDS (Start Work Check In & End Work Check Out) (Exact Match Image 1) */}
+      {/* 2. DUAL ACTION CARDS (Start Work & End Work) */}
       <div className="grid grid-cols-2 gap-3">
         {/* Start Work (Check In) */}
         <button
           type="button"
           onClick={handleStartWork}
           disabled={isCheckedIn}
-          className={`min-h-[96px] p-4 rounded-3xl text-left flex flex-col items-center justify-center gap-1.5 transition-all shadow-xs ${
+          className={`min-h-[104px] p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all shadow-sm ${
             !isCheckedIn
-              ? 'bg-[#16a34a] hover:bg-[#15803d] active:scale-98 text-white'
-              : 'bg-[#16a34a]/85 text-white opacity-90'
+              ? 'bg-gradient-to-br from-[#0b66e4] via-[#1070f0] to-[#084ec4] hover:brightness-105 active:scale-98 text-white'
+              : 'bg-[#0b66e4]/85 text-white opacity-85 cursor-default'
           }`}
         >
-          <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-            <Play className="w-4 h-4 fill-white text-white translate-x-0.5" />
+          <div className="w-9 h-9 rounded-full bg-white text-[#0b66e4] flex items-center justify-center shadow-xs">
+            <Play className="w-4 h-4 fill-current translate-x-0.5" />
           </div>
           <div className="text-center">
-            <span className="block font-black text-sm text-white leading-tight">
+            <span className="block font-bold text-sm text-white leading-tight">
               Start Work
             </span>
-            <span className="text-3xs text-white/90 font-medium">
+            <span className="text-[11px] text-blue-100 font-medium">
               (Check In)
             </span>
           </div>
@@ -466,85 +499,141 @@ export const WorkerHome: React.FC = () => {
           type="button"
           onClick={handleEndWork}
           disabled={!isCheckedIn || isCheckedOut}
-          className={`min-h-[96px] p-4 rounded-3xl text-left flex flex-col items-center justify-center gap-1.5 transition-all shadow-xs ${
+          className={`min-h-[104px] p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all ${
             isCheckedIn && !isCheckedOut
-              ? 'bg-slate-900 hover:bg-slate-800 text-white active:scale-98'
-              : 'bg-[#eaedf4] text-[#64748b] cursor-default'
+              ? 'bg-slate-900 hover:bg-slate-800 text-white active:scale-98 shadow-sm'
+              : 'bg-[#f1f5f9] border border-slate-200/80 text-slate-700 cursor-default'
           }`}
         >
-          <div className={`w-9 h-9 rounded-full flex items-center justify-center ${
-            isCheckedIn && !isCheckedOut ? 'bg-white/20 text-white' : 'bg-slate-200/80 text-slate-400'
-          }`}>
+          <div
+            className={`w-9 h-9 rounded-full flex items-center justify-center ${
+              isCheckedIn && !isCheckedOut
+                ? 'bg-white/20 text-white'
+                : 'bg-slate-200/90 text-slate-800'
+            }`}
+          >
             <Square className="w-3.5 h-3.5 fill-current" />
           </div>
           <div className="text-center">
-            <span className={`block font-black text-sm leading-tight ${
-              isCheckedIn && !isCheckedOut ? 'text-white' : 'text-[#64748b]'
-            }`}>
+            <span
+              className={`block font-bold text-sm leading-tight ${
+                isCheckedIn && !isCheckedOut ? 'text-white' : 'text-slate-700'
+              }`}
+            >
               End Work
             </span>
-            <span className={`text-3xs font-medium ${
-              isCheckedIn && !isCheckedOut ? 'text-slate-300' : 'text-[#94a3b8]'
-            }`}>
-              (Check Out)
+            <span
+              className={`text-[11px] font-medium ${
+                isCheckedIn && !isCheckedOut ? 'text-slate-300' : 'text-slate-500'
+              }`}
+            >
+              Check Out
             </span>
           </div>
         </button>
       </div>
 
-      {/* 3. LOCATION VERIFICATION CARD (Dynamic GPS & Assignment Link) */}
-      <div
-        className={`${
-          todayAttendance?.status === 'PRESENT'
-            ? 'bg-[#eafaf1] border-[#bbf7d0]'
-            : 'bg-[#f8fafc] border-slate-200'
-        } border rounded-2xl p-3 flex items-center justify-between shadow-2xs`}
-      >
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div
-            className={`w-6 h-6 rounded-full ${
-              todayAttendance?.status === 'PRESENT'
-                ? 'bg-[#16a34a] text-white'
-                : 'bg-slate-200 text-slate-500'
-            } flex items-center justify-center shrink-0`}
-          >
-            <CheckCircle2 className="w-4 h-4" />
+      {/* 3. THREE QUICK ACTION CARDS */}
+      <div className="grid grid-cols-3 gap-2.5">
+        {/* 1. Take Work Photo */}
+        <button
+          type="button"
+          onClick={() => {
+            if (!todayAssignment) {
+              alert('No assignment active for today.');
+              return;
+            }
+            if (!isCheckedIn) {
+              if (
+                window.confirm(
+                  'Step 1 is Attendance Check-In! You should verify attendance first before recording work photos. Open Attendance Check-In now?'
+                )
+              ) {
+                handleStartWork();
+                return;
+              }
+            }
+            setWorkCameraModalOpen(true);
+          }}
+          className="p-3.5 bg-white hover:bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col items-center justify-center gap-2 transition-all active:scale-97 shadow-2xs"
+        >
+          <div className="w-10 h-10 rounded-full bg-[#edf2fe] text-[#106ee8] flex items-center justify-center">
+            <Camera className="w-4.5 h-4.5" />
           </div>
-          <div className="min-w-0">
-            <h4 className="text-xs font-black text-slate-900 leading-tight">
-              {todayAttendance?.status === 'PRESENT'
-                ? todayAttendance.verificationStatus === 'VERIFIED'
-                  ? 'You are at the work location'
-                  : 'Attendance Recorded'
-                : todayAssignment
-                ? 'Assigned Work Location'
-                : 'No Work Location Assigned'}
-            </h4>
-            <p className="text-2xs text-slate-500 font-medium mt-0.5 truncate">
-              {todayAttendance?.checkInAddress
-                ? todayAttendance.checkInAddress
-                : todayAssignment
-                ? todayAssignment.locationName || todayAssignment.locationAddress || 'Assigned Site'
-                : 'Standby for team dispatch'}
-            </p>
-          </div>
-        </div>
+          <span className="text-[11px] font-bold text-slate-800 text-center leading-tight">
+            Take Work<br />Photo
+          </span>
+        </button>
 
-        <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+        {/* 2. Directions */}
+        {todayAssignment?.locationLatitude && todayAssignment?.locationLongitude ? (
+          <a
+            href={`https://maps.google.com/?q=${todayAssignment.locationLatitude},${todayAssignment.locationLongitude}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-3.5 bg-white hover:bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col items-center justify-center gap-2 transition-all active:scale-97 shadow-2xs text-center"
+          >
+            <div className="w-10 h-10 rounded-full bg-[#edf2fe] text-[#106ee8] flex items-center justify-center">
+              <MapPin className="w-4.5 h-4.5" />
+            </div>
+            <span className="text-[11px] font-bold text-slate-800 text-center leading-tight">
+              Directions
+            </span>
+          </a>
+        ) : (
+          <div
+            onClick={() => alert('No site GPS coordinates on file for today.')}
+            className="p-3.5 bg-white hover:bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col items-center justify-center gap-2 shadow-2xs text-center cursor-pointer active:scale-97 transition-all"
+          >
+            <div className="w-10 h-10 rounded-full bg-[#edf2fe] text-[#106ee8] flex items-center justify-center">
+              <MapPin className="w-4.5 h-4.5" />
+            </div>
+            <span className="text-[11px] font-bold text-slate-800 text-center leading-tight">
+              Directions
+            </span>
+          </div>
+        )}
+
+        {/* 3. Call Leader */}
+        {leaderPhone ? (
+          <a
+            href={`tel:${leaderPhone}`}
+            className="p-3.5 bg-white hover:bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col items-center justify-center gap-2 transition-all active:scale-97 shadow-2xs text-center"
+          >
+            <div className="w-10 h-10 rounded-full bg-[#edf2fe] text-[#106ee8] flex items-center justify-center">
+              <Phone className="w-4.5 h-4.5" />
+            </div>
+            <span className="text-[11px] font-bold text-slate-800 text-center leading-tight">
+              Call Leader
+            </span>
+          </a>
+        ) : (
+          <div
+            onClick={() => alert('No team leader phone number registered.')}
+            className="p-3.5 bg-white hover:bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col items-center justify-center gap-2 shadow-2xs text-center cursor-pointer active:scale-97 transition-all"
+          >
+            <div className="w-10 h-10 rounded-full bg-[#edf2fe] text-[#106ee8] flex items-center justify-center">
+              <Phone className="w-4.5 h-4.5" />
+            </div>
+            <span className="text-[11px] font-bold text-slate-800 text-center leading-tight">
+              Call Leader
+            </span>
+          </div>
+        )}
       </div>
 
       {/* 4. TODAY'S ASSIGNMENT CARD (Derived 100% from Live Data) */}
-      <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-2xs space-y-3">
+      <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Briefcase className="w-4 h-4 text-blue-600" />
-            <h3 className="text-xs font-black text-slate-900">Today's Assignment</h3>
+            <Briefcase className="w-4 h-4 text-[#106ee8]" />
+            <h3 className="text-xs font-bold text-slate-900">Today's Assignment</h3>
           </div>
 
           <button
             type="button"
             onClick={() => navigate('/worker/work')}
-            className="text-2xs font-extrabold text-blue-600 hover:underline flex items-center gap-0.5"
+            className="text-[11px] font-bold text-[#106ee8] hover:underline flex items-center gap-0.5"
           >
             <span>View Details</span>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -574,7 +663,7 @@ export const WorkerHome: React.FC = () => {
             </div>
 
             <div className="flex-1 min-w-0 space-y-1">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <h4 className="text-sm font-black text-slate-900 leading-tight truncate">
                   {todayAssignment.title}
                 </h4>
@@ -623,11 +712,13 @@ export const WorkerHome: React.FC = () => {
                 </span>
                 <div className="grid grid-cols-3 gap-1.5 text-center">
                   {/* Step 1: Attendance */}
-                  <div className={`p-1.5 rounded-xl text-3xs font-extrabold flex flex-col items-center border ${
-                    isCheckedIn
-                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                      : 'bg-blue-50 text-blue-700 border-blue-200'
-                  }`}>
+                  <div
+                    className={`p-1.5 rounded-xl text-3xs font-extrabold flex flex-col items-center border ${
+                      isCheckedIn
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : 'bg-blue-50 text-blue-700 border-blue-200'
+                    }`}
+                  >
                     <span>{isCheckedIn ? '✓ 1. Attendance' : '1. Attendance'}</span>
                     <span className="text-4xs opacity-75 font-normal">
                       {isCheckedIn ? 'Verified' : 'Required'}
@@ -635,13 +726,15 @@ export const WorkerHome: React.FC = () => {
                   </div>
 
                   {/* Step 2: Before Photo */}
-                  <div className={`p-1.5 rounded-xl text-3xs font-extrabold flex flex-col items-center border ${
-                    hasBeforeWorkPhoto
-                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                      : isCheckedIn
-                      ? 'bg-amber-50 text-amber-800 border-amber-300 ring-1 ring-amber-400/50'
-                      : 'bg-slate-50 text-slate-400 border-slate-200'
-                  }`}>
+                  <div
+                    className={`p-1.5 rounded-xl text-3xs font-extrabold flex flex-col items-center border ${
+                      hasBeforeWorkPhoto
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : isCheckedIn
+                        ? 'bg-amber-50 text-amber-800 border-amber-300 ring-1 ring-amber-400/50'
+                        : 'bg-slate-50 text-slate-400 border-slate-200'
+                    }`}
+                  >
                     <span>{hasBeforeWorkPhoto ? '✓ 2. Before Pic' : '2. Before Pic'}</span>
                     <span className="text-4xs opacity-75 font-normal">
                       {hasBeforeWorkPhoto ? 'Recorded' : isCheckedIn ? 'Next Step' : 'Step 2'}
@@ -649,13 +742,15 @@ export const WorkerHome: React.FC = () => {
                   </div>
 
                   {/* Step 3: After Photo / Auto-Verify */}
-                  <div className={`p-1.5 rounded-xl text-3xs font-extrabold flex flex-col items-center border ${
-                    hasAfterWorkPhoto
-                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                      : hasBeforeWorkPhoto
-                      ? 'bg-indigo-50 text-indigo-700 border-indigo-300 ring-1 ring-indigo-400/50'
-                      : 'bg-slate-50 text-slate-400 border-slate-200'
-                  }`}>
+                  <div
+                    className={`p-1.5 rounded-xl text-3xs font-extrabold flex flex-col items-center border ${
+                      hasAfterWorkPhoto
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : hasBeforeWorkPhoto
+                        ? 'bg-indigo-50 text-indigo-700 border-indigo-300 ring-1 ring-indigo-400/50'
+                        : 'bg-slate-50 text-slate-400 border-slate-200'
+                    }`}
+                  >
                     <span>{hasAfterWorkPhoto ? '✓ 3. Verified' : '3. After Pic'}</span>
                     <span className="text-4xs opacity-75 font-normal">
                       {hasAfterWorkPhoto ? 'Complete' : hasBeforeWorkPhoto ? 'Auto-Verify' : 'Locked'}
@@ -703,108 +798,30 @@ export const WorkerHome: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="p-4 text-center text-slate-400 text-xs font-medium">
-            No assignment scheduled for today. Tap 'My Work' to review all jobs.
+          <div className="py-4 px-2 flex items-center justify-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-[#edf2fe] text-[#106ee8]/80 flex items-center justify-center shrink-0">
+              <FileText className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-800">No assignment for today</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">Tap 'My Work' to view all jobs.</p>
+            </div>
           </div>
         )}
       </div>
 
-      {/* 5. THREE QUICK ACTION CARDS */}
-      <div className="grid grid-cols-3 gap-2.5">
-        {/* 1. Take Work Photo */}
-        <button
-          type="button"
-          onClick={() => {
-            if (!todayAssignment) {
-              alert('No assignment active for today.');
-              return;
-            }
-            if (!isCheckedIn) {
-              if (window.confirm('Step 1 is Attendance Check-In! You should verify attendance first before recording work photos. Open Attendance Check-In now?')) {
-                handleStartWork();
-                return;
-              }
-            }
-            setWorkCameraModalOpen(true);
-          }}
-          className="p-3 bg-[#eef2ff] hover:bg-[#e0e7ff] rounded-2xl border border-indigo-100 flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 shadow-2xs"
-        >
-          <div className="w-9 h-9 rounded-xl bg-[#6366f1] text-white flex items-center justify-center shadow-xs">
-            <Camera className="w-5 h-5" />
-          </div>
-          <span className="text-3xs font-extrabold text-slate-800 text-center leading-tight">
-            Take Work<br />Photo
-          </span>
-        </button>
-
-        {/* 2. Directions */}
-        {todayAssignment?.locationLatitude && todayAssignment?.locationLongitude ? (
-          <a
-            href={`https://maps.google.com/?q=${todayAssignment.locationLatitude},${todayAssignment.locationLongitude}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-3 bg-[#eff6ff] hover:bg-[#dbeafe] rounded-2xl border border-blue-100 flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 shadow-2xs text-center"
-          >
-            <div className="w-9 h-9 rounded-xl bg-[#2563eb] text-white flex items-center justify-center shadow-xs">
-              <MapPin className="w-5 h-5 fill-white text-white" />
-            </div>
-            <span className="text-3xs font-extrabold text-slate-800 text-center leading-tight">
-              Directions
-            </span>
-          </a>
-        ) : (
-          <div
-            onClick={() => alert('No site GPS coordinates on file for today.')}
-            className="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center justify-center gap-1.5 shadow-2xs text-center opacity-70 cursor-pointer"
-          >
-            <div className="w-9 h-9 rounded-xl bg-slate-200 text-slate-400 flex items-center justify-center shadow-xs">
-              <MapPin className="w-5 h-5" />
-            </div>
-            <span className="text-3xs font-extrabold text-slate-400 text-center leading-tight">
-              Directions<br />Unavailable
-            </span>
-          </div>
-        )}
-
-        {/* 3. Call Team Leader */}
-        {leaderPhone ? (
-          <a
-            href={`tel:${leaderPhone}`}
-            className="p-3 bg-[#faf5ff] hover:bg-[#f3e8ff] rounded-2xl border border-purple-100 flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 shadow-2xs text-center"
-          >
-            <div className="w-9 h-9 rounded-xl bg-[#9333ea] text-white flex items-center justify-center shadow-xs">
-              <Phone className="w-5 h-5 fill-white text-white" />
-            </div>
-            <span className="text-3xs font-extrabold text-slate-800 text-center leading-tight">
-              Call<br />Team Leader
-            </span>
-          </a>
-        ) : (
-          <div
-            onClick={() => alert('No team leader phone number registered.')}
-            className="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center justify-center gap-1.5 shadow-2xs text-center opacity-70 cursor-pointer"
-          >
-            <div className="w-9 h-9 rounded-xl bg-slate-200 text-slate-400 flex items-center justify-center shadow-xs">
-              <Phone className="w-5 h-5" />
-            </div>
-            <span className="text-3xs font-extrabold text-slate-400 text-center leading-tight">
-              Leader<br />Unavailable
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* 6. RECENT UPDATES SECTION (Exact Match Image 1) */}
-      <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-2xs space-y-3">
+      {/* 5. RECENT UPDATES SECTION */}
+      <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Bell className="w-4 h-4 text-blue-600" />
-            <h3 className="text-xs font-black text-slate-900">Recent Updates</h3>
+            <Bell className="w-4 h-4 text-[#106ee8]" />
+            <h3 className="text-xs font-bold text-slate-900">Recent Updates</h3>
           </div>
 
           <button
             type="button"
-            className="text-2xs font-extrabold text-blue-600 hover:underline flex items-center gap-0.5"
+            onClick={() => navigate('/worker/attendance')}
+            className="text-[11px] font-bold text-[#106ee8] hover:underline flex items-center gap-0.5"
           >
             <span>View All</span>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -813,8 +830,18 @@ export const WorkerHome: React.FC = () => {
 
         <div className="space-y-2.5">
           {!todayAssignment && !todayAttendance ? (
-            <div className="p-4 text-center text-slate-400 text-2xs font-medium">
-              No recent updates for today yet.
+            <div className="bg-[#eefaf3] border border-emerald-200/70 rounded-2xl px-3.5 py-2.5 flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-[#16a34a] text-white flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-slate-900 leading-tight">
+                  You're ready for today's work.
+                </p>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
             </div>
           ) : (
             <>
@@ -822,15 +849,16 @@ export const WorkerHome: React.FC = () => {
               {todayAssignment && (
                 <div className="flex items-center justify-between gap-2 p-1">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-[#edf2fe] text-[#106ee8] flex items-center justify-center shrink-0">
                       <FileText className="w-4 h-4 stroke-[2.2]" />
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-xs font-black text-slate-900 leading-tight">
+                      <h4 className="text-xs font-bold text-slate-900 leading-tight">
                         New Work Assignment
                       </h4>
                       <p className="text-3xs text-slate-500 font-medium mt-0.5 truncate max-w-[200px]">
-                        {todayAssignment.title} at {todayAssignment.locationName || todayAssignment.locationAddress || 'Site'}
+                        {todayAssignment.title} at{' '}
+                        {todayAssignment.locationName || todayAssignment.locationAddress || 'Site'}
                       </p>
                     </div>
                   </div>
@@ -849,7 +877,7 @@ export const WorkerHome: React.FC = () => {
                       <CheckCircle2 className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-xs font-black text-slate-900 leading-tight">
+                      <h4 className="text-xs font-bold text-slate-900 leading-tight">
                         {todayAttendance.status === 'PRESENT' ? 'Attendance Confirmed' : 'Attendance Recorded'}
                       </h4>
                       <p className="text-3xs text-slate-500 font-medium mt-0.5 truncate max-w-[200px]">
