@@ -82,9 +82,14 @@ router.post('/login', (req: Request, res: Response) => {
     return res.json({
       success: true,
       token,
-      user: HARDCODED_ADMIN,
+      user: {
+        ...HARDCODED_ADMIN,
+        mustChangePassword: false,
+      },
       worker: null,
       leader: null,
+      mustChangePassword: false,
+      redirectUrl: '/admin/dashboard',
       settings: db.getSettings(),
     });
   }
