@@ -3,11 +3,13 @@ import { db } from '../db';
 import { authMiddleware, requireRole } from '../middleware/auth';
 import { generateAssignmentId } from '../utils/idGenerator';
 import { Assignment, AssignmentMember, AssignmentPriority } from '../types';
+import { reconcileMissedAttendance } from './attendance';
 
 const router = Router();
 
 // GET /api/assignments
 router.get('/', authMiddleware, (req: Request, res: Response) => {
+  reconcileMissedAttendance();
   const { date, workerId, teamId, status } = req.query;
   let assignments = db.getAssignments();
 
@@ -102,6 +104,9 @@ router.post('/', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), (req: Re
 
   if (!title || !locationId || !date || !startTime || !endTime) {
     return res.status(400).json({ error: 'Title, location, date, start time, and end time are required' });
+  }
+  if (startTime >= endTime) {
+    return res.status(400).json({ error: 'Scheduled end time must be after start time' });
   }
 
   const location = db.getLocationById(locationId);

@@ -17,6 +17,99 @@ import {
 
 const router = Router();
 
+export function getOrgLocalDateTime(timezone = 'Asia/Kolkata'): {
+  dateStr: string;
+  timeStr: string;
+  totalMinutes: number;
+} {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(new Date());
+
+  const get = (type: string) => parts.find((p) => p.type === type)?.value || '00';
+  const rawHour = get('hour');
+  const hour = rawHour === '24' ? '00' : rawHour;
+  const minute = get('minute');
+  const dateStr = `${get('year')}-${get('month')}-${get('day')}`;
+  const timeStr = `${hour}:${minute}`;
+  return {
+    dateStr,
+    timeStr,
+    totalMinutes: Number(hour) * 60 + Number(minute),
+  };
+}
+
+/**
+ * Reconciles past-due scheduled assignments: if an assignment's date has passed
+ * (or its endTime has passed today) and an assigned worker has no attendance record
+ * for that date, automatically marks them ABSENT in the database.
+ */
+export function reconcileMissedAttendance(): number {
+  const settings = db.getSettings();
+  const { dateStr: today, timeStr: currentHHMM } = getOrgLocalDateTime(settings.timezone || 'Asia/Kolkata');
+  const assignments = db.getAssignments();
+  let markedCount = 0;
+
+  for (const a of assignments) {
+    if (a.status === 'CANCELLED' || a.status === 'COMPLETED') continue;
+    if (!a.date) continue;
+
+    const isPastDate = a.date < today;
+    const isEndedToday = a.date === today && !!a.endTime && currentHHMM > a.endTime;
+    if (!isPastDate && !isEndedToday) continue;
+
+    const allAttendance = db.getAttendance();
+    const workerIds = new Set<string>(a.workerIds || []);
+    for (const wid of workerIds) {
+      const existing = allAttendance.find((att) => att.workerId === wid && att.date === a.date);
+      if (existing) continue;
+
+      const worker = db.getWorkerById(wid);
+      if (!worker) continue;
+
+      const now = new Date().toISOString();
+      const absRecord: Attendance = {
+        attendanceId: `att-abs-${a.date}-${wid}`,
+        workerId: wid,
+        workerName: worker.name,
+        workerCode: worker.workerId,
+        teamId: worker.primaryTeamId || a.teamIds?.[0],
+        teamName: worker.primaryTeamName,
+        assignmentId: a.assignmentId,
+        assignmentTitle: a.title,
+        date: a.date,
+        status: 'ABSENT',
+        verificationStatus: 'FLAGGED',
+        photoStatus: 'MISSING',
+        remarks: `Auto-marked ABSENT: Missed scheduled work "${a.title}" (${a.date} ${a.startTime || ''}–${a.endTime || ''})`,
+        createdAt: now,
+        updatedAt: now,
+      };
+      db.addAttendance(absRecord);
+      markedCount++;
+
+      db.addNotification({
+        notificationId: `notif-abs-${a.date}-${wid}`,
+        recipientId: wid,
+        title: 'Missed Scheduled Work (Absent)',
+        message: `You were marked ABSENT for "${a.title}" on ${a.date} (${a.startTime} - ${a.endTime}) because no check-in was recorded.`,
+        type: 'ATTENDANCE',
+        read: false,
+        relatedEntityId: absRecord.attendanceId,
+        createdAt: now,
+      });
+    }
+  }
+
+  return markedCount;
+}
+
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10MB limit
 
 function validateBase64Image(dataUrl: string): { valid: boolean; error?: string } {
@@ -36,6 +129,7 @@ function validateBase64Image(dataUrl: string): { valid: boolean; error?: string 
 
 // GET /api/attendance
 router.get('/', authMiddleware, (req: Request, res: Response) => {
+  reconcileMissedAttendance();
   const { date, workerId, teamId, status } = req.query;
   let list = db.getAttendance();
 
@@ -75,6 +169,7 @@ router.get('/', authMiddleware, (req: Request, res: Response) => {
 
 // GET /api/attendance/history (convenience endpoint)
 router.get('/history', authMiddleware, (req: Request, res: Response) => {
+  reconcileMissedAttendance();
   let workerId = req.user?.workerId;
   if (!workerId && req.user?.role === 'WORKER') {
     const w = db.getWorkerByUserId(req.user.uid);
@@ -405,14 +500,13 @@ router.post('/check-in', authMiddleware, (req: Request, res: Response) => {
     }
   }
 
-  // Calculate late arrival
+  // Calculate late arrival using organization timezone
   let status: AttendanceStatus = 'PRESENT';
   if (assignment?.startTime) {
     const [startH, startM] = assignment.startTime.split(':').map(Number);
     const graceMins = settings.lateArrivalGracePeriodMinutes || 15;
-    const nowD = new Date(now);
     const expectedMinutes = startH * 60 + startM + graceMins;
-    const actualMinutes = nowD.getHours() * 60 + nowD.getMinutes();
+    const { totalMinutes: actualMinutes } = getOrgLocalDateTime(settings.timezone || 'Asia/Kolkata');
     if (actualMinutes > expectedMinutes) {
       status = 'LATE';
     }
