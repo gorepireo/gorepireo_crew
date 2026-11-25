@@ -1,4 +1,4 @@
-const CACHE_NAME = 'workcrew-v5';
+const CACHE_NAME = 'workcrew-v6';
 
 // Install: Take control immediately
 self.addEventListener('install', (event) => {
