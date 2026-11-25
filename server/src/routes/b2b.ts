@@ -315,10 +315,35 @@ router.post('/client/invoices/:id/pay', authMiddleware, requireRole(['B2B_CLIENT
     return res.status(400).json({ error: 'This invoice has already been paid in full' });
   }
 
-  const payAmount = Number(amount) > 0 ? Math.min(Number(amount), remainingBalance) : remainingBalance;
+  // Verify predefined payable amount matches remaining invoice balance
+  if (amount !== undefined && (isNaN(Number(amount)) || Number(amount) !== remainingBalance)) {
+    return res.status(400).json({
+      error: `Payment amount must match the predefined payable balance of ₹${remainingBalance.toLocaleString('en-IN')}`,
+    });
+  }
+
+  const trimmedTxnId = typeof clientTxnId === 'string' ? clientTxnId.trim() : '';
+  if (req.user?.role === 'B2B_CLIENT' && trimmedTxnId.length < 6) {
+    return res.status(400).json({
+      error: 'Please enter a valid Razorpay Payment ID or UTR reference (minimum 6 characters)',
+    });
+  }
+
+  if (trimmedTxnId) {
+    const existingPayment = db.getPayments().find(
+      (p) => p.transactionId?.toLowerCase() === trimmedTxnId.toLowerCase()
+    );
+    if (existingPayment) {
+      return res.status(409).json({
+        error: 'This Razorpay Payment ID / UTR has already been recorded for an invoice',
+      });
+    }
+  }
+
+  const payAmount = remainingBalance;
 
   // Server-side generation and verification of unique transaction ID
-  const serverTxnId = clientTxnId || `txn_${Date.now()}_${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+  const serverTxnId = trimmedTxnId || `txn_${Date.now()}_${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
   const receiptNum = `RCPT-${new Date().getFullYear()}-${String(Math.floor(1000 + Math.random() * 9000))}`;
 
   // 1. Create Payment Record
@@ -333,12 +358,12 @@ router.post('/client/invoices/:id/pay', authMiddleware, requireRole(['B2B_CLIENT
     eventName: invoice.eventName,
     amount: payAmount,
     paymentDate: new Date().toISOString(),
-    paymentMethod: (paymentMethod as PaymentMethod) || 'ONLINE',
+    paymentMethod: (paymentMethod as PaymentMethod) || 'RAZORPAY',
     transactionId: serverTxnId,
     status: 'SUCCESS',
     recordedBy: req.user?.uid,
     recordedByName: req.user?.displayName,
-    notes: 'Online payment via Go_Repireo Crew Secure B2B Gateway',
+    notes: 'Paid via Razorpay (https://razorpay.me/@gorepireo)',
     receiptUrl: `/api/b2b/client/receipts/${receiptNum}`,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -372,6 +397,7 @@ router.post('/client/invoices/:id/pay', authMiddleware, requireRole(['B2B_CLIENT
   res.json({
     success: true,
     message: 'Payment verified and receipt generated successfully',
+    transactionId: serverTxnId,
     payment: newPayment,
     invoice: updatedInvoice,
     receiptNumber: receiptNum,

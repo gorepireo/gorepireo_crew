@@ -14,6 +14,7 @@ import {
   Calendar,
   Download,
   ArrowRight,
+  ExternalLink,
 } from 'lucide-react';
 
 export const ClientInvoices: React.FC = () => {
@@ -28,10 +29,11 @@ export const ClientInvoices: React.FC = () => {
     paymentStatus: 'UP_TO_DATE',
   });
 
-  // Pay Now Modal State
+  // Pay Now Modal State (Predefined Razorpay.me/@gorepireo flow)
   const [payModalInvoice, setPayModalInvoice] = useState<Invoice | null>(null);
   const [payAmount, setPayAmount] = useState<number>(0);
-  const [payMethod, setPayMethod] = useState<'ONLINE' | 'UPI' | 'NETBANKING'>('ONLINE');
+  const [razorpayRef, setRazorpayRef] = useState('');
+  const [razorpayOpened, setRazorpayOpened] = useState(false);
   const [paying, setPaying] = useState(false);
   const [paySuccess, setPaySuccess] = useState<string | null>(null);
   const [payError, setPayError] = useState<string | null>(null);
@@ -59,6 +61,8 @@ export const ClientInvoices: React.FC = () => {
     const remaining = Math.max(0, Number(inv.amount) - Number(inv.amountPaid || 0));
     setPayModalInvoice(inv);
     setPayAmount(remaining);
+    setRazorpayRef('');
+    setRazorpayOpened(false);
     setPaySuccess(null);
     setPayError(null);
   };
@@ -66,8 +70,13 @@ export const ClientInvoices: React.FC = () => {
   const handleProcessPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!payModalInvoice) return;
-    if (payAmount <= 0) {
-      setPayError('Please enter a valid payment amount');
+    const expectedBalance = Math.max(0, Number(payModalInvoice.amount) - Number(payModalInvoice.amountPaid || 0));
+    if (expectedBalance <= 0 || payAmount !== expectedBalance) {
+      setPayError(`Payable amount must match the verified balance of ₹${expectedBalance.toLocaleString('en-IN')}`);
+      return;
+    }
+    if (razorpayRef.trim().length < 6) {
+      setPayError('Please enter your Razorpay Payment ID or UTR reference (minimum 6 characters)');
       return;
     }
 
@@ -75,19 +84,20 @@ export const ClientInvoices: React.FC = () => {
       setPaying(true);
       setPayError(null);
       const res = await api.payClientInvoice(payModalInvoice.invoiceId, {
-        amount: Number(payAmount),
-        paymentMethod: payMethod,
+        amount: expectedBalance,
+        paymentMethod: 'RAZORPAY',
+        transactionId: razorpayRef.trim(),
       });
 
       setPaySuccess(
-        `Payment of ₹${Number(payAmount).toLocaleString('en-IN')} confirmed! Transaction ID: ${res.transactionId}`
+        `Payment of ₹${expectedBalance.toLocaleString('en-IN')} verified! Reference: ${res.transactionId || razorpayRef.trim()}`
       );
       setTimeout(() => {
         fetchInvoices();
       }, 1000);
     } catch (err: any) {
       console.error('[PAYMENT PROCESS] Error:', err);
-      setPayError(err?.message || 'Payment processing failed. Please try again.');
+      setPayError(err?.message || 'Payment verification failed. Please check your Razorpay reference.');
     } finally {
       setPaying(false);
     }
@@ -414,82 +424,74 @@ export const ClientInvoices: React.FC = () => {
                       ₹{Number(payModalInvoice.amountPaid || 0).toLocaleString('en-IN')}
                     </span>
                   </div>
-                  <div className="pt-2 border-t border-slate-200 flex justify-between text-xs font-black text-slate-900">
-                    <span>Balance Due:</span>
-                    <span className="text-blue-600">
-                      ₹
-                      {Math.max(
-                        0,
-                        Number(payModalInvoice.amount) - Number(payModalInvoice.amountPaid || 0)
-                      ).toLocaleString('en-IN')}
+                  <div className="pt-2 border-t border-slate-200 flex justify-between items-center text-xs font-black text-slate-900">
+                    <span>Predefined Payable Amount:</span>
+                    <span className="text-blue-600 text-sm">
+                      ₹{payAmount.toLocaleString('en-IN')}
                     </span>
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-3xs font-bold uppercase tracking-wider text-slate-600">
-                    Amount to Settle (INR)
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">
-                      ₹
+                {/* Step 1: Pay via razorpay.me/@gorepireo */}
+                <div className="p-3.5 bg-blue-50/70 border border-blue-200/80 rounded-2xl space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-3xs font-extrabold uppercase tracking-wider text-blue-800">
+                      Step 1 · Pay via Razorpay
                     </span>
-                    <input
-                      type="number"
-                      min="1"
-                      max={Number(payModalInvoice.amount) - Number(payModalInvoice.amountPaid || 0)}
-                      value={payAmount}
-                      onChange={(e) => setPayAmount(Number(e.target.value))}
-                      className="w-full pl-8 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:bg-white"
-                      required
-                    />
+                    <span className="text-4xs font-mono font-semibold text-blue-600">
+                      razorpay.me/@gorepireo
+                    </span>
                   </div>
-                  <p className="text-4xs text-slate-400">
-                    Partial payment is supported for contract milestones.
+                  <a
+                    href={`https://razorpay.me/@gorepireo/${payAmount}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setRazorpayOpened(true)}
+                    className="w-full py-2.5 px-4 bg-[#106ee8] hover:bg-[#0d5ec9] text-white text-xs font-bold rounded-xl transition shadow-sm flex items-center justify-center gap-2"
+                  >
+                    <span>Pay ₹{payAmount.toLocaleString('en-IN')} on Razorpay</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                  <p className="text-4xs text-slate-500 text-center">
+                    Opens Razorpay with the predefined amount of ₹{payAmount.toLocaleString('en-IN')}.
                   </p>
                 </div>
 
+                {/* Step 2: Enter Razorpay Payment ID / UTR to Verify */}
                 <div className="space-y-1.5">
                   <label className="text-3xs font-bold uppercase tracking-wider text-slate-600">
-                    Payment Gateway
+                    Step 2 · Razorpay Payment ID / UTR Reference
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { id: 'ONLINE', label: 'Card / Netbanking' },
-                      { id: 'UPI', label: 'Instant UPI' },
-                      { id: 'NETBANKING', label: 'Corporate RTGS' },
-                    ].map((m) => (
-                      <button
-                        type="button"
-                        key={m.id}
-                        onClick={() => setPayMethod(m.id as any)}
-                        className={`p-2.5 rounded-xl border text-3xs font-bold text-center transition ${
-                          payMethod === m.id
-                            ? 'bg-blue-50 border-blue-600 text-blue-700 shadow-xs'
-                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
-                      >
-                        {m.label}
-                      </button>
-                    ))}
-                  </div>
+                  <input
+                    type="text"
+                    value={razorpayRef}
+                    onChange={(e) => setRazorpayRef(e.target.value)}
+                    placeholder="e.g. pay_Q1abc23XYZ or UTR number"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                    required
+                  />
+                  {razorpayOpened && (
+                    <p className="text-4xs text-emerald-600 font-medium">
+                      After completing payment on Razorpay, paste the Payment ID or UTR above to generate your receipt.
+                    </p>
+                  )}
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-1">
                   <button
                     type="submit"
-                    disabled={paying || payAmount <= 0}
-                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold rounded-2xl transition shadow-md flex items-center justify-center gap-2"
+                    disabled={paying || payAmount <= 0 || razorpayRef.trim().length < 6}
+                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold rounded-2xl transition shadow-md flex items-center justify-center gap-2"
                   >
                     {paying ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Verifying with Gateway...</span>
+                        <span>Verifying Payment...</span>
                       </>
                     ) : (
                       <>
                         <ShieldCheck className="w-4 h-4" />
-                        <span>Confirm & Authorize ₹{Number(payAmount).toLocaleString('en-IN')}</span>
+                        <span>Verify &amp; Confirm ₹{payAmount.toLocaleString('en-IN')}</span>
                       </>
                     )}
                   </button>
