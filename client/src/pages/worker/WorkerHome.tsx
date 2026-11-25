@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { api } from '../../services/api';
-import { Assignment, Attendance, WorkLocation } from '../../types';
+import { Assignment, Attendance, WorkLocation, Notification } from '../../types';
 import { AttendanceCameraModal } from '../../components/camera/AttendanceCameraModal';
 import { WorkCameraModal } from '../../components/camera/WorkCameraModal';
 import { SafeAvatar } from '../../components/common/SafeAvatar';
@@ -43,6 +43,8 @@ export const WorkerHome: React.FC = () => {
   const [todayAttendance, setTodayAttendance] = useState<Attendance | null>(null);
   const [todayEvidence, setTodayEvidence] = useState<WorkEvidence[]>([]);
   const [locations, setLocations] = useState<WorkLocation[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [showAllUpdates, setShowAllUpdates] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -72,13 +74,15 @@ export const WorkerHome: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const [assignments, attendanceList, locs] = await Promise.all([
+      const [assignments, attendanceList, locs, notifRes] = await Promise.all([
         api.getAssignments({ date: today }),
         api.getAttendance({ date: today }),
         api.getLocations().catch(() => []),
+        api.getNotifications().catch(() => ({ notifications: [], unreadCount: 0 })),
       ]);
 
       setLocations(locs);
+      setNotifications(notifRes?.notifications || []);
 
       if (assignments.length > 0) {
         setTodayAssignment(assignments[0]);
@@ -428,7 +432,7 @@ export const WorkerHome: React.FC = () => {
               <Contact className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span>ID:</span>
               <span className="font-mono font-bold text-slate-800">
-                {worker?.workerId || 'WC-2026-001'}
+                {worker?.workerId || '—'}
               </span>
             </div>
           </div>
@@ -451,7 +455,9 @@ export const WorkerHome: React.FC = () => {
             <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-700 min-w-0 truncate">
               <Clock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span className="truncate">
-                Shift: {todayAssignment?.startTime || '09:00'} – {todayAssignment?.endTime || '17:30'}
+                {todayAssignment?.startTime && todayAssignment?.endTime
+                  ? `Shift: ${todayAssignment.startTime} – ${todayAssignment.endTime}`
+                  : 'Shift: Not scheduled'}
               </span>
             </div>
 
@@ -818,30 +824,31 @@ export const WorkerHome: React.FC = () => {
             <h3 className="text-xs font-bold text-slate-900">Recent Updates</h3>
           </div>
 
-          <button
-            type="button"
-            onClick={() => navigate('/worker/attendance')}
-            className="text-[11px] font-bold text-[#106ee8] hover:underline flex items-center gap-0.5"
-          >
-            <span>View All</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
+          {notifications.length > 3 ? (
+            <button
+              type="button"
+              onClick={() => setShowAllUpdates((prev) => !prev)}
+              className="text-[11px] font-bold text-[#106ee8] hover:underline flex items-center gap-0.5"
+            >
+              <span>{showAllUpdates ? 'Show Less' : 'View All'}</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => navigate('/worker/attendance')}
+              className="text-[11px] font-bold text-[#106ee8] hover:underline flex items-center gap-0.5"
+            >
+              <span>View All</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
         <div className="space-y-2.5">
-          {!todayAssignment && !todayAttendance ? (
-            <div className="bg-[#eefaf3] border border-emerald-200/70 rounded-2xl px-3.5 py-2.5 flex items-center gap-3">
-              <div className="w-6 h-6 rounded-full bg-[#16a34a] text-white flex items-center justify-center shrink-0">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-slate-900 leading-tight">
-                  You're ready for today's work.
-                </p>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </p>
-              </div>
+          {!todayAssignment && !todayAttendance && notifications.length === 0 ? (
+            <div className="p-4 text-center text-slate-400 text-xs font-medium">
+              No recent updates yet.
             </div>
           ) : (
             <>
@@ -891,6 +898,39 @@ export const WorkerHome: React.FC = () => {
                   </span>
                 </div>
               )}
+
+              {/* Live Notifications from Database */}
+              {(showAllUpdates ? notifications : notifications.slice(0, 3)).map((notif, idx) => (
+                <div
+                  key={notif.notificationId}
+                  className={`flex items-center justify-between gap-2 p-1 ${
+                    todayAssignment || todayAttendance || idx > 0 ? 'border-t border-slate-100 pt-2.5' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-[#edf2fe] text-[#106ee8] flex items-center justify-center shrink-0">
+                      <Bell className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-bold text-slate-900 leading-tight truncate">
+                        {notif.title}
+                      </h4>
+                      <p className="text-3xs text-slate-500 font-medium mt-0.5 truncate max-w-[200px]">
+                        {notif.message}
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className="text-4xs text-slate-400 font-medium whitespace-nowrap shrink-0">
+                    {notif.createdAt
+                      ? new Date(notif.createdAt).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
+                      : ''}
+                  </span>
+                </div>
+              ))}
             </>
           )}
         </div>
