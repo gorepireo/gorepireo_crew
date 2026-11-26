@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { SafeAvatar } from '../components/common/SafeAvatar';
@@ -41,8 +41,12 @@ export const AdminLayout: React.FC = () => {
     { to: '/admin/settings', label: 'Settings', icon: Settings },
   ];
 
+  useEffect(() => {
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#ffffff');
+  }, []);
+
   return (
-    <div className="h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] bg-[#0f172a] sm:bg-slate-50 flex flex-col text-slate-800 overflow-hidden">
+    <div className="h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] bg-white sm:bg-slate-50 flex flex-col text-slate-800 overflow-hidden">
       <div className="flex-1 min-h-0 flex flex-col lg:flex-row min-w-0 overflow-hidden">
         {/* DESKTOP SIDEBAR */}
         <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200 shrink-0">

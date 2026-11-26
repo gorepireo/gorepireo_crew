@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -28,8 +28,12 @@ export const ClientLayout: React.FC = () => {
     navigate('/login');
   };
 
+  useEffect(() => {
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#06122c');
+  }, []);
+
   return (
-    <div className="h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] bg-[#0f172a] flex justify-center text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900 overflow-hidden">
+    <div className="h-[100dvh] pt-[env(safe-area-inset-top)] bg-[#06122c] flex justify-center text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900 overflow-hidden">
       {/* MOBILE-FIRST SHELL CONTAINER (All screen sizes, no PC sidebar) */}
       <div className="w-full max-w-md bg-[#eef3f9] h-full flex flex-col shadow-2xl relative overflow-hidden">
         {/* MAIN PAGE BODY */}
@@ -82,7 +86,7 @@ export const ClientLayout: React.FC = () => {
         </main>
 
         {/* BOTTOM NAVIGATION BAR (Flex Sibling - Never Overlays Content) */}
-        <footer className="shrink-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 pt-1.5 pb-2.5 px-2 shadow-[0_-6px_24px_rgba(15,23,42,0.08)]">
+        <footer className="shrink-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 pt-1.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))] px-2 shadow-[0_-6px_24px_rgba(15,23,42,0.08)]">
           <nav className="grid grid-cols-5 w-full items-center gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;

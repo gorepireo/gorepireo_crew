@@ -85,8 +85,12 @@ export const LeaderLayout: React.FC = () => {
     },
   ];
 
+  useEffect(() => {
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#f4f7fb');
+  }, []);
+
   return (
-    <div className="h-[100dvh] min-h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] bg-slate-950 flex flex-col text-slate-800 antialiased overflow-hidden">
+    <div className="h-[100dvh] min-h-[100dvh] pt-[env(safe-area-inset-top)] bg-[#f4f7fb] sm:bg-slate-950 flex flex-col text-slate-800 antialiased overflow-hidden">
       {/* 1. CHASSIS CENTERING CONTAINER */}
       <div className="flex-1 min-h-0 flex justify-center items-center p-0 sm:py-2 sm:px-4 overflow-hidden">
         {/* MOBILE PHONE FRAME CONTAINER */}
@@ -99,7 +103,7 @@ export const LeaderLayout: React.FC = () => {
           </main>
 
           {/* MOBILE 4-ITEM BOTTOM NAVIGATION BAR (Permanently Fixed Equal Grid - Zero Shifting) */}
-          <footer className="sticky bottom-0 shrink-0 bg-white/98 backdrop-blur-md border-t border-slate-100 z-40 pt-1.5 pb-3 px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+          <footer className="sticky bottom-0 shrink-0 bg-white/98 backdrop-blur-md border-t border-slate-100 z-40 pt-1.5 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:pb-3 px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
             <nav className="grid grid-cols-4 w-full items-center">
               {/* 1. Home Tab */}
               <div className="flex justify-center">

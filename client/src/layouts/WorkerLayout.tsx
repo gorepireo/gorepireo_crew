@@ -11,8 +11,12 @@ import {
 export const WorkerLayout: React.FC = () => {
   const { t } = useLanguage();
 
+  useEffect(() => {
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#f4f7fb');
+  }, []);
+
   return (
-    <div className="h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] bg-[#0f172a] flex justify-center text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900 overflow-hidden">
+    <div className="h-[100dvh] pt-[env(safe-area-inset-top)] bg-[#f4f7fb] flex justify-center text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900 overflow-hidden">
       {/* MOBILE SHELL CONTAINER - Centered on desktop, full-width responsive on mobile */}
       <div className="w-full max-w-md bg-[#f4f7fb] h-full flex flex-col shadow-2xl relative overflow-hidden">
         {/* MAIN PAGE BODY (Scrolls cleanly with zero horizontal overflow) */}
@@ -21,7 +25,7 @@ export const WorkerLayout: React.FC = () => {
         </main>
 
         {/* BOTTOM NAVIGATION BAR (Flex Sibling - Never Overlays Content) */}
-        <footer className="shrink-0 z-40 bg-white/98 backdrop-blur-md border-t border-slate-200/80 pt-1.5 pb-3 px-2 shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
+        <footer className="shrink-0 z-40 bg-white/98 backdrop-blur-md border-t border-slate-200/80 pt-1.5 pb-[calc(0.75rem+env(safe-area-inset-bottom))] px-2 shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
           <nav className="grid grid-cols-4 w-full items-center gap-1">
               {/* 1. Home Tab */}
               <div className="flex justify-center w-full">
