@@ -185,15 +185,48 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#244de0] flex flex-col justify-between relative overflow-hidden select-none">
-      {/* BACKGROUND WAVE RIBBONS & GLOW */}
+    <div className="min-h-[100dvh] bg-gradient-to-b from-[#0a237a] via-[#1342c7] to-[#1e54eb] flex flex-col justify-between relative overflow-hidden select-none">
+      {/* CODE-DESIGNED MOBILE APP BACKGROUND (Layered Gradients, Dot Grid & Flowing SVG Waves) */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <img
-          src="/header-bg-wave.jpg"
-          alt=""
-          className="w-full h-80 object-cover object-top opacity-70 pointer-events-none"
+        {/* Subtle dot matrix texture */}
+        <div
+          className="absolute inset-0 opacity-25"
+          style={{
+            backgroundImage: 'radial-gradient(rgba(255,255,255,0.45) 1px, transparent 1px)',
+            backgroundSize: '22px 22px',
+          }}
         />
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl" />
+
+        {/* Soft atmospheric glow orbs */}
+        <div className="absolute -top-20 -left-16 w-72 h-72 bg-sky-400/25 rounded-full blur-3xl" />
+        <div className="absolute top-16 -right-20 w-80 h-80 bg-indigo-400/25 rounded-full blur-3xl" />
+
+        {/* Flowing SVG wave ribbons */}
+        <svg
+          viewBox="0 0 1440 420"
+          preserveAspectRatio="none"
+          className="absolute top-0 inset-x-0 w-full h-80 opacity-30"
+          aria-hidden="true"
+        >
+          <path
+            d="M0,120 C240,210 480,30 760,115 C1040,200 1240,60 1440,125 L1440,0 L0,0 Z"
+            fill="url(#loginWave1)"
+          />
+          <path
+            d="M0,210 C320,130 620,275 940,185 C1180,120 1320,210 1440,175 L1440,0 L0,0 Z"
+            fill="url(#loginWave2)"
+          />
+          <defs>
+            <linearGradient id="loginWave1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#93c5fd" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.1" />
+            </linearGradient>
+            <linearGradient id="loginWave2" x1="1" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="#60a5fa" stopOpacity="0.05" />
+            </linearGradient>
+          </defs>
+        </svg>
       </div>
 
       {/* TOP HEADER SECTION WITH FLOATING BADGES & BRANDING */}

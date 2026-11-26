@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { LoginPage } from './pages/auth/LoginPage';
 import { AdminLayout } from './layouts/AdminLayout';
 import { LeaderLayout } from './layouts/LeaderLayout';
@@ -128,12 +129,10 @@ const ProtectedRoute: React.FC<{
 
   if (loading || isSwitching) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white text-xs font-semibold">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          <span>Opening {targetRole === 'ADMIN' ? 'Admin Console' : 'Go_Repireo Crew'}...</span>
-        </div>
-      </div>
+      <LoadingSpinner
+        fullScreen
+        message={targetRole === 'ADMIN' ? 'Opening Admin Console...' : 'Opening Go_Repireo Crew...'}
+      />
     );
   }
 
@@ -166,11 +165,7 @@ const RootRedirect: React.FC = () => {
   const { role, user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-500 text-xs font-semibold">
-        Loading WorkCrew...
-      </div>
-    );
+    return <LoadingSpinner fullScreen message="Preparing workspace..." />;
   }
 
   if (!user) return <Navigate to="/login" replace />;
