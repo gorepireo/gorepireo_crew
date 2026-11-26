@@ -33,6 +33,15 @@ function buildQueryString(params?: Record<string, any>): string {
 }
 
 class ApiService {
+  private cache = new Map<string, { data: any; timestamp: number }>();
+  private inflight = new Map<string, Promise<any>>();
+  private readonly CACHE_TTL_MS = 60_000;
+
+  public clearCache(): void {
+    this.cache.clear();
+    this.inflight.clear();
+  }
+
   private getHeaders(): HeadersInit {
     const token = localStorage.getItem('workcrew_token');
     const role = localStorage.getItem('workcrew_role');
@@ -57,34 +66,74 @@ class ApiService {
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`;
-    const res = await fetch(url, {
-      ...options,
-      headers: {
-        ...this.getHeaders(),
-        ...(options.headers || {}),
-      },
-    });
+    const method = (options.method || 'GET').toUpperCase();
+    const isAuthEndpoint = endpoint.startsWith('/api/auth/');
 
-    if (!res.ok) {
-      let errorMsg = '';
-      try {
-        const errorData = await res.json();
-        errorMsg = errorData.error || errorData.message || errorData.details || '';
-      } catch {
-        try {
-          const rawText = await res.text();
-          // Extract title or body text if it's HTML, or use raw text
-          const titleMatch = rawText.match(/<title>([^<]+)<\/title>/i);
-          errorMsg = titleMatch ? titleMatch[1] : rawText.slice(0, 200).trim();
-        } catch {
-          errorMsg = res.statusText;
-        }
-      }
-      console.error(`[API ERROR] ${options.method || 'GET'} ${url} -> HTTP ${res.status}:`, errorMsg);
-      throw new Error(errorMsg || `HTTP ${res.status}: Server Error`);
+    if (method !== 'GET') {
+      // Any mutation invalidates cached GET responses so subsequent reads reflect changes
+      this.clearCache();
     }
 
-    return res.json();
+    const role = localStorage.getItem('workcrew_role') || '';
+    const userId = localStorage.getItem('workcrew_userId') || '';
+    const cacheKey = `${role}:${userId}:${url}`;
+
+    if (method === 'GET' && !isAuthEndpoint) {
+      const cached = this.cache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < this.CACHE_TTL_MS) {
+        return cached.data as T;
+      }
+      const existingInflight = this.inflight.get(cacheKey);
+      if (existingInflight) {
+        return existingInflight as Promise<T>;
+      }
+    }
+
+    const fetchPromise = (async () => {
+      const res = await fetch(url, {
+        ...options,
+        headers: {
+          ...this.getHeaders(),
+          ...(options.headers || {}),
+        },
+      });
+
+      if (!res.ok) {
+        let errorMsg = '';
+        try {
+          const errorData = await res.json();
+          errorMsg = errorData.error || errorData.message || errorData.details || '';
+        } catch {
+          try {
+            const rawText = await res.text();
+            // Extract title or body text if it's HTML, or use raw text
+            const titleMatch = rawText.match(/<title>([^<]+)<\/title>/i);
+            errorMsg = titleMatch ? titleMatch[1] : rawText.slice(0, 200).trim();
+          } catch {
+            errorMsg = res.statusText;
+          }
+        }
+        console.error(`[API ERROR] ${method} ${url} -> HTTP ${res.status}:`, errorMsg);
+        throw new Error(errorMsg || `HTTP ${res.status}: Server Error`);
+      }
+
+      const data = await res.json();
+      if (method === 'GET' && !isAuthEndpoint) {
+        this.cache.set(cacheKey, { data, timestamp: Date.now() });
+      }
+      return data as T;
+    })();
+
+    if (method === 'GET' && !isAuthEndpoint) {
+      this.inflight.set(cacheKey, fetchPromise);
+      try {
+        return await fetchPromise;
+      } finally {
+        this.inflight.delete(cacheKey);
+      }
+    }
+
+    return fetchPromise;
   }
 
   // --- AUTH ---
