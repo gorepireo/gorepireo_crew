@@ -10,7 +10,7 @@
     <meta name="description" content="Go_Repireo Crew - Centralized Workforce Management Platform with GPS Attendance, Teams, and Work Assignments" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,800&display=swap" rel="stylesheet">
     <title>Go_Repireo Crew — Workforce Management Platform</title>
 
     <script>
@@ -38,17 +38,32 @@
   </head>
   <body class="bg-slate-50 text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-900 min-h-screen">
     <div id="root">
-      <div style="min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(180deg, #f4f7ff 0%, #ffffff 55%, #eaf1ff 100%); color: #0f172a; font-family: 'Inter', system-ui, sans-serif; text-align: center; padding: 24px;">
-        <div style="position: relative; width: 76px; height: 76px; border-radius: 22px; background: #0f172a; border: 3px solid #ffffff; box-shadow: 0 14px 32px rgba(16, 110, 232, 0.18); overflow: hidden; display: flex; align-items: center; justify-content: center; animation: workcrew-float 1.8s ease-in-out infinite;">
-          <img src="/logo.png" alt="Go_Repireo Crew" style="width: 100%; height: 100%; object-fit: cover;" />
-        </div>
-        <div style="margin-top: 18px; font-weight: 800; font-size: 18px; letter-spacing: -0.02em; color: #0f172a;">Go_Repireo Crew</div>
-        <div style="margin-top: 14px; width: 132px; height: 4px; border-radius: 999px; background: #e2e8f0; overflow: hidden;">
-          <div style="width: 56px; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #106ee8, #38bdf8); animation: workcrew-bar 1.1s ease-in-out infinite;"></div>
+      <div style="position: relative; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #001b5e; color: #ffffff; font-family: 'Inter', system-ui, -apple-system, sans-serif; text-align: center; padding: 24px; overflow: hidden;">
+        <!-- Top-Left Electric Blue Wave -->
+        <svg viewBox="0 0 220 220" preserveAspectRatio="none" style="position: absolute; top: 0; left: 0; width: 46vw; max-width: 220px; height: 26vh; max-height: 220px; pointer-events: none;">
+          <path d="M0,0 L190,0 C120,45 55,115 0,195 Z" fill="#002d8c" />
+          <path d="M0,0 L155,0 C95,40 42,102 0,168 Z" fill="#007bff" />
+        </svg>
+        <!-- Bottom-Right Warm Orange Wave -->
+        <svg viewBox="0 0 320 220" preserveAspectRatio="none" style="position: absolute; bottom: 0; right: 0; width: 72vw; max-width: 340px; height: 24vh; max-height: 210px; pointer-events: none;">
+          <path d="M320,220 L55,220 C165,175 250,110 320,15 Z" fill="#002d8c" />
+          <path d="M320,220 L95,220 C190,180 265,125 320,45 Z" fill="#ff8c00" />
+        </svg>
+
+        <div style="position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center;">
+          <img src="/splash-mark.png" alt="GoRepireo" style="width: 168px; max-width: 48vw; height: auto; filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.28)); animation: workcrew-float 2.2s ease-in-out infinite;" />
+          <div style="margin-top: 12px; font-weight: 800; font-style: italic; font-size: 36px; line-height: 1.05; letter-spacing: -0.025em;">
+            <span style="color: #ffffff;">Go</span><span style="color: #ff9200;">Repireo</span>
+          </div>
+          <div style="margin-top: 26px; display: flex; align-items: center; gap: 10px;">
+            <span style="width: 10px; height: 10px; border-radius: 999px; background: #ff9200; animation: workcrew-dot 1.2s ease-in-out infinite;"></span>
+            <span style="width: 10px; height: 10px; border-radius: 999px; background: #4a6aa8; animation: workcrew-dot 1.2s ease-in-out 0.25s infinite;"></span>
+            <span style="width: 10px; height: 10px; border-radius: 999px; background: #4a6aa8; animation: workcrew-dot 1.2s ease-in-out 0.5s infinite;"></span>
+          </div>
         </div>
       </div>
       <style>
-        @keyframes workcrew-bar { 0% { transform: translateX(-56px); } 100% { transform: translateX(132px); } }
+        @keyframes workcrew-dot { 0%, 100% { background: #4a6aa8; transform: scale(0.95); } 30% { background: #ff9200; transform: scale(1.15); } }
         @keyframes workcrew-float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-4px); } }
       </style>
     </div>
