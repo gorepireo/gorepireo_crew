@@ -36,7 +36,13 @@ async function migrate() {
       phone TEXT,
       email TEXT,
       photoURL TEXT,
+      organizationId TEXT,
+      organizationName TEXT,
       active INTEGER DEFAULT 1,
+      passwordHash TEXT,
+      mustChangePassword INTEGER DEFAULT 0,
+      failedLoginAttempts INTEGER DEFAULT 0,
+      lockedUntil TEXT,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL
     )
@@ -53,6 +59,7 @@ async function migrate() {
       address TEXT,
       primaryTeamId TEXT,
       primaryTeamName TEXT,
+      teamAssignmentStatus TEXT DEFAULT 'UNASSIGNED',
       joiningDate TEXT,
       status TEXT DEFAULT 'ACTIVE',
       createdAt TEXT NOT NULL,

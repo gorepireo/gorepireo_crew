@@ -1130,6 +1130,60 @@ class DatabaseService {
     if (!this.tursoClient) return;
     try {
       await this.tursoClient.execute(`
+        CREATE TABLE IF NOT EXISTS users (
+          uid TEXT PRIMARY KEY,
+          role TEXT NOT NULL,
+          displayName TEXT NOT NULL,
+          phone TEXT,
+          email TEXT,
+          photoURL TEXT,
+          organizationId TEXT,
+          organizationName TEXT,
+          active INTEGER DEFAULT 1,
+          passwordHash TEXT,
+          mustChangePassword INTEGER DEFAULT 0,
+          failedLoginAttempts INTEGER DEFAULT 0,
+          lockedUntil TEXT,
+          createdAt TEXT NOT NULL,
+          updatedAt TEXT NOT NULL
+        )
+      `);
+      for (const col of [
+        'organizationId TEXT',
+        'organizationName TEXT',
+        'passwordHash TEXT',
+        'mustChangePassword INTEGER DEFAULT 0',
+        'failedLoginAttempts INTEGER DEFAULT 0',
+        'lockedUntil TEXT',
+      ]) {
+        try {
+          await this.tursoClient.execute(`ALTER TABLE users ADD COLUMN ${col}`);
+        } catch {}
+      }
+
+      await this.tursoClient.execute(`
+        CREATE TABLE IF NOT EXISTS workers (
+          workerId TEXT PRIMARY KEY,
+          userId TEXT NOT NULL,
+          name TEXT NOT NULL,
+          phone TEXT,
+          email TEXT,
+          photoURL TEXT,
+          address TEXT,
+          primaryTeamId TEXT,
+          primaryTeamName TEXT,
+          teamAssignmentStatus TEXT DEFAULT 'UNASSIGNED',
+          joiningDate TEXT,
+          status TEXT DEFAULT 'ACTIVE',
+          createdAt TEXT NOT NULL,
+          updatedAt TEXT NOT NULL
+        )
+      `);
+      try {
+        await this.tursoClient.execute(`ALTER TABLE workers ADD COLUMN teamAssignmentStatus TEXT DEFAULT 'UNASSIGNED'`);
+      } catch {}
+
+      await this.tursoClient.execute(`
         CREATE TABLE IF NOT EXISTS locations (
           locationId TEXT PRIMARY KEY,
           name TEXT NOT NULL,
@@ -1783,6 +1837,7 @@ class DatabaseService {
   public async fetchWorkersFromTurso(): Promise<Worker[]> {
     if (!this.tursoClient) return this.data.workers;
     try {
+      await this.ensureTursoB2BSchema();
       const [wRes, uRes] = await Promise.all([
         this.tursoClient.execute('SELECT * FROM workers'),
         this.tursoClient.execute('SELECT * FROM users'),
