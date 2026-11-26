@@ -21,6 +21,17 @@ import {
 
 const API_BASE = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 
+function buildQueryString(params?: Record<string, any>): string {
+  if (!params) return '';
+  const clean: Record<string, string> = {};
+  for (const [key, val] of Object.entries(params)) {
+    if (val !== undefined && val !== null && val !== '') {
+      clean[key] = String(val);
+    }
+  }
+  return new URLSearchParams(clean).toString();
+}
+
 class ApiService {
   private getHeaders(): HeadersInit {
     const token = localStorage.getItem('workcrew_token');
@@ -186,7 +197,7 @@ class ApiService {
 
   // --- WORKERS ---
   async getWorkers(params?: { teamId?: string; status?: string; search?: string }) {
-    const q = new URLSearchParams(params as any).toString();
+    const q = buildQueryString(params);
     return this.request<Worker[]>(`/api/workers${q ? `?${q}` : ''}`);
   }
 
@@ -399,7 +410,7 @@ class ApiService {
 
   // --- ASSIGNMENTS ---
   async getAssignments(params?: { date?: string; workerId?: string; teamId?: string; status?: string }) {
-    const q = new URLSearchParams(params as any).toString();
+    const q = buildQueryString(params);
     return this.request<Assignment[]>(`/api/assignments${q ? `?${q}` : ''}`);
   }
 
@@ -486,7 +497,7 @@ class ApiService {
 
 
   async getAttendance(params?: { date?: string; workerId?: string; teamId?: string; status?: string }) {
-    const q = new URLSearchParams(params as any).toString();
+    const q = buildQueryString(params);
     return this.request<Attendance[]>(`/api/attendance${q ? `?${q}` : ''}`);
   }
 
@@ -568,7 +579,7 @@ class ApiService {
 
 
   async getAttendancePhotos(params?: { workerId?: string; teamId?: string; assignmentId?: string; photoType?: string }) {
-    const q = new URLSearchParams(params as any).toString();
+    const q = buildQueryString(params);
     return this.request<AttendancePhoto[]>(`/api/attendance/photos${q ? `?${q}` : ''}`);
   }
 
@@ -609,7 +620,7 @@ class ApiService {
     reviewStatus?: string;
     date?: string;
   }) {
-    const q = new URLSearchParams(params as any).toString();
+    const q = buildQueryString(params);
     return this.request<WorkEvidence[]>(`/api/work-evidence${q ? `?${q}` : ''}`);
   }
 
@@ -668,7 +679,7 @@ class ApiService {
 
   // --- REPORTS ---
   async getAttendanceReport(params?: { startDate?: string; endDate?: string; teamId?: string; workerId?: string }) {
-    const q = new URLSearchParams(params as any).toString();
+    const q = buildQueryString(params);
     return this.request<{
       summary: {
         totalRecords: number;
