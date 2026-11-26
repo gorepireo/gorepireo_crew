@@ -42,11 +42,11 @@ export const AdminLayout: React.FC = () => {
   ];
 
   useEffect(() => {
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#ffffff');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#0a2f7a');
   }, []);
 
   return (
-    <div className="h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] bg-white sm:bg-slate-50 flex flex-col text-slate-800 overflow-hidden">
+    <div className="h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] bg-[linear-gradient(180deg,#0a2f7a_0%,#154ec1_100%)] sm:bg-slate-50 flex flex-col text-slate-800 overflow-hidden">
       <div className="flex-1 min-h-0 flex flex-col lg:flex-row min-w-0 overflow-hidden">
         {/* DESKTOP SIDEBAR */}
         <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200 shrink-0">

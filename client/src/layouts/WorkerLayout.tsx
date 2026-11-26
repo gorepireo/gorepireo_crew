@@ -12,13 +12,18 @@ export const WorkerLayout: React.FC = () => {
   const { t } = useLanguage();
 
   useEffect(() => {
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#f4f7fb');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#0a2f7a');
   }, []);
 
   return (
-    <div className="h-[100dvh] pt-[env(safe-area-inset-top)] bg-[#f4f7fb] flex justify-center text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900 overflow-hidden">
+    <div className="h-[100dvh] bg-[#f4f7fb] sm:bg-slate-950 flex justify-center text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900 overflow-hidden">
       {/* MOBILE SHELL CONTAINER - Centered on desktop, full-width responsive on mobile */}
       <div className="w-full max-w-md bg-[#f4f7fb] h-full flex flex-col shadow-2xl relative overflow-hidden">
+        {/* TOP SAFE-AREA STRIP (Rich brand blue for white status-bar text, softly blended into #f4f7fb) */}
+        <div
+          aria-hidden="true"
+          className="shrink-0 w-full h-[env(safe-area-inset-top)] bg-[linear-gradient(180deg,#0a2f7a_0%,#154ec1_78%,#f4f7fb_100%)]"
+        />
         {/* MAIN PAGE BODY (Scrolls cleanly with zero horizontal overflow) */}
         <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-y-none p-3.5 sm:p-4 space-y-3.5 pb-4">
           <Outlet />

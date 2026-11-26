@@ -86,17 +86,22 @@ export const LeaderLayout: React.FC = () => {
   ];
 
   useEffect(() => {
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#f4f7fb');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#1725a3');
   }, []);
 
   return (
-    <div className="h-[100dvh] min-h-[100dvh] pt-[env(safe-area-inset-top)] bg-[#f4f7fb] sm:bg-slate-950 flex flex-col text-slate-800 antialiased overflow-hidden">
+    <div className="h-[100dvh] min-h-[100dvh] bg-[#f4f7fb] sm:bg-slate-950 flex flex-col text-slate-800 antialiased overflow-hidden">
       {/* 1. CHASSIS CENTERING CONTAINER */}
       <div className="flex-1 min-h-0 flex justify-center items-center p-0 sm:py-2 sm:px-4 overflow-hidden">
         {/* MOBILE PHONE FRAME CONTAINER */}
         <div
           className={`flex flex-col bg-[#f4f7fb] w-full h-full sm:max-w-[400px] sm:h-[844px] sm:max-h-full sm:rounded-[42px] sm:border-[8px] sm:border-slate-900 sm:shadow-2xl sm:ring-1 sm:ring-slate-800 transition-all relative overflow-hidden`}
         >
+          {/* TOP SAFE-AREA STRIP (Rich sapphire blue for white status-bar text, softly blended into #f4f7fb) */}
+          <div
+            aria-hidden="true"
+            className="shrink-0 w-full h-[env(safe-area-inset-top)] sm:hidden bg-[linear-gradient(180deg,#1725a3_0%,#2935c9_78%,#f4f7fb_100%)]"
+          />
           {/* MAIN PAGE CONTENT (Scrolls cleanly inside the phone frame) */}
           <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-y-none p-3 space-y-3">
             <Outlet />
