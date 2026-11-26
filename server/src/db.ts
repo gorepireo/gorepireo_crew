@@ -1128,163 +1128,163 @@ class DatabaseService {
 
   private schemaEnsured = false;
   private schemaPromise: Promise<void> | null = null;
+  private lastFetchAt: Record<string, number> = {};
+  private readonly FETCH_TTL_MS = 5000;
+
+  private isFresh(key: string): boolean {
+    return Date.now() - (this.lastFetchAt[key] || 0) < this.FETCH_TTL_MS;
+  }
+
+  private markFetched(key: string): void {
+    this.lastFetchAt[key] = Date.now();
+  }
+
+  private invalidateFetch(key: string): void {
+    delete this.lastFetchAt[key];
+  }
 
   private async ensureTursoB2BSchema(): Promise<void> {
     if (!this.tursoClient || this.schemaEnsured) return;
     if (this.schemaPromise) return this.schemaPromise;
     this.schemaPromise = (async () => {
-    if (!this.tursoClient) return;
+    const client = this.tursoClient;
+    if (!client) return;
     try {
-      await this.tursoClient.execute(`
-        CREATE TABLE IF NOT EXISTS users (
-          uid TEXT PRIMARY KEY,
-          role TEXT NOT NULL,
-          displayName TEXT NOT NULL,
-          phone TEXT,
-          email TEXT,
-          photoURL TEXT,
-          organizationId TEXT,
-          organizationName TEXT,
-          active INTEGER DEFAULT 1,
-          passwordHash TEXT,
-          mustChangePassword INTEGER DEFAULT 0,
-          failedLoginAttempts INTEGER DEFAULT 0,
-          lockedUntil TEXT,
-          createdAt TEXT NOT NULL,
-          updatedAt TEXT NOT NULL
-        )
-      `);
-      for (const col of [
-        'organizationId TEXT',
-        'organizationName TEXT',
-        'passwordHash TEXT',
-        'mustChangePassword INTEGER DEFAULT 0',
-        'failedLoginAttempts INTEGER DEFAULT 0',
-        'lockedUntil TEXT',
-      ]) {
-        try {
-          await this.tursoClient.execute(`ALTER TABLE users ADD COLUMN ${col}`);
-        } catch {}
-      }
+      await Promise.all([
+        client.execute(`
+          CREATE TABLE IF NOT EXISTS users (
+            uid TEXT PRIMARY KEY,
+            role TEXT NOT NULL,
+            displayName TEXT NOT NULL,
+            phone TEXT,
+            email TEXT,
+            photoURL TEXT,
+            organizationId TEXT,
+            organizationName TEXT,
+            active INTEGER DEFAULT 1,
+            passwordHash TEXT,
+            mustChangePassword INTEGER DEFAULT 0,
+            failedLoginAttempts INTEGER DEFAULT 0,
+            lockedUntil TEXT,
+            createdAt TEXT NOT NULL,
+            updatedAt TEXT NOT NULL
+          )
+        `),
+        client.execute(`
+          CREATE TABLE IF NOT EXISTS workers (
+            workerId TEXT PRIMARY KEY,
+            userId TEXT NOT NULL,
+            name TEXT NOT NULL,
+            phone TEXT,
+            email TEXT,
+            photoURL TEXT,
+            address TEXT,
+            primaryTeamId TEXT,
+            primaryTeamName TEXT,
+            teamAssignmentStatus TEXT DEFAULT 'UNASSIGNED',
+            joiningDate TEXT,
+            status TEXT DEFAULT 'ACTIVE',
+            createdAt TEXT NOT NULL,
+            updatedAt TEXT NOT NULL
+          )
+        `),
+        client.execute(`
+          CREATE TABLE IF NOT EXISTS locations (
+            locationId TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            address TEXT NOT NULL,
+            latitude REAL NOT NULL,
+            longitude REAL NOT NULL,
+            geofenceRadiusMeters REAL DEFAULT 100,
+            status TEXT DEFAULT 'ACTIVE',
+            photoURL TEXT,
+            googleDriveFileId TEXT,
+            createdAt TEXT NOT NULL,
+            updatedAt TEXT NOT NULL
+          )
+        `),
+        client.execute(`
+          CREATE TABLE IF NOT EXISTS organizations (
+            organizationId TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            contactPerson TEXT NOT NULL,
+            email TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            address TEXT,
+            serviceLocationIds TEXT,
+            contractStartDate TEXT NOT NULL,
+            contractEndDate TEXT,
+            contractPricing REAL,
+            paymentTerms TEXT,
+            status TEXT DEFAULT 'ACTIVE',
+            notes TEXT,
+            createdAt TEXT,
+            updatedAt TEXT
+          )
+        `),
+        client.execute(`
+          CREATE TABLE IF NOT EXISTS invoices (
+            invoiceId TEXT PRIMARY KEY,
+            invoiceNumber TEXT NOT NULL,
+            organizationId TEXT NOT NULL,
+            organizationName TEXT NOT NULL,
+            assignmentId TEXT,
+            eventName TEXT,
+            issueDate TEXT,
+            dueDate TEXT NOT NULL,
+            amount REAL NOT NULL,
+            amountPaid REAL DEFAULT 0,
+            status TEXT DEFAULT 'PENDING',
+            description TEXT,
+            items TEXT,
+            notes TEXT,
+            createdAt TEXT,
+            updatedAt TEXT
+          )
+        `),
+        client.execute(`
+          CREATE TABLE IF NOT EXISTS payments (
+            paymentId TEXT PRIMARY KEY,
+            receiptNumber TEXT NOT NULL,
+            invoiceId TEXT NOT NULL,
+            invoiceNumber TEXT NOT NULL,
+            organizationId TEXT NOT NULL,
+            organizationName TEXT NOT NULL,
+            assignmentId TEXT,
+            eventName TEXT,
+            amount REAL NOT NULL,
+            paymentDate TEXT NOT NULL,
+            paymentMethod TEXT NOT NULL,
+            transactionId TEXT NOT NULL,
+            status TEXT DEFAULT 'SUCCESS',
+            recordedBy TEXT,
+            recordedByName TEXT,
+            notes TEXT,
+            receiptUrl TEXT,
+            createdAt TEXT,
+            updatedAt TEXT
+          )
+        `),
+      ]);
 
-      await this.tursoClient.execute(`
-        CREATE TABLE IF NOT EXISTS workers (
-          workerId TEXT PRIMARY KEY,
-          userId TEXT NOT NULL,
-          name TEXT NOT NULL,
-          phone TEXT,
-          email TEXT,
-          photoURL TEXT,
-          address TEXT,
-          primaryTeamId TEXT,
-          primaryTeamName TEXT,
-          teamAssignmentStatus TEXT DEFAULT 'UNASSIGNED',
-          joiningDate TEXT,
-          status TEXT DEFAULT 'ACTIVE',
-          createdAt TEXT NOT NULL,
-          updatedAt TEXT NOT NULL
-        )
-      `);
-      try {
-        await this.tursoClient.execute(`ALTER TABLE workers ADD COLUMN teamAssignmentStatus TEXT DEFAULT 'UNASSIGNED'`);
-      } catch {}
+      await Promise.all([
+        client.execute('ALTER TABLE users ADD COLUMN organizationId TEXT').catch(() => {}),
+        client.execute('ALTER TABLE users ADD COLUMN organizationName TEXT').catch(() => {}),
+        client.execute('ALTER TABLE users ADD COLUMN passwordHash TEXT').catch(() => {}),
+        client.execute('ALTER TABLE users ADD COLUMN mustChangePassword INTEGER DEFAULT 0').catch(() => {}),
+        client.execute('ALTER TABLE users ADD COLUMN failedLoginAttempts INTEGER DEFAULT 0').catch(() => {}),
+        client.execute('ALTER TABLE users ADD COLUMN lockedUntil TEXT').catch(() => {}),
+        client.execute("ALTER TABLE workers ADD COLUMN teamAssignmentStatus TEXT DEFAULT 'UNASSIGNED'").catch(() => {}),
+        client.execute('ALTER TABLE locations ADD COLUMN photoURL TEXT').catch(() => {}),
+        client.execute('ALTER TABLE locations ADD COLUMN googleDriveFileId TEXT').catch(() => {}),
+        client.execute('ALTER TABLE assignments ADD COLUMN organizationId TEXT').catch(() => {}),
+        client.execute('ALTER TABLE assignments ADD COLUMN organizationName TEXT').catch(() => {}),
+        client.execute('ALTER TABLE assignments ADD COLUMN cleaningRequirements TEXT').catch(() => {}),
+        client.execute('ALTER TABLE assignments ADD COLUMN requiredWorkersCount INTEGER').catch(() => {}),
+        client.execute('ALTER TABLE assignments ADD COLUMN servicePrice REAL').catch(() => {}),
+        client.execute('ALTER TABLE assignments ADD COLUMN paymentTerms TEXT').catch(() => {}),
+      ]);
 
-      await this.tursoClient.execute(`
-        CREATE TABLE IF NOT EXISTS locations (
-          locationId TEXT PRIMARY KEY,
-          name TEXT NOT NULL,
-          address TEXT NOT NULL,
-          latitude REAL NOT NULL,
-          longitude REAL NOT NULL,
-          geofenceRadiusMeters REAL DEFAULT 100,
-          status TEXT DEFAULT 'ACTIVE',
-          photoURL TEXT,
-          googleDriveFileId TEXT,
-          createdAt TEXT NOT NULL,
-          updatedAt TEXT NOT NULL
-        )
-      `);
-      try {
-        await this.tursoClient.execute(`ALTER TABLE locations ADD COLUMN photoURL TEXT`);
-      } catch {}
-      try {
-        await this.tursoClient.execute(`ALTER TABLE locations ADD COLUMN googleDriveFileId TEXT`);
-      } catch {}
-
-      await this.tursoClient.execute(`
-        CREATE TABLE IF NOT EXISTS organizations (
-          organizationId TEXT PRIMARY KEY,
-          name TEXT NOT NULL,
-          contactPerson TEXT NOT NULL,
-          email TEXT NOT NULL,
-          phone TEXT NOT NULL,
-          address TEXT,
-          serviceLocationIds TEXT,
-          contractStartDate TEXT NOT NULL,
-          contractEndDate TEXT,
-          contractPricing REAL,
-          paymentTerms TEXT,
-          status TEXT DEFAULT 'ACTIVE',
-          notes TEXT,
-          createdAt TEXT,
-          updatedAt TEXT
-        )
-      `);
-
-      await this.tursoClient.execute(`
-        CREATE TABLE IF NOT EXISTS invoices (
-          invoiceId TEXT PRIMARY KEY,
-          invoiceNumber TEXT NOT NULL,
-          organizationId TEXT NOT NULL,
-          organizationName TEXT NOT NULL,
-          assignmentId TEXT,
-          eventName TEXT,
-          issueDate TEXT,
-          dueDate TEXT NOT NULL,
-          amount REAL NOT NULL,
-          amountPaid REAL DEFAULT 0,
-          status TEXT DEFAULT 'PENDING',
-          description TEXT,
-          items TEXT,
-          notes TEXT,
-          createdAt TEXT,
-          updatedAt TEXT
-        )
-      `);
-
-      await this.tursoClient.execute(`
-        CREATE TABLE IF NOT EXISTS payments (
-          paymentId TEXT PRIMARY KEY,
-          receiptNumber TEXT NOT NULL,
-          invoiceId TEXT NOT NULL,
-          invoiceNumber TEXT NOT NULL,
-          organizationId TEXT NOT NULL,
-          organizationName TEXT NOT NULL,
-          assignmentId TEXT,
-          eventName TEXT,
-          amount REAL NOT NULL,
-          paymentDate TEXT NOT NULL,
-          paymentMethod TEXT NOT NULL,
-          transactionId TEXT NOT NULL,
-          status TEXT DEFAULT 'SUCCESS',
-          recordedBy TEXT,
-          recordedByName TEXT,
-          notes TEXT,
-          receiptUrl TEXT,
-          createdAt TEXT,
-          updatedAt TEXT
-        )
-      `);
-
-      // Add columns to existing tables if needed
-      await this.tursoClient.execute('ALTER TABLE users ADD COLUMN organizationId TEXT').catch(() => {});
-      await this.tursoClient.execute('ALTER TABLE users ADD COLUMN organizationName TEXT').catch(() => {});
-      await this.tursoClient.execute('ALTER TABLE assignments ADD COLUMN organizationId TEXT').catch(() => {});
-      await this.tursoClient.execute('ALTER TABLE assignments ADD COLUMN organizationName TEXT').catch(() => {});
-      await this.tursoClient.execute('ALTER TABLE assignments ADD COLUMN cleaningRequirements TEXT').catch(() => {});
-      await this.tursoClient.execute('ALTER TABLE assignments ADD COLUMN requiredWorkersCount INTEGER').catch(() => {});
-      await this.tursoClient.execute('ALTER TABLE assignments ADD COLUMN servicePrice REAL').catch(() => {});
-      await this.tursoClient.execute('ALTER TABLE assignments ADD COLUMN paymentTerms TEXT').catch(() => {});
       this.schemaEnsured = true;
     } catch (e: any) {
       console.warn('[TURSO] Schema check notice:', e.message);
@@ -1846,7 +1846,7 @@ class DatabaseService {
   public getWorkerByUserId(userId: string) { return this.data.workers.find(w => w.userId === userId); }
 
   public async fetchWorkersFromTurso(): Promise<Worker[]> {
-    if (!this.tursoClient) return this.data.workers;
+    if (!this.tursoClient || this.isFresh('workers')) return this.data.workers;
     try {
       await this.ensureTursoB2BSchema();
       const [wRes, uRes] = await Promise.all([
@@ -1890,7 +1890,7 @@ class DatabaseService {
           updatedAt: r.updatedAt,
         }));
       }
-      this.data.workers = this.data.workers;
+      this.markFetched('workers');
     } catch (e: any) {
       console.warn('[TURSO] fetchWorkersFromTurso error:', e.message);
     }
@@ -1920,6 +1920,8 @@ class DatabaseService {
   }
 
   public async persistWorkerToTurso(worker: Worker): Promise<void> {
+    this.invalidateFetch('workers');
+    this.invalidateFetch('teams');
     if (!this.tursoClient) return;
     await this.tursoClient.execute({
       sql: `INSERT OR REPLACE INTO workers (workerId, userId, name, phone, email, photoURL, address, primaryTeamId, primaryTeamName, teamAssignmentStatus, joiningDate, status, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -2074,7 +2076,7 @@ class DatabaseService {
   public getTeams() { return this.data.teams; }
   public getTeamById(teamId: string) { return this.data.teams.find(t => t.teamId === teamId); }
   public async fetchTeamsFromTurso(): Promise<Team[]> {
-    if (!this.tursoClient) return this.data.teams;
+    if (!this.tursoClient || this.isFresh('teams')) return this.data.teams;
     try {
       await this.ensureTursoB2BSchema();
       const [tRes, wRes, tlRes] = await Promise.all([
@@ -2127,6 +2129,7 @@ class DatabaseService {
           updatedAt: r.updatedAt,
         }));
       }
+      this.markFetched('teams');
     } catch (e: any) {
       console.warn('[TURSO] fetchTeamsFromTurso error:', e.message);
     }
@@ -2134,6 +2137,7 @@ class DatabaseService {
   }
 
   public async persistTeamToTurso(team: Team): Promise<void> {
+    this.invalidateFetch('teams');
     if (!this.tursoClient) return;
     await this.tursoClient.execute({
       sql: `INSERT OR REPLACE INTO teams (teamId, name, description, leaderIds, memberWorkerIds, status, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -2162,6 +2166,7 @@ class DatabaseService {
     return team;
   }
   public updateTeam(teamId: string, updates: Partial<Team>) {
+    this.invalidateFetch('teams');
     const idx = this.data.teams.findIndex(t => t.teamId === teamId);
     if (idx !== -1) {
       this.data.teams[idx] = { ...this.data.teams[idx], ...updates, updatedAt: new Date().toISOString() };
@@ -2183,7 +2188,7 @@ class DatabaseService {
   public getLocationById(locationId: string) { return this.data.locations.find(l => l.locationId === locationId); }
 
   public async fetchLocationsFromTurso(): Promise<WorkLocation[]> {
-    if (!this.tursoClient) return this.data.locations;
+    if (!this.tursoClient || this.isFresh('locations')) return this.data.locations;
     try {
       await this.ensureTursoB2BSchema();
       const locRes = await this.tursoClient.execute('SELECT * FROM locations');
@@ -2202,6 +2207,7 @@ class DatabaseService {
             updatedAt: r.updatedAt,
           }))
         : [];
+      this.markFetched('locations');
     } catch (e: any) {
       console.warn('[TURSO] fetchLocationsFromTurso error:', e.message);
     }
@@ -2209,6 +2215,7 @@ class DatabaseService {
   }
 
   public async deleteLocation(locationId: string): Promise<boolean> {
+    this.invalidateFetch('locations');
     const idx = this.data.locations.findIndex(l => l.locationId === locationId);
     if (idx !== -1) {
       this.data.locations.splice(idx, 1);
@@ -2247,6 +2254,7 @@ class DatabaseService {
   }
 
   public async persistLocationToTurso(location: WorkLocation): Promise<void> {
+    this.invalidateFetch('locations');
     if (!this.tursoClient) return;
     await this.ensureTursoB2BSchema();
     await this.tursoClient.execute({
@@ -2300,7 +2308,7 @@ class DatabaseService {
   public getAssignmentById(id: string) { return this.data.assignments.find(a => a.assignmentId === id); }
 
   public async fetchAssignmentsFromTurso(): Promise<Assignment[]> {
-    if (!this.tursoClient) return this.data.assignments;
+    if (!this.tursoClient || this.isFresh('assignments')) return this.data.assignments;
     try {
       await this.ensureTursoB2BSchema();
       const [aRes, locRes] = await Promise.all([
@@ -2353,6 +2361,7 @@ class DatabaseService {
           updatedAt: r.updatedAt,
         }));
       }
+      this.markFetched('assignments');
     } catch (e: any) {
       console.warn('[TURSO] fetchAssignmentsFromTurso error:', e.message);
     }
@@ -2360,6 +2369,7 @@ class DatabaseService {
   }
 
   public async persistAssignmentToTurso(assignment: Assignment): Promise<void> {
+    this.invalidateFetch('assignments');
     if (!this.tursoClient) return;
     await this.tursoClient.execute({
       sql: `INSERT OR REPLACE INTO assignments (assignmentId, title, description, locationId, locationName, locationAddress, locationLatitude, locationLongitude, assignedBy, assignedByName, teamIds, workerIds, date, startTime, endTime, priority, status, instructions, completionNote, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -2457,7 +2467,7 @@ class DatabaseService {
   public getAttendanceById(id: string) { return this.data.attendance.find(a => a.attendanceId === id); }
 
   public async fetchAttendanceFromTurso(): Promise<Attendance[]> {
-    if (!this.tursoClient) return this.data.attendance;
+    if (!this.tursoClient || this.isFresh('attendance')) return this.data.attendance;
     try {
       const attRes = await this.tursoClient.execute('SELECT * FROM attendance');
       if (attRes.rows) {
@@ -2503,12 +2513,14 @@ class DatabaseService {
           updatedAt: r.updatedAt,
         }));
       }
+      this.markFetched('attendance');
     } catch (e: any) {
       console.warn('[TURSO] fetchAttendanceFromTurso error:', e.message);
     }
     return this.data.attendance;
   }
   public addAttendance(record: Attendance) {
+    this.invalidateFetch('attendance');
     this.data.attendance.unshift(record);
     this.persist();
     if (this.tursoClient) {
