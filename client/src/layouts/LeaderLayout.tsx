@@ -86,7 +86,7 @@ export const LeaderLayout: React.FC = () => {
   ];
 
   return (
-    <div className="h-[100dvh] min-h-[100dvh] bg-slate-950 flex flex-col text-slate-800 antialiased overflow-hidden">
+    <div className="h-[100dvh] min-h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] bg-slate-950 flex flex-col text-slate-800 antialiased overflow-hidden">
       {/* 1. CHASSIS CENTERING CONTAINER */}
       <div className="flex-1 min-h-0 flex justify-center items-center p-0 sm:py-2 sm:px-4 overflow-hidden">
         {/* MOBILE PHONE FRAME CONTAINER */}

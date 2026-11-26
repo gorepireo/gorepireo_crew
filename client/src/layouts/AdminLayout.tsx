@@ -42,7 +42,7 @@ export const AdminLayout: React.FC = () => {
   ];
 
   return (
-    <div className="h-[100dvh] bg-slate-50 flex flex-col text-slate-800 overflow-hidden">
+    <div className="h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] bg-slate-50 flex flex-col text-slate-800 overflow-hidden">
       <div className="flex-1 min-h-0 flex flex-col lg:flex-row min-w-0 overflow-hidden">
         {/* DESKTOP SIDEBAR */}
         <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200 shrink-0">
