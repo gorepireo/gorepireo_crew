@@ -1126,7 +1126,13 @@ class DatabaseService {
     }
   }
 
+  private schemaEnsured = false;
+  private schemaPromise: Promise<void> | null = null;
+
   private async ensureTursoB2BSchema(): Promise<void> {
+    if (!this.tursoClient || this.schemaEnsured) return;
+    if (this.schemaPromise) return this.schemaPromise;
+    this.schemaPromise = (async () => {
     if (!this.tursoClient) return;
     try {
       await this.tursoClient.execute(`
@@ -1279,9 +1285,14 @@ class DatabaseService {
       await this.tursoClient.execute('ALTER TABLE assignments ADD COLUMN requiredWorkersCount INTEGER').catch(() => {});
       await this.tursoClient.execute('ALTER TABLE assignments ADD COLUMN servicePrice REAL').catch(() => {});
       await this.tursoClient.execute('ALTER TABLE assignments ADD COLUMN paymentTerms TEXT').catch(() => {});
+      this.schemaEnsured = true;
     } catch (e: any) {
       console.warn('[TURSO] Schema check notice:', e.message);
+    } finally {
+      this.schemaPromise = null;
     }
+    })();
+    return this.schemaPromise;
   }
 
   public async syncFromTurso(): Promise<void> {
@@ -1879,7 +1890,7 @@ class DatabaseService {
           updatedAt: r.updatedAt,
         }));
       }
-      this.persist();
+      this.data.workers = this.data.workers;
     } catch (e: any) {
       console.warn('[TURSO] fetchWorkersFromTurso error:', e.message);
     }
@@ -2116,7 +2127,6 @@ class DatabaseService {
           updatedAt: r.updatedAt,
         }));
       }
-      this.persist();
     } catch (e: any) {
       console.warn('[TURSO] fetchTeamsFromTurso error:', e.message);
     }
@@ -2192,7 +2202,6 @@ class DatabaseService {
             updatedAt: r.updatedAt,
           }))
         : [];
-      this.persist();
     } catch (e: any) {
       console.warn('[TURSO] fetchLocationsFromTurso error:', e.message);
     }
@@ -2344,7 +2353,6 @@ class DatabaseService {
           updatedAt: r.updatedAt,
         }));
       }
-      this.persist();
     } catch (e: any) {
       console.warn('[TURSO] fetchAssignmentsFromTurso error:', e.message);
     }
@@ -2494,7 +2502,6 @@ class DatabaseService {
           createdAt: r.createdAt,
           updatedAt: r.updatedAt,
         }));
-        this.persist();
       }
     } catch (e: any) {
       console.warn('[TURSO] fetchAttendanceFromTurso error:', e.message);
