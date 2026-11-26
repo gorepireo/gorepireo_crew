@@ -1779,6 +1779,102 @@ class DatabaseService {
   public getWorkers() { return this.data.workers; }
   public getWorkerById(workerId: string) { return this.data.workers.find(w => w.workerId === workerId); }
   public getWorkerByUserId(userId: string) { return this.data.workers.find(w => w.userId === userId); }
+
+  public async fetchWorkersFromTurso(): Promise<Worker[]> {
+    if (!this.tursoClient) return this.data.workers;
+    try {
+      const [wRes, uRes] = await Promise.all([
+        this.tursoClient.execute('SELECT * FROM workers'),
+        this.tursoClient.execute('SELECT * FROM users'),
+      ]);
+      if (wRes.rows) {
+        this.data.workers = wRes.rows.map((r: any) => ({
+          workerId: r.workerId,
+          userId: r.userId,
+          name: r.name,
+          phone: r.phone,
+          email: r.email || undefined,
+          photoURL: r.photoURL || undefined,
+          address: r.address || undefined,
+          primaryTeamId: r.primaryTeamId || undefined,
+          primaryTeamName: r.primaryTeamName || undefined,
+          teamAssignmentStatus: r.teamAssignmentStatus || (r.primaryTeamId ? 'ASSIGNED' : 'UNASSIGNED'),
+          joiningDate: r.joiningDate || undefined,
+          status: r.status || 'ACTIVE',
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+        }));
+      }
+      if (uRes.rows) {
+        this.data.users = uRes.rows.map((r: any) => ({
+          uid: r.uid,
+          role: r.role,
+          displayName: r.displayName,
+          phone: r.phone || undefined,
+          email: r.email || undefined,
+          photoURL: r.photoURL || undefined,
+          organizationId: r.organizationId || undefined,
+          organizationName: r.organizationName || undefined,
+          active: Boolean(r.active),
+          passwordHash: r.passwordHash || undefined,
+          mustChangePassword: Boolean(r.mustChangePassword),
+          failedLoginAttempts: Number(r.failedLoginAttempts || 0),
+          lockedUntil: r.lockedUntil || null,
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+        }));
+      }
+      this.persist();
+    } catch (e: any) {
+      console.warn('[TURSO] fetchWorkersFromTurso error:', e.message);
+    }
+    return this.data.workers;
+  }
+
+  public async persistUserToTurso(user: User): Promise<void> {
+    if (!this.tursoClient) return;
+    await this.tursoClient.execute({
+      sql: `INSERT OR REPLACE INTO users (uid, role, displayName, phone, email, photoURL, active, passwordHash, mustChangePassword, failedLoginAttempts, lockedUntil, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        user.uid,
+        user.role,
+        user.displayName,
+        user.phone || null,
+        user.email || null,
+        user.photoURL || null,
+        user.active ? 1 : 0,
+        user.passwordHash || null,
+        user.mustChangePassword ? 1 : 0,
+        user.failedLoginAttempts || 0,
+        user.lockedUntil || null,
+        user.createdAt,
+        user.updatedAt,
+      ],
+    });
+  }
+
+  public async persistWorkerToTurso(worker: Worker): Promise<void> {
+    if (!this.tursoClient) return;
+    await this.tursoClient.execute({
+      sql: `INSERT OR REPLACE INTO workers (workerId, userId, name, phone, email, photoURL, address, primaryTeamId, primaryTeamName, teamAssignmentStatus, joiningDate, status, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        worker.workerId,
+        worker.userId,
+        worker.name,
+        worker.phone || null,
+        worker.email || null,
+        worker.photoURL || null,
+        worker.address || null,
+        worker.primaryTeamId || null,
+        worker.primaryTeamName || null,
+        worker.teamAssignmentStatus || 'UNASSIGNED',
+        worker.joiningDate || null,
+        worker.status || 'ACTIVE',
+        worker.createdAt,
+        worker.updatedAt,
+      ],
+    });
+  }
   public addWorker(worker: Worker) {
     if (!worker.teamAssignmentStatus) {
       worker.teamAssignmentStatus = worker.primaryTeamId ? 'ASSIGNED' : 'UNASSIGNED';

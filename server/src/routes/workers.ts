@@ -12,10 +12,10 @@ import { Worker, User } from '../types';
 
 const router = Router();
 
-// GET /api/workers
-router.get('/', authMiddleware, (req: Request, res: Response) => {
+// GET /api/workers (Always reads live from Turso)
+router.get('/', authMiddleware, async (req: Request, res: Response) => {
   const { teamId, status, search } = req.query;
-  let workers = db.getWorkers();
+  let workers = await db.fetchWorkersFromTurso();
 
   // If Team Leader, they can see workers of their managed teams or all workers if unassigned,
   // or all workers when explicitly searching to add an existing worker by ID or phone.
@@ -119,7 +119,7 @@ router.get('/:id', authMiddleware, (req: Request, res: Response) => {
 });
 
 // POST /api/workers (Admin and Team Leader Create Worker Account — Team is OPTIONAL)
-router.post('/', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), (req: Request, res: Response) => {
+router.post('/', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), async (req: Request, res: Response) => {
   const { name, phone, email, address, primaryTeamId, joiningDate, photoURL, temporaryPassword, password } = req.body;
 
   if (!name || !phone) {
@@ -140,6 +140,8 @@ router.post('/', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), (req: Re
       return res.status(403).json({ error: 'You are only authorized to add workers to your assigned teams.' });
     }
   }
+
+  await db.fetchWorkersFromTurso();
 
   // Validate duplicate phone or email
   const existingUser = db.getUserByEmailOrPhone(phone.trim());
@@ -178,8 +180,12 @@ router.post('/', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), (req: Re
   let finalPhotoURL = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name.trim())}`;
   let savedPhotoMeta: any = null;
   if (rawPhoto && (rawPhoto.startsWith('data:image/') || rawPhoto.length > 200)) {
-    savedPhotoMeta = saveWorkerProfilePhoto(rawPhoto, workerId, name);
-    finalPhotoURL = savedPhotoMeta.publicUrl;
+    finalPhotoURL = rawPhoto;
+    try {
+      savedPhotoMeta = saveWorkerProfilePhoto(rawPhoto, workerId, name);
+    } catch (e: any) {
+      console.warn('[WORKERS] Local photo disk save skipped:', e.message);
+    }
   } else if (rawPhoto && (rawPhoto.startsWith('http://') || rawPhoto.startsWith('https://'))) {
     finalPhotoURL = rawPhoto;
   }
@@ -222,6 +228,16 @@ router.post('/', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), (req: Re
     updatedAt: now,
   };
   db.addWorker(newWorker);
+
+  try {
+    await Promise.all([
+      db.persistUserToTurso(newUser),
+      db.persistWorkerToTurso(newWorker),
+    ]);
+  } catch (err: any) {
+    console.error('[WORKERS] Failed to persist worker to Turso:', err?.message);
+    return res.status(500).json({ error: 'Failed to save worker account to database' });
+  }
 
   // Automatic non-AI background upload to Google Drive
   if (savedPhotoMeta && savedPhotoMeta.filePath) {

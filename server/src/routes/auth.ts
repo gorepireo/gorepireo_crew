@@ -54,7 +54,7 @@ router.get('/me', authMiddleware, (req: Request, res: Response) => {
 });
 
 // 2. Mobile Number & Password Login (Strictly No OTP, Rate-Limited & Lockout Protected)
-router.post('/login', (req: Request, res: Response) => {
+router.post('/login', async (req: Request, res: Response) => {
   try {
     const rawIdentifier = req.body.identifier || req.body.phone || req.body.mobile || req.body.email || '';
     const identifier = typeof rawIdentifier === 'string' ? rawIdentifier.trim() : String(rawIdentifier).trim();
@@ -94,8 +94,12 @@ router.post('/login', (req: Request, res: Response) => {
     });
   }
 
-  // Find all user accounts matching normalized mobile or email identifier
-  const matchingUsers = db.getUsersByEmailOrPhone(identifier);
+  // Find all user accounts matching normalized mobile or email identifier (refresh from Turso if not in local cache)
+  let matchingUsers = db.getUsersByEmailOrPhone(identifier);
+  if (!matchingUsers || matchingUsers.length === 0) {
+    await db.fetchWorkersFromTurso();
+    matchingUsers = db.getUsersByEmailOrPhone(identifier);
+  }
   if (!matchingUsers || matchingUsers.length === 0) {
     return res.status(401).json({ error: 'Invalid mobile number or password.' });
   }
