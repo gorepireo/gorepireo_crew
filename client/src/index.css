@@ -41,10 +41,11 @@
     --border: 226 232 240;
   }
 
-  html, body {
+  html, body, #root {
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
-    overscroll-behavior-y: none;
+    overscroll-behavior: none !important;
+    overscroll-behavior-y: none !important;
   }
 
   body {

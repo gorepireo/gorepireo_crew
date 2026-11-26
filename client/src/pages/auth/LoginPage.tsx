@@ -185,7 +185,7 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] bg-gradient-to-b from-[#0a237a] via-[#1342c7] to-[#1e54eb] flex flex-col justify-between relative overflow-hidden select-none">
+    <div className="min-h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] overscroll-none bg-gradient-to-b from-[#0a237a] via-[#1342c7] to-[#1e54eb] flex flex-col justify-between relative overflow-hidden select-none">
       {/* CODE-DESIGNED MOBILE APP BACKGROUND (Layered Gradients, Dot Grid & Flowing SVG Waves) */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {/* Subtle dot matrix texture */}
