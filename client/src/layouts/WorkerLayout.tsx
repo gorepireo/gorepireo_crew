@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import {
   Home,
@@ -10,20 +10,43 @@ import {
 
 export const WorkerLayout: React.FC = () => {
   const { t } = useLanguage();
+  const { pathname } = useLocation();
+
+  const isWork = pathname.startsWith('/worker/work');
+  const isAttendance = pathname.startsWith('/worker/attendance');
+  const isProfile = pathname.startsWith('/worker/profile');
+
+  const topColor = isProfile
+    ? '#3148df'
+    : isWork
+    ? '#1752d5'
+    : '#0b66e4';
+
+  const hasHeroHeader = isWork || isAttendance || isProfile;
 
   useEffect(() => {
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#0a2f7a');
-  }, []);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', topColor);
+  }, [topColor]);
 
   return (
     <div className="h-[100dvh] bg-[#f4f7fb] sm:bg-slate-950 flex justify-center text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900 overflow-hidden">
       {/* MOBILE SHELL CONTAINER - Centered on desktop, full-width responsive on mobile */}
       <div className="w-full max-w-md bg-[#f4f7fb] h-full flex flex-col shadow-2xl relative overflow-hidden">
-        {/* TOP SAFE-AREA STRIP (Rich brand blue for white status-bar text, softly blended into #f4f7fb) */}
+        {/* TOP SAFE-AREA STRIP (Matches each tab's hero color seamlessly; softly fades on Home) */}
         <div
           aria-hidden="true"
-          className="shrink-0 w-full h-[env(safe-area-inset-top)] bg-[linear-gradient(180deg,#0a2f7a_0%,#154ec1_78%,#f4f7fb_100%)]"
+          className="shrink-0 w-full h-[env(safe-area-inset-top)] transition-colors duration-200"
+          style={{ backgroundColor: topColor }}
         />
+        {!hasHeroHeader && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none shrink-0 w-full h-3 -mb-3 relative z-20"
+            style={{
+              background: 'linear-gradient(180deg, rgba(11,102,228,0.16) 0%, rgba(244,247,251,0) 100%)',
+            }}
+          />
+        )}
         {/* MAIN PAGE BODY (Scrolls cleanly with zero horizontal overflow) */}
         <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-y-none p-3.5 sm:p-4 space-y-3.5 pb-4">
           <Outlet />
