@@ -97,6 +97,7 @@ router.post('/', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), async (r
 // PATCH /api/locations/:id
 router.patch('/:id', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), async (req: Request, res: Response) => {
   const id = req.params.id as string;
+  await db.fetchLocationsFromTurso();
   const loc = db.getLocationById(id);
   if (!loc) return res.status(404).json({ error: 'Location not found' });
 
