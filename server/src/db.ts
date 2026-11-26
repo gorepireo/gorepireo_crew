@@ -2289,6 +2289,97 @@ class DatabaseService {
   // --- ASSIGNMENTS ---
   public getAssignments() { return this.data.assignments; }
   public getAssignmentById(id: string) { return this.data.assignments.find(a => a.assignmentId === id); }
+
+  public async fetchAssignmentsFromTurso(): Promise<Assignment[]> {
+    if (!this.tursoClient) return this.data.assignments;
+    try {
+      await this.ensureTursoB2BSchema();
+      const [aRes, locRes] = await Promise.all([
+        this.tursoClient.execute('SELECT * FROM assignments'),
+        this.tursoClient.execute('SELECT * FROM locations'),
+      ]);
+      if (aRes.rows) {
+        this.data.assignments = aRes.rows.map((r: any) => ({
+          assignmentId: r.assignmentId,
+          title: r.title,
+          description: r.description || undefined,
+          locationId: r.locationId || undefined,
+          locationName: r.locationName || undefined,
+          locationAddress: r.locationAddress || undefined,
+          locationLatitude: r.locationLatitude ? Number(r.locationLatitude) : undefined,
+          locationLongitude: r.locationLongitude ? Number(r.locationLongitude) : undefined,
+          assignedBy: r.assignedBy || undefined,
+          assignedByName: r.assignedByName || undefined,
+          teamIds: safeJsonParse<string[]>(r.teamIds, []),
+          workerIds: safeJsonParse<string[]>(r.workerIds, []),
+          date: r.date,
+          startTime: r.startTime || undefined,
+          endTime: r.endTime || undefined,
+          priority: r.priority || 'HIGH',
+          status: r.status || 'ASSIGNED',
+          instructions: r.instructions || undefined,
+          completionNote: r.completionNote || undefined,
+          organizationId: r.organizationId || undefined,
+          organizationName: r.organizationName || undefined,
+          cleaningRequirements: r.cleaningRequirements || undefined,
+          requiredWorkersCount: r.requiredWorkersCount ? Number(r.requiredWorkersCount) : undefined,
+          servicePrice: r.servicePrice ? Number(r.servicePrice) : undefined,
+          paymentTerms: r.paymentTerms || undefined,
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+        }));
+      }
+      if (locRes.rows) {
+        this.data.locations = locRes.rows.map((r: any) => ({
+          locationId: r.locationId,
+          name: r.name,
+          address: r.address || '',
+          latitude: Number(r.latitude),
+          longitude: Number(r.longitude),
+          geofenceRadiusMeters: Number(r.geofenceRadiusMeters || 100),
+          status: r.status || 'ACTIVE',
+          photoURL: r.photoURL || undefined,
+          googleDriveFileId: r.googleDriveFileId || undefined,
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+        }));
+      }
+      this.persist();
+    } catch (e: any) {
+      console.warn('[TURSO] fetchAssignmentsFromTurso error:', e.message);
+    }
+    return this.data.assignments;
+  }
+
+  public async persistAssignmentToTurso(assignment: Assignment): Promise<void> {
+    if (!this.tursoClient) return;
+    await this.tursoClient.execute({
+      sql: `INSERT OR REPLACE INTO assignments (assignmentId, title, description, locationId, locationName, locationAddress, locationLatitude, locationLongitude, assignedBy, assignedByName, teamIds, workerIds, date, startTime, endTime, priority, status, instructions, completionNote, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        assignment.assignmentId,
+        assignment.title,
+        assignment.description || null,
+        assignment.locationId || null,
+        assignment.locationName || null,
+        assignment.locationAddress || null,
+        assignment.locationLatitude || null,
+        assignment.locationLongitude || null,
+        assignment.assignedBy || null,
+        assignment.assignedByName || null,
+        JSON.stringify(assignment.teamIds || []),
+        JSON.stringify(assignment.workerIds || []),
+        assignment.date,
+        assignment.startTime || null,
+        assignment.endTime || null,
+        assignment.priority || 'HIGH',
+        assignment.status || 'ASSIGNED',
+        assignment.instructions || null,
+        assignment.completionNote || null,
+        assignment.createdAt,
+        assignment.updatedAt,
+      ],
+    });
+  }
   public addAssignment(assignment: Assignment) {
     this.data.assignments.unshift(assignment);
     this.persist();
@@ -2356,6 +2447,60 @@ class DatabaseService {
   // --- ATTENDANCE ---
   public getAttendance() { return this.data.attendance; }
   public getAttendanceById(id: string) { return this.data.attendance.find(a => a.attendanceId === id); }
+
+  public async fetchAttendanceFromTurso(): Promise<Attendance[]> {
+    if (!this.tursoClient) return this.data.attendance;
+    try {
+      const attRes = await this.tursoClient.execute('SELECT * FROM attendance');
+      if (attRes.rows) {
+        this.data.attendance = attRes.rows.map((r: any) => ({
+          attendanceId: r.attendanceId,
+          workerId: r.workerId,
+          workerName: r.workerName,
+          workerCode: r.workerCode || r.workerId,
+          teamId: r.teamId || undefined,
+          teamName: r.teamName || undefined,
+          assignmentId: r.assignmentId || undefined,
+          assignmentTitle: r.assignmentTitle || undefined,
+          date: r.date,
+          checkInTime: r.checkInTime || undefined,
+          checkInMethod: r.checkInMethod || undefined,
+          checkInLatitude: r.checkInLatitude ? Number(r.checkInLatitude) : undefined,
+          checkInLongitude: r.checkInLongitude ? Number(r.checkInLongitude) : undefined,
+          checkInAccuracy: r.checkInAccuracy ? Number(r.checkInAccuracy) : undefined,
+          checkInDistanceMeters: r.checkInDistanceMeters !== null && r.checkInDistanceMeters !== undefined ? Number(r.checkInDistanceMeters) : undefined,
+          checkOutTime: r.checkOutTime || undefined,
+          checkOutMethod: r.checkOutMethod || undefined,
+          checkOutLatitude: r.checkOutLatitude ? Number(r.checkOutLatitude) : undefined,
+          checkOutLongitude: r.checkOutLongitude ? Number(r.checkOutLongitude) : undefined,
+          checkOutAccuracy: r.checkOutAccuracy ? Number(r.checkOutAccuracy) : undefined,
+          checkOutDistanceMeters: r.checkOutDistanceMeters !== null && r.checkOutDistanceMeters !== undefined ? Number(r.checkOutDistanceMeters) : undefined,
+          workingMinutes: Number(r.workingMinutes || 0),
+          status: r.status || 'PRESENT',
+          verificationStatus: r.verificationStatus || 'UNVERIFIED',
+          gpsStatus: r.gpsStatus || undefined,
+          photoStatus: r.photoStatus || undefined,
+          checkInPhotoId: r.checkInPhotoId || undefined,
+          checkInPhotoUrl: r.checkInPhotoUrl || undefined,
+          checkInAddress: r.checkInAddress || undefined,
+          checkOutPhotoId: r.checkOutPhotoId || undefined,
+          checkOutPhotoUrl: r.checkOutPhotoUrl || undefined,
+          checkOutAddress: r.checkOutAddress || undefined,
+          remarks: r.remarks || undefined,
+          exceptionReason: r.exceptionReason || undefined,
+          exceptionStatus: r.exceptionStatus || undefined,
+          markedBy: r.markedBy || undefined,
+          markedByName: r.markedByName || undefined,
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+        }));
+        this.persist();
+      }
+    } catch (e: any) {
+      console.warn('[TURSO] fetchAttendanceFromTurso error:', e.message);
+    }
+    return this.data.attendance;
+  }
   public addAttendance(record: Attendance) {
     this.data.attendance.unshift(record);
     this.persist();

@@ -7,8 +7,9 @@ import { reconcileMissedAttendance } from './attendance';
 
 const router = Router();
 
-// GET /api/assignments
-router.get('/', authMiddleware, (req: Request, res: Response) => {
+// GET /api/assignments (Always reads live from Turso so workers see new assignments immediately)
+router.get('/', authMiddleware, async (req: Request, res: Response) => {
+  await Promise.all([db.fetchAssignmentsFromTurso(), db.fetchWorkersFromTurso(), db.fetchAttendanceFromTurso()]);
   reconcileMissedAttendance();
   const { date, workerId, teamId, status } = req.query;
   let assignments = db.getAssignments();
@@ -165,6 +166,12 @@ router.post('/', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), async (r
   };
 
   db.addAssignment(newAssignment);
+  try {
+    await db.persistAssignmentToTurso(newAssignment);
+  } catch (err: any) {
+    console.error('[ASSIGNMENTS] Failed to persist assignment to Turso:', err?.message);
+    return res.status(500).json({ error: 'Failed to save work assignment to database' });
+  }
 
   // Create individual assignment membership records for attendance validation
   assignedWorkerList.forEach((wid, idx) => {

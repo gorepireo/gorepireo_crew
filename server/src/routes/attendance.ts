@@ -127,8 +127,9 @@ function validateBase64Image(dataUrl: string): { valid: boolean; error?: string 
   return { valid: true };
 }
 
-// GET /api/attendance
-router.get('/', authMiddleware, (req: Request, res: Response) => {
+// GET /api/attendance (Always reads live from Turso)
+router.get('/', authMiddleware, async (req: Request, res: Response) => {
+  await Promise.all([db.fetchAttendanceFromTurso(), db.fetchAssignmentsFromTurso(), db.fetchWorkersFromTurso()]);
   reconcileMissedAttendance();
   const { date, workerId, teamId, status } = req.query;
   let list = db.getAttendance();
@@ -168,7 +169,8 @@ router.get('/', authMiddleware, (req: Request, res: Response) => {
 });
 
 // GET /api/attendance/history (convenience endpoint)
-router.get('/history', authMiddleware, (req: Request, res: Response) => {
+router.get('/history', authMiddleware, async (req: Request, res: Response) => {
+  await Promise.all([db.fetchAttendanceFromTurso(), db.fetchAssignmentsFromTurso(), db.fetchWorkersFromTurso()]);
   reconcileMissedAttendance();
   let workerId = req.user?.workerId;
   if (!workerId && req.user?.role === 'WORKER') {
