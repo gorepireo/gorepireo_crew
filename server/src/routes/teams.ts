@@ -5,24 +5,33 @@ import { Team } from '../types';
 
 const router = Router();
 
-// GET /api/teams
-router.get('/', authMiddleware, (req: Request, res: Response) => {
-  let teams = db.getTeams();
+// GET /api/teams (Always reads live from Turso and reconciles member counts from live workers)
+router.get('/', authMiddleware, async (req: Request, res: Response) => {
+  let teams = await db.fetchTeamsFromTurso();
+  const allWorkers = db.getWorkers();
 
   // If team leader, optionally filter by managed teams or show all for assignment selection
   if (req.user?.role === 'TEAM_LEADER' && req.query.managedOnly === 'true' && req.user.managedTeamIds) {
     teams = teams.filter(t => req.user?.managedTeamIds?.includes(t.teamId));
   }
 
-  // Enrich with leader info and worker count
+  // Enrich with leader info and live worker count (reconciled with workers.primaryTeamId)
   const enriched = teams.map(t => {
     const leaders = t.leaderIds.map(lid => db.getLeaderById(lid)).filter(Boolean);
-    const workers = t.memberWorkerIds.map(wid => db.getWorkerById(wid)).filter(Boolean);
+    const memberSet = new Set<string>(t.memberWorkerIds || []);
+    allWorkers.forEach(w => {
+      if (w.primaryTeamId === t.teamId) {
+        memberSet.add(w.workerId);
+      }
+    });
+    const workers = Array.from(memberSet).map(wid => db.getWorkerById(wid)).filter(Boolean);
+    const reconciledMemberIds = workers.map(w => w!.workerId);
     return {
       ...t,
+      memberWorkerIds: reconciledMemberIds,
       leaders,
       workers,
-      memberCount: t.memberWorkerIds.length,
+      memberCount: workers.length,
     };
   });
 
@@ -30,13 +39,20 @@ router.get('/', authMiddleware, (req: Request, res: Response) => {
 });
 
 // GET /api/teams/:id
-router.get('/:id', authMiddleware, (req: Request, res: Response) => {
+router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
   const id = req.params.id as string;
+  await db.fetchTeamsFromTurso();
   const team = db.getTeamById(id);
   if (!team) return res.status(404).json({ error: 'Team not found' });
 
   const leaders = team.leaderIds.map(lid => db.getLeaderById(lid)).filter(Boolean);
-  const workers = team.memberWorkerIds.map(wid => db.getWorkerById(wid)).filter(Boolean);
+  const memberSet = new Set<string>(team.memberWorkerIds || []);
+  db.getWorkers().forEach(w => {
+    if (w.primaryTeamId === team.teamId) {
+      memberSet.add(w.workerId);
+    }
+  });
+  const workers = Array.from(memberSet).map(wid => db.getWorkerById(wid)).filter(Boolean);
   const assignments = db.getAssignments().filter(a => a.teamIds.includes(team.teamId));
 
   // Today's team attendance
@@ -146,7 +162,7 @@ router.patch('/:id', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), (req
 });
 
 // POST /api/teams/:id/members (Add Existing Worker to Team)
-router.post('/:id/members', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), (req: Request, res: Response) => {
+router.post('/:id/members', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), async (req: Request, res: Response) => {
   const id = req.params.id as string;
   const { workerId } = req.body;
 
@@ -154,6 +170,7 @@ router.post('/:id/members', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']
     return res.status(400).json({ error: 'Worker ID, UID, or Mobile Number is required' });
   }
 
+  await db.fetchTeamsFromTurso();
   const team = db.getTeamById(id);
   if (!team) return res.status(404).json({ error: 'Team not found' });
 
@@ -206,6 +223,9 @@ router.post('/:id/members', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']
     teamAssignmentStatus: 'ASSIGNED',
   });
 
+  if (updatedTeam) await db.persistTeamToTurso(updatedTeam);
+  if (updatedWorker) await db.persistWorkerToTurso(updatedWorker);
+
   // Log to activity log
   db.logActivity({
     logId: `log-${Date.now()}`,
@@ -228,9 +248,10 @@ router.post('/:id/members', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']
 });
 
 // DELETE /api/teams/:id/members/:workerId (Remove Worker from Team)
-router.delete('/:id/members/:workerId', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), (req: Request, res: Response) => {
+router.delete('/:id/members/:workerId', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), async (req: Request, res: Response) => {
   const id = req.params.id as string;
   const workerId = req.params.workerId as string;
+  await db.fetchTeamsFromTurso();
   const team = db.getTeamById(id);
   if (!team) return res.status(404).json({ error: 'Team not found' });
 
@@ -252,12 +273,14 @@ router.delete('/:id/members/:workerId', authMiddleware, requireRole(['ADMIN', 'T
 
   // Reset worker's primaryTeam and set back to UNASSIGNED (historical attendance/assignment records remain intact)
   if (worker.primaryTeamId === team.teamId) {
-    db.updateWorker(worker.workerId, {
+    const updatedW = db.updateWorker(worker.workerId, {
       primaryTeamId: undefined,
       primaryTeamName: undefined,
       teamAssignmentStatus: 'UNASSIGNED',
     });
+    if (updatedW) await db.persistWorkerToTurso(updatedW);
   }
+  if (updatedTeam) await db.persistTeamToTurso(updatedTeam);
 
   // Log activity
   db.logActivity({

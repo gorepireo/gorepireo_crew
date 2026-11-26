@@ -88,7 +88,7 @@ router.get('/:id', authMiddleware, (req: Request, res: Response) => {
 });
 
 // POST /api/assignments
-router.post('/', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), (req: Request, res: Response) => {
+router.post('/', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), async (req: Request, res: Response) => {
   const {
     title,
     description,
@@ -109,6 +109,8 @@ router.post('/', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), (req: Re
     return res.status(400).json({ error: 'Scheduled end time must be after start time' });
   }
 
+  await db.fetchTeamsFromTurso();
+  await db.fetchLocationsFromTurso();
   const location = db.getLocationById(locationId);
   if (!location) return res.status(400).json({ error: 'Specified work location does not exist' });
 
@@ -117,11 +119,15 @@ router.post('/', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), (req: Re
   const finalTeamIds = teamIds || [];
 
   if (finalTeamIds.length > 0) {
+    const allWorkers = db.getWorkers();
     for (const tid of finalTeamIds) {
       const team = db.getTeamById(tid);
       if (team) {
         team.memberWorkerIds.forEach(wid => finalWorkerIds.add(wid));
       }
+      allWorkers.forEach(w => {
+        if (w.primaryTeamId === tid) finalWorkerIds.add(w.workerId);
+      });
     }
   }
 

@@ -473,8 +473,9 @@ router.patch('/:id/status', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']
 });
 
 // POST /api/workers/:id/assign-team (Assign or reassign an unassigned/existing worker to an authorized team)
-router.post('/:id/assign-team', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), (req: Request, res: Response) => {
+router.post('/:id/assign-team', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), async (req: Request, res: Response) => {
   const id = req.params.id as string;
+  await db.fetchTeamsFromTurso();
   const worker = db.getWorkerById(id) || db.getWorkerByUserId(id);
   if (!worker) {
     return res.status(404).json({ error: 'Worker not found' });
@@ -520,6 +521,10 @@ router.post('/:id/assign-team', authMiddleware, requireRole(['ADMIN', 'TEAM_LEAD
     primaryTeamName: team.name,
     teamAssignmentStatus: 'ASSIGNED',
   });
+
+  const latestTeam = db.getTeamById(team.teamId);
+  if (latestTeam) await db.persistTeamToTurso(latestTeam);
+  if (updatedWorker) await db.persistWorkerToTurso(updatedWorker);
 
   // Log activity
   db.logActivity({

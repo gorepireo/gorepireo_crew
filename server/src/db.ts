@@ -2062,6 +2062,84 @@ class DatabaseService {
   // --- TEAMS ---
   public getTeams() { return this.data.teams; }
   public getTeamById(teamId: string) { return this.data.teams.find(t => t.teamId === teamId); }
+  public async fetchTeamsFromTurso(): Promise<Team[]> {
+    if (!this.tursoClient) return this.data.teams;
+    try {
+      await this.ensureTursoB2BSchema();
+      const [tRes, wRes, tlRes] = await Promise.all([
+        this.tursoClient.execute('SELECT * FROM teams'),
+        this.tursoClient.execute('SELECT * FROM workers'),
+        this.tursoClient.execute('SELECT * FROM teamLeaders'),
+      ]);
+      if (tRes.rows) {
+        this.data.teams = tRes.rows.map((r: any) => ({
+          teamId: r.teamId,
+          name: r.name,
+          description: r.description || undefined,
+          leaderIds: safeJsonParse<string[]>(r.leaderIds, []),
+          memberWorkerIds: safeJsonParse<string[]>(r.memberWorkerIds, []),
+          status: r.status || 'ACTIVE',
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+        }));
+      }
+      if (wRes.rows) {
+        this.data.workers = wRes.rows.map((r: any) => ({
+          workerId: r.workerId,
+          userId: r.userId,
+          name: r.name,
+          phone: r.phone,
+          email: r.email || undefined,
+          photoURL: r.photoURL || undefined,
+          address: r.address || undefined,
+          primaryTeamId: r.primaryTeamId || undefined,
+          primaryTeamName: r.primaryTeamName || undefined,
+          teamAssignmentStatus: r.teamAssignmentStatus || (r.primaryTeamId ? 'ASSIGNED' : 'UNASSIGNED'),
+          joiningDate: r.joiningDate || undefined,
+          status: r.status || 'ACTIVE',
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+        }));
+      }
+      if (tlRes.rows) {
+        this.data.teamLeaders = tlRes.rows.map((r: any) => ({
+          leaderId: r.leaderId,
+          userId: r.userId,
+          name: r.name,
+          phone: r.phone,
+          email: r.email || undefined,
+          photoURL: r.photoURL || undefined,
+          managedTeamIds: safeJsonParse<string[]>(r.managedTeamIds, []),
+          permissions: safeJsonParse<any>(r.permissions, {}),
+          status: r.status || 'ACTIVE',
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+        }));
+      }
+      this.persist();
+    } catch (e: any) {
+      console.warn('[TURSO] fetchTeamsFromTurso error:', e.message);
+    }
+    return this.data.teams;
+  }
+
+  public async persistTeamToTurso(team: Team): Promise<void> {
+    if (!this.tursoClient) return;
+    await this.tursoClient.execute({
+      sql: `INSERT OR REPLACE INTO teams (teamId, name, description, leaderIds, memberWorkerIds, status, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        team.teamId,
+        team.name,
+        team.description || null,
+        JSON.stringify(team.leaderIds || []),
+        JSON.stringify(team.memberWorkerIds || []),
+        team.status || 'ACTIVE',
+        team.createdAt,
+        team.updatedAt,
+      ],
+    });
+  }
+
   public addTeam(team: Team) {
     this.data.teams.push(team);
     this.persist();
