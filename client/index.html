@@ -58,17 +58,12 @@
         window.addEventListener('load', function() {
           navigator.serviceWorker.register('/sw.js').then(function(reg) {
             reg.update();
-            reg.onupdatefound = function() {
-              var installing = reg.installing;
-              if (installing) {
-                installing.onstatechange = function() {
-                  if (installing.state === 'installed' && navigator.serviceWorker.controller) {
-                    console.log('[SW] New version found, reloading...');
-                    window.location.reload();
-                  }
-                };
+            // Silently check for background updates when returning to the app (no forced reload)
+            document.addEventListener('visibilitychange', function() {
+              if (document.visibilityState === 'visible') {
+                reg.update().catch(function() {});
               }
-            };
+            });
           }).catch(function(err) {
             console.log('SW registration skipped:', err);
           });
