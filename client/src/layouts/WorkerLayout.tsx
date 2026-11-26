@@ -12,7 +12,7 @@ export const WorkerLayout: React.FC = () => {
   const { t } = useLanguage();
 
   return (
-    <div className="h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] bg-[#f4f7fb] sm:bg-slate-900 flex justify-center text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900 overflow-hidden">
+    <div className="h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] bg-[#0f172a] flex justify-center text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900 overflow-hidden">
       {/* MOBILE SHELL CONTAINER - Centered on desktop, full-width responsive on mobile */}
       <div className="w-full max-w-md bg-[#f4f7fb] h-full flex flex-col shadow-2xl relative overflow-hidden">
         {/* MAIN PAGE BODY (Scrolls cleanly with zero horizontal overflow) */}
