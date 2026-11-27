@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { db } from '../db';
 import { authMiddleware, requireRole } from '../middleware/auth';
+import { generateClientId } from '../utils/idGenerator';
 import { Organization, Invoice, Payment, User, Assignment, PaymentMethod } from '../types';
 
 const router = Router();
@@ -557,7 +558,8 @@ router.post('/admin/organizations', authMiddleware, requireRole(['ADMIN']), asyn
     return res.status(400).json({ error: 'Mobile phone number is required' });
   }
 
-  const orgId = `ORG-${new Date().getFullYear()}-${String(Math.floor(100 + Math.random() * 900))}`;
+  const existingOrgIds = db.getOrganizations().map((o) => o.organizationId);
+  const orgId = generateClientId(existingOrgIds);
   const now = new Date().toISOString();
 
   // Create Organization

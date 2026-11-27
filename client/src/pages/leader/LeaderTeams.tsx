@@ -277,7 +277,7 @@ export const LeaderTeams: React.FC = () => {
       ) || (results.length > 0 ? results[0] : null);
 
       if (!match) {
-        setSearchError(`No worker account found matching "${query}". Please verify the Worker ID (e.g. WC-2026-001) or mobile number.`);
+        setSearchError(`No worker account found matching "${query}". Please verify the Worker ID (e.g. GR-WC-2026-001) or mobile number.`);
       } else {
         setFoundWorker(match);
       }
@@ -1062,7 +1062,7 @@ export const LeaderTeams: React.FC = () => {
                 required
                 value={existingWorkerSearch}
                 onChange={(e) => setExistingWorkerSearch(e.target.value)}
-                placeholder="e.g. WC-2026-001 or +91 98765..."
+                placeholder="e.g. GR-WC-2026-001 or +91 98765..."
                 className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden focus:border-blue-500"
               />
               <button

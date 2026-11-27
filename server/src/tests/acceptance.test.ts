@@ -47,10 +47,10 @@ async function runAcceptanceTests() {
   });
   assert(newLeader.leaderId === 'TL-TEST', 'TEST 1: Admin created team leader successfully');
 
-  // TEST 2 & TEST 3: Team leader registers worker & System generates unique Worker ID (WC-YYYY-001)
+  // TEST 2 & TEST 3: Team leader registers worker & System generates unique Worker ID (GR-WC-YYYY-001)
   const existingWorkerIds = db.getWorkers().map(w => w.workerId);
   const workerId = generateWorkerId(existingWorkerIds);
-  assert(workerId.startsWith(`WC-${new Date().getFullYear()}-`), `TEST 3: System generates unique Worker ID format: ${workerId}`);
+  assert(workerId.startsWith(`GR-WC-${new Date().getFullYear()}-`), `TEST 3: System generates unique Worker ID format: ${workerId}`);
 
   const newWorker = db.addWorker({
     workerId,

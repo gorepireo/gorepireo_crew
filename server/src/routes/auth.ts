@@ -6,6 +6,7 @@ import { authMiddleware, requireRole, JWT_SECRET, HARDCODED_ADMIN } from '../mid
 import { saveProfilePhoto } from '../utils/fileStorage';
 import { autoUploadWorkerPhotoToDrive } from '../utils/googleDriveSync';
 import { indexPersonFace } from '../utils/facialRecognition';
+import { generateWorkerId, generateLeaderId } from '../utils/idGenerator';
 import { User, UserRole, Worker, TeamLeader, PasswordResetRequest } from '../types';
 
 const router = Router();
@@ -311,10 +312,9 @@ router.post('/register-worker', (req: Request, res: Response) => {
   const passwordHash = bcrypt.hashSync(password.trim(), 10);
 
   if (role === 'TEAM_LEADER') {
-    const existingLeaders = db.getTeamLeaders();
-    const nextNum = (existingLeaders.length + 1).toString().padStart(3, '0');
-    const leaderId = `TL-${nextNum}`;
-    const userId = `user-leader-${nextNum}`;
+    const existingLeaderIds = db.getTeamLeaders().map((l) => l.leaderId);
+    const leaderId = generateLeaderId(existingLeaderIds);
+    const userId = `user-${leaderId.toLowerCase()}`;
 
     const newUser: User = {
       uid: userId,
@@ -377,21 +377,9 @@ router.post('/register-worker', (req: Request, res: Response) => {
     });
   }
 
-  // Generate unique sequential Worker ID (WC-YYYY-XXX)
-  const existingWorkers = db.getWorkers();
-  const year = new Date().getFullYear();
-  let maxSeq = 0;
-  for (const w of existingWorkers) {
-    const match = w.workerId.match(/WC-(\d{4})-(\d+)/);
-    if (match) {
-      const seq = parseInt(match[2], 10);
-      if (!isNaN(seq) && seq > maxSeq) {
-        maxSeq = seq;
-      }
-    }
-  }
-  const nextSeq = (maxSeq + 1).toString().padStart(3, '0');
-  const workerId = `WC-${year}-${nextSeq}`;
+  // Generate unique sequential Worker ID (GR-WC-YYYY-XXX)
+  const existingWorkerIds = db.getWorkers().map((w) => w.workerId);
+  const workerId = generateWorkerId(existingWorkerIds);
   const userId = `user-${workerId.toLowerCase()}`;
 
   const newUser: User = {

@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { db } from '../db';
 import { authMiddleware, requireRole } from '../middleware/auth';
+import { generateLeaderId } from '../utils/idGenerator';
 import { TeamLeader, User } from '../types';
 
 const router = Router();
@@ -32,10 +33,9 @@ router.post('/', authMiddleware, requireRole(['ADMIN']), (req: Request, res: Res
     return res.status(409).json({ error: 'A user account with this email address already exists' });
   }
 
-  const existingLeaders = db.getTeamLeaders();
-  const nextNum = (existingLeaders.length + 1).toString().padStart(3, '0');
-  const leaderId = `TL-${nextNum}`;
-  const userId = `user-leader-${nextNum}`;
+  const existingLeaderIds = db.getTeamLeaders().map((l) => l.leaderId);
+  const leaderId = generateLeaderId(existingLeaderIds);
+  const userId = `user-${leaderId.toLowerCase()}`;
   const now = new Date().toISOString();
 
   const passwordHash = bcrypt.hashSync(temporaryPassword.trim(), 10);

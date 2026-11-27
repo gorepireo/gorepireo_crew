@@ -1,26 +1,53 @@
 /**
- * Worker ID Generator: Format WC-YYYY-001
- * Guarantees monotonic non-reusable sequences per year.
+ * Shared Go_Repireo branded ID generator (GR-<ROLE>-YYYY-001).
+ * Scans both new branded IDs and legacy IDs so sequences never collide.
  */
-export function generateWorkerId(existingIds: string[], year?: number): string {
+function generateBrandedId(
+  roleCode: 'WC' | 'TL' | 'CL',
+  existingIds: string[],
+  legacyRegex: RegExp,
+  year?: number
+): string {
   const currentYear = year || new Date().getFullYear();
-  const prefix = `WC-${currentYear}-`;
+  const prefix = `GR-${roleCode}-${currentYear}-`;
+  const brandedRegex = new RegExp(`^GR-${roleCode}-${currentYear}-(\\d+)$`);
 
   let maxSequence = 0;
   for (const id of existingIds) {
-    if (id.startsWith(prefix)) {
-      const parts = id.split('-');
-      if (parts.length === 3) {
-        const seq = parseInt(parts[2], 10);
-        if (!isNaN(seq) && seq > maxSequence) {
-          maxSequence = seq;
-        }
+    const match = id.match(brandedRegex) || id.match(legacyRegex);
+    if (match) {
+      const seq = parseInt(match[1], 10);
+      if (!isNaN(seq) && seq > maxSequence) {
+        maxSequence = seq;
       }
     }
   }
 
   const nextSeq = (maxSequence + 1).toString().padStart(3, '0');
   return `${prefix}${nextSeq}`;
+}
+
+/**
+ * Worker ID Generator: Format GR-WC-YYYY-001
+ */
+export function generateWorkerId(existingIds: string[], year?: number): string {
+  const currentYear = year || new Date().getFullYear();
+  return generateBrandedId('WC', existingIds, new RegExp(`^WC-${currentYear}-(\\d+)$`), currentYear);
+}
+
+/**
+ * Team Leader ID Generator: Format GR-TL-YYYY-001
+ */
+export function generateLeaderId(existingIds: string[], year?: number): string {
+  return generateBrandedId('TL', existingIds, /^TL-(\d+)$/, year);
+}
+
+/**
+ * B2B Client / Organization ID Generator: Format GR-CL-YYYY-001
+ */
+export function generateClientId(existingIds: string[], year?: number): string {
+  const currentYear = year || new Date().getFullYear();
+  return generateBrandedId('CL', existingIds, new RegExp(`^ORG-${currentYear}-(\\d+)$`), currentYear);
 }
 
 export function generateAssignmentId(existingIds: string[]): string {
