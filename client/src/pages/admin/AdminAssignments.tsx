@@ -36,8 +36,17 @@ export const AdminAssignments: React.FC = () => {
   const [endTime, setEndTime] = useState('17:00');
   const [submitting, setSubmitting] = useState(false);
 
-  // Detail Modal
+  // Detail & Edit Modals
   const [viewingAssignment, setViewingAssignment] = useState<Assignment | null>(null);
+  const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
+  const [editLocationId, setEditLocationId] = useState('');
+  const [editTeamIds, setEditTeamIds] = useState<string[]>([]);
+  const [editDate, setEditDate] = useState('');
+  const [editStartTime, setEditStartTime] = useState('');
+  const [editEndTime, setEditEndTime] = useState('');
+  const [editPriority, setEditPriority] = useState<Assignment['priority']>('MEDIUM');
+  const [editStatus, setEditStatus] = useState<Assignment['status']>('ASSIGNED');
+  const [submittingEdit, setSubmittingEdit] = useState(false);
 
   const loadData = async () => {
     try {
@@ -96,6 +105,50 @@ export const AdminAssignments: React.FC = () => {
       alert(err.message || 'Failed to dispatch work');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const openEditModal = (asn: Assignment) => {
+    setEditingAssignment(asn);
+    setEditLocationId(asn.locationId);
+    setEditTeamIds(asn.teamIds || []);
+    setEditDate(asn.date);
+    setEditStartTime(asn.startTime);
+    setEditEndTime(asn.endTime);
+    setEditPriority(asn.priority);
+    setEditStatus(asn.status);
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAssignment) return;
+    const selectedLoc = locations.find((l) => l.locationId === editLocationId);
+    if (!editLocationId || !selectedLoc || !editTeamIds.length) {
+      alert('Please select a work location and at least one team.');
+      return;
+    }
+    if (editStartTime >= editEndTime) {
+      alert('End time must be after start time.');
+      return;
+    }
+    setSubmittingEdit(true);
+    try {
+      await api.updateAssignment(editingAssignment.assignmentId, {
+        title: selectedLoc.name,
+        locationId: editLocationId,
+        teamIds: editTeamIds,
+        date: editDate,
+        startTime: editStartTime,
+        endTime: editEndTime,
+        priority: editPriority,
+        status: editStatus,
+      });
+      setEditingAssignment(null);
+      loadData();
+    } catch (err: any) {
+      alert(err.message || 'Failed to update assignment');
+    } finally {
+      setSubmittingEdit(false);
     }
   };
 
@@ -219,12 +272,20 @@ export const AdminAssignments: React.FC = () => {
                   </td>
 
                   <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => setViewingAssignment(asn)}
-                      className="px-2.5 py-1 text-2xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
-                    >
-                      View Order
-                    </button>
+                    <div className="inline-flex items-center justify-end gap-1.5">
+                      <button
+                        onClick={() => openEditModal(asn)}
+                        className="px-2.5 py-1 text-2xs font-semibold bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => setViewingAssignment(asn)}
+                        className="px-2.5 py-1 text-2xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
+                      >
+                        View Order
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -373,6 +434,134 @@ export const AdminAssignments: React.FC = () => {
             )}
           </div>
         )}
+      </Modal>
+
+      {/* EDIT ASSIGNMENT MODAL */}
+      <Modal
+        isOpen={!!editingAssignment}
+        onClose={() => setEditingAssignment(null)}
+        title={editingAssignment ? `Edit Assignment (${editingAssignment.assignmentId})` : 'Edit Assignment'}
+        maxWidth="md"
+      >
+        <form onSubmit={handleUpdate} className="space-y-3.5 text-xs">
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">Work Location *</label>
+            <select
+              required
+              value={editLocationId}
+              onChange={(e) => setEditLocationId(e.target.value)}
+              className="w-full px-3 py-2 bg-white text-slate-900 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+            >
+              {locations.map((loc) => (
+                <option key={loc.locationId} value={loc.locationId} className="text-slate-900 bg-white">
+                  {loc.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2.5">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">Date *</label>
+              <input
+                type="date"
+                required
+                value={editDate}
+                onChange={(e) => setEditDate(e.target.value)}
+                className="w-full px-2.5 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">Start Time *</label>
+              <input
+                type="time"
+                required
+                value={editStartTime}
+                onChange={(e) => setEditStartTime(e.target.value)}
+                className="w-full px-2.5 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">End Time *</label>
+              <input
+                type="time"
+                required
+                value={editEndTime}
+                onChange={(e) => setEditEndTime(e.target.value)}
+                className="w-full px-2.5 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">Priority</label>
+              <select
+                value={editPriority}
+                onChange={(e) => setEditPriority(e.target.value as Assignment['priority'])}
+                className="w-full px-2.5 py-2 bg-white text-slate-900 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+              >
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
+                <option value="URGENT">Urgent</option>
+              </select>
+            </div>
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">Status</label>
+              <select
+                value={editStatus}
+                onChange={(e) => setEditStatus(e.target.value as Assignment['status'])}
+                className="w-full px-2.5 py-2 bg-white text-slate-900 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+              >
+                <option value="ASSIGNED">Assigned</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="CANCELLED">Cancelled</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">Assign to Teams *</label>
+            <div className="space-y-1 max-h-28 overflow-y-auto border border-slate-200 rounded-lg p-2">
+              {teams.map((t) => (
+                <label key={t.teamId} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editTeamIds.includes(t.teamId)}
+                    onChange={() =>
+                      setEditTeamIds((prev) =>
+                        prev.includes(t.teamId) ? prev.filter((id) => id !== t.teamId) : [...prev, t.teamId]
+                      )
+                    }
+                    className="accent-blue-600"
+                  />
+                  <span>
+                    {t.name} ({t.memberWorkerIds.length} workers)
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => setEditingAssignment(null)}
+              className="flex-1 py-2 border border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={submittingEdit}
+              className="flex-1 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700"
+            >
+              {submittingEdit ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
       </Modal>
     </div>
   );

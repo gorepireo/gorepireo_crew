@@ -88,6 +88,23 @@ router.get('/:id', authMiddleware, (req: Request, res: Response) => {
   });
 });
 
+function resolveTeamWorkerIds(teamIds: string[] = [], explicitWorkerIds: string[] = []): string[] {
+  const finalWorkerIds = new Set<string>(explicitWorkerIds);
+  if (teamIds.length > 0) {
+    const allWorkers = db.getWorkers();
+    for (const tid of teamIds) {
+      const team = db.getTeamById(tid);
+      if (team) {
+        team.memberWorkerIds.forEach((wid) => finalWorkerIds.add(wid));
+      }
+      allWorkers.forEach((w) => {
+        if (w.primaryTeamId === tid) finalWorkerIds.add(w.workerId);
+      });
+    }
+  }
+  return Array.from(finalWorkerIds);
+}
+
 // POST /api/assignments (Admin only — Team Leaders can view assignments & take attendance)
 router.post('/', authMiddleware, requireRole(['ADMIN']), async (req: Request, res: Response) => {
   const {
@@ -115,28 +132,12 @@ router.post('/', authMiddleware, requireRole(['ADMIN']), async (req: Request, re
   const location = db.getLocationById(locationId);
   if (!location) return res.status(400).json({ error: 'Specified work location does not exist' });
 
-  // Consolidate worker IDs from both explicit selection and team selection, avoiding duplicates
-  const finalWorkerIds = new Set<string>(workerIds || []);
   const finalTeamIds = teamIds || [];
+  const assignedWorkerList = resolveTeamWorkerIds(finalTeamIds, workerIds || []);
 
-  if (finalTeamIds.length > 0) {
-    const allWorkers = db.getWorkers();
-    for (const tid of finalTeamIds) {
-      const team = db.getTeamById(tid);
-      if (team) {
-        team.memberWorkerIds.forEach(wid => finalWorkerIds.add(wid));
-      }
-      allWorkers.forEach(w => {
-        if (w.primaryTeamId === tid) finalWorkerIds.add(w.workerId);
-      });
-    }
-  }
-
-  if (finalWorkerIds.size === 0) {
+  if (assignedWorkerList.length === 0) {
     return res.status(400).json({ error: 'Must assign at least one worker or one team with active workers' });
   }
-
-  const assignedWorkerList = Array.from(finalWorkerIds);
   const existingIds = db.getAssignments().map(a => a.assignmentId);
   const assignmentId = generateAssignmentId(existingIds);
   const now = new Date().toISOString();
@@ -291,18 +292,52 @@ router.post('/:id/complete', authMiddleware, (req: Request, res: Response) => {
 });
 
 // PATCH /api/assignments/:id (Admin only)
-router.patch('/:id', authMiddleware, requireRole(['ADMIN']), (req: Request, res: Response) => {
+router.patch('/:id', authMiddleware, requireRole(['ADMIN']), async (req: Request, res: Response) => {
   const id = req.params.id as string;
   const assignment = db.getAssignmentById(id);
   if (!assignment) return res.status(404).json({ error: 'Assignment not found' });
 
-  const { title, description, status, priority, instructions } = req.body;
+  const { title, description, status, priority, instructions, locationId, date, startTime, endTime, teamIds, workerIds } = req.body;
+  const nextStart = startTime || assignment.startTime;
+  const nextEnd = endTime || assignment.endTime;
+  if (nextStart >= nextEnd) {
+    return res.status(400).json({ error: 'Scheduled end time must be after start time' });
+  }
+
   const updates: Partial<Assignment> = {};
   if (title) updates.title = title.trim();
   if (description !== undefined) updates.description = description;
   if (status) updates.status = status;
   if (priority) updates.priority = priority;
   if (instructions !== undefined) updates.instructions = instructions;
+  if (date) updates.date = date;
+  if (startTime) updates.startTime = startTime;
+  if (endTime) updates.endTime = endTime;
+
+  if (locationId && locationId !== assignment.locationId) {
+    await db.fetchLocationsFromTurso();
+    const location = db.getLocationById(locationId);
+    if (!location) return res.status(400).json({ error: 'Specified work location does not exist' });
+    updates.locationId = locationId;
+    updates.locationName = location.name;
+    updates.locationAddress = location.address;
+    updates.locationLatitude = location.latitude;
+    updates.locationLongitude = location.longitude;
+    updates.locationPhotoURL = location.photoURL;
+    if (!title) updates.title = location.name;
+  }
+
+  if (Array.isArray(teamIds)) {
+    await db.fetchTeamsFromTurso();
+    const resolvedWorkers = resolveTeamWorkerIds(teamIds, Array.isArray(workerIds) ? workerIds : []);
+    if (resolvedWorkers.length === 0) {
+      return res.status(400).json({ error: 'Must assign at least one worker or one team with active workers' });
+    }
+    updates.teamIds = teamIds;
+    updates.workerIds = resolvedWorkers;
+  } else if (Array.isArray(workerIds)) {
+    updates.workerIds = workerIds;
+  }
 
   const updated = db.updateAssignment(assignment.assignmentId, updates);
   res.json(updated);

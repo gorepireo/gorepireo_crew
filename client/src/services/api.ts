@@ -474,6 +474,13 @@ class ApiService {
     });
   }
 
+  async updateAssignment(id: string, data: Partial<Assignment>) {
+    return this.request<Assignment>(`/api/assignments/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
 
   async acceptAssignment(id: string) {
     return this.request<{ success: boolean; message: string }>(`/api/assignments/${id}/accept`, {
