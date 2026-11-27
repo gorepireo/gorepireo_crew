@@ -207,7 +207,8 @@ export const AdminAssignments: React.FC = () => {
           <option value="ASSIGNED">Assigned</option>
           <option value="ACCEPTED">Accepted</option>
           <option value="IN_PROGRESS">In Progress</option>
-          <option value="COMPLETED">Completed</option>
+          <option value="COMPLETED">Done</option>
+          <option value="NOT_DONE">Not Done</option>
           <option value="CANCELLED">Cancelled</option>
         </select>
       </div>
@@ -516,7 +517,8 @@ export const AdminAssignments: React.FC = () => {
               >
                 <option value="ASSIGNED">Assigned</option>
                 <option value="IN_PROGRESS">In Progress</option>
-                <option value="COMPLETED">Completed</option>
+                <option value="COMPLETED">Done</option>
+                <option value="NOT_DONE">Not Done</option>
                 <option value="CANCELLED">Cancelled</option>
               </select>
             </div>

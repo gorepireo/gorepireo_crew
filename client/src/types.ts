@@ -85,7 +85,7 @@ export interface WorkLocation {
 }
 
 export type AssignmentPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-export type AssignmentStatus = 'ASSIGNED' | 'ACCEPTED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+export type AssignmentStatus = 'ASSIGNED' | 'ACCEPTED' | 'IN_PROGRESS' | 'COMPLETED' | 'NOT_DONE' | 'CANCELLED';
 
 export interface Assignment {
   assignmentId: string;

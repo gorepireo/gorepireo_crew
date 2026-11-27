@@ -57,7 +57,7 @@ export function reconcileMissedAttendance(): number {
   let markedCount = 0;
 
   for (const a of assignments) {
-    if (a.status === 'CANCELLED' || a.status === 'COMPLETED') continue;
+    if (a.status === 'CANCELLED' || a.status === 'COMPLETED' || a.status === 'NOT_DONE') continue;
     if (!a.date) continue;
 
     const isPastDate = a.date < today;
@@ -105,6 +105,24 @@ export function reconcileMissedAttendance(): number {
         createdAt: now,
       });
     }
+
+    // Auto-close expired assignment: COMPLETED (Done) only if attendance + Before & After images are all done; otherwise NOT_DONE
+    const latestAttendance = db.getAttendance();
+    const hasAttendanceDone = Array.from(workerIds).some((wid) =>
+      latestAttendance.some(
+        (att) =>
+          att.workerId === wid &&
+          att.date === a.date &&
+          (att.status === 'PRESENT' || att.status === 'LATE' || att.status === 'CORRECTED')
+      )
+    );
+    const evidenceForJob = db.getWorkEvidence().filter((ev) => ev.assignmentId === a.assignmentId);
+    const hasBeforePhoto = evidenceForJob.some((ev) => ev.category === 'BEFORE');
+    const hasAfterPhoto = evidenceForJob.some((ev) => ev.category === 'AFTER');
+
+    db.updateAssignment(a.assignmentId, {
+      status: hasAttendanceDone && hasBeforePhoto && hasAfterPhoto ? 'COMPLETED' : 'NOT_DONE',
+    });
   }
 
   return markedCount;

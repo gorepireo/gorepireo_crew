@@ -71,7 +71,12 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' })
     case 'COMPLETED':
       styles = 'bg-emerald-50 text-emerald-700 border-emerald-200';
       dotColor = 'bg-emerald-500';
-      label = 'Completed';
+      label = 'Done';
+      break;
+    case 'NOT_DONE':
+      styles = 'bg-rose-50 text-rose-700 border-rose-200';
+      dotColor = 'bg-rose-500';
+      label = 'Not Done';
       break;
     case 'CANCELLED':
       styles = 'bg-slate-100 text-slate-500 border-slate-200';
