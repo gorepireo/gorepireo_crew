@@ -36,7 +36,8 @@ router.get('/', authMiddleware, async (req: Request, res: Response) => {
   }
 
   if (date) {
-    assignments = assignments.filter(a => a.date === date);
+    const targetDate = date as string;
+    assignments = assignments.filter(a => a.date <= targetDate && (a.endDate || a.date) >= targetDate);
   }
 
   if (workerId) {
@@ -114,16 +115,21 @@ router.post('/', authMiddleware, requireRole(['ADMIN']), async (req: Request, re
     teamIds,
     workerIds,
     date,
+    endDate,
     startTime,
     endTime,
     priority,
     instructions,
   } = req.body;
 
+  const effectiveEndDate = endDate || date;
   if (!title || !locationId || !date || !startTime || !endTime) {
-    return res.status(400).json({ error: 'Title, location, date, start time, and end time are required' });
+    return res.status(400).json({ error: 'Title, location, start date, start time, and end time are required' });
   }
-  if (startTime >= endTime) {
+  if (effectiveEndDate < date) {
+    return res.status(400).json({ error: 'End date cannot be before start date' });
+  }
+  if (effectiveEndDate === date && startTime >= endTime) {
     return res.status(400).json({ error: 'Scheduled end time must be after start time' });
   }
 
@@ -157,6 +163,7 @@ router.post('/', authMiddleware, requireRole(['ADMIN']), async (req: Request, re
     teamIds: finalTeamIds,
     workerIds: assignedWorkerList,
     date,
+    endDate: effectiveEndDate,
     startTime,
     endTime,
     priority: (priority as AssignmentPriority) || 'MEDIUM',
@@ -297,10 +304,15 @@ router.patch('/:id', authMiddleware, requireRole(['ADMIN']), async (req: Request
   const assignment = db.getAssignmentById(id);
   if (!assignment) return res.status(404).json({ error: 'Assignment not found' });
 
-  const { title, description, status, priority, instructions, locationId, date, startTime, endTime, teamIds, workerIds } = req.body;
+  const { title, description, status, priority, instructions, locationId, date, endDate, startTime, endTime, teamIds, workerIds } = req.body;
+  const nextStartDate = date || assignment.date;
+  const nextEndDate = endDate || assignment.endDate || nextStartDate;
   const nextStart = startTime || assignment.startTime;
   const nextEnd = endTime || assignment.endTime;
-  if (nextStart >= nextEnd) {
+  if (nextEndDate < nextStartDate) {
+    return res.status(400).json({ error: 'End date cannot be before start date' });
+  }
+  if (nextEndDate === nextStartDate && nextStart >= nextEnd) {
     return res.status(400).json({ error: 'Scheduled end time must be after start time' });
   }
 
@@ -311,6 +323,8 @@ router.patch('/:id', authMiddleware, requireRole(['ADMIN']), async (req: Request
   if (priority) updates.priority = priority;
   if (instructions !== undefined) updates.instructions = instructions;
   if (date) updates.date = date;
+  if (endDate) updates.endDate = endDate;
+  else if (date && (!assignment.endDate || assignment.endDate < date)) updates.endDate = date;
   if (startTime) updates.startTime = startTime;
   if (endTime) updates.endTime = endTime;
 

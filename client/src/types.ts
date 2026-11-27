@@ -102,6 +102,7 @@ export interface Assignment {
   teamIds: string[];
   workerIds: string[];
   date: string;
+  endDate?: string;
   startTime: string;
   endTime: string;
   priority: AssignmentPriority;

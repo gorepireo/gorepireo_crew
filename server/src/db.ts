@@ -1278,6 +1278,7 @@ class DatabaseService {
         client.execute("ALTER TABLE workers ADD COLUMN teamAssignmentStatus TEXT DEFAULT 'UNASSIGNED'").catch(() => {}),
         client.execute('ALTER TABLE locations ADD COLUMN photoURL TEXT').catch(() => {}),
         client.execute('ALTER TABLE locations ADD COLUMN googleDriveFileId TEXT').catch(() => {}),
+        client.execute('ALTER TABLE assignments ADD COLUMN endDate TEXT').catch(() => {}),
         client.execute('ALTER TABLE assignments ADD COLUMN organizationId TEXT').catch(() => {}),
         client.execute('ALTER TABLE assignments ADD COLUMN organizationName TEXT').catch(() => {}),
         client.execute('ALTER TABLE assignments ADD COLUMN cleaningRequirements TEXT').catch(() => {}),
@@ -1432,6 +1433,7 @@ class DatabaseService {
         teamIds: safeJsonParse<string[]>(r.teamIds, []),
         workerIds: safeJsonParse<string[]>(r.workerIds, []),
         date: r.date,
+        endDate: r.endDate || r.date,
         startTime: r.startTime || undefined,
         endTime: r.endTime || undefined,
         priority: r.priority || 'HIGH',
@@ -2510,6 +2512,7 @@ class DatabaseService {
           teamIds: safeJsonParse<string[]>(r.teamIds, []),
           workerIds: safeJsonParse<string[]>(r.workerIds, []),
           date: r.date,
+          endDate: r.endDate || r.date,
           startTime: r.startTime || undefined,
           endTime: r.endTime || undefined,
           priority: r.priority || 'HIGH',
@@ -2552,7 +2555,7 @@ class DatabaseService {
     this.invalidateFetch('assignments');
     if (!this.tursoClient) return;
     await this.tursoClient.execute({
-      sql: `INSERT OR REPLACE INTO assignments (assignmentId, title, description, locationId, locationName, locationAddress, locationLatitude, locationLongitude, assignedBy, assignedByName, teamIds, workerIds, date, startTime, endTime, priority, status, instructions, completionNote, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      sql: `INSERT OR REPLACE INTO assignments (assignmentId, title, description, locationId, locationName, locationAddress, locationLatitude, locationLongitude, assignedBy, assignedByName, teamIds, workerIds, date, endDate, startTime, endTime, priority, status, instructions, completionNote, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         assignment.assignmentId,
         assignment.title,
@@ -2567,6 +2570,7 @@ class DatabaseService {
         JSON.stringify(assignment.teamIds || []),
         JSON.stringify(assignment.workerIds || []),
         assignment.date,
+        assignment.endDate || assignment.date,
         assignment.startTime || null,
         assignment.endTime || null,
         assignment.priority || 'HIGH',
@@ -2583,8 +2587,8 @@ class DatabaseService {
     this.persist();
     if (this.tursoClient) {
       this.tursoClient.execute({
-        sql: `INSERT OR REPLACE INTO assignments (assignmentId, title, description, locationId, locationName, locationAddress, locationLatitude, locationLongitude, assignedBy, assignedByName, teamIds, workerIds, date, startTime, endTime, priority, status, instructions, completionNote, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        args: [assignment.assignmentId, assignment.title, assignment.description || null, assignment.locationId || null, assignment.locationName || null, assignment.locationAddress || null, assignment.locationLatitude || null, assignment.locationLongitude || null, assignment.assignedBy || null, assignment.assignedByName || null, JSON.stringify(assignment.teamIds || []), JSON.stringify(assignment.workerIds || []), assignment.date, assignment.startTime || null, assignment.endTime || null, assignment.priority || 'HIGH', assignment.status || 'ASSIGNED', assignment.instructions || null, assignment.completionNote || null, assignment.createdAt, assignment.updatedAt],
+        sql: `INSERT OR REPLACE INTO assignments (assignmentId, title, description, locationId, locationName, locationAddress, locationLatitude, locationLongitude, assignedBy, assignedByName, teamIds, workerIds, date, endDate, startTime, endTime, priority, status, instructions, completionNote, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [assignment.assignmentId, assignment.title, assignment.description || null, assignment.locationId || null, assignment.locationName || null, assignment.locationAddress || null, assignment.locationLatitude || null, assignment.locationLongitude || null, assignment.assignedBy || null, assignment.assignedByName || null, JSON.stringify(assignment.teamIds || []), JSON.stringify(assignment.workerIds || []), assignment.date, assignment.endDate || assignment.date, assignment.startTime || null, assignment.endTime || null, assignment.priority || 'HIGH', assignment.status || 'ASSIGNED', assignment.instructions || null, assignment.completionNote || null, assignment.createdAt, assignment.updatedAt],
       }).catch((e: any) => console.warn('[TURSO] assignment insert error:', e.message));
     }
     return assignment;
@@ -2597,8 +2601,8 @@ class DatabaseService {
       const a = this.data.assignments[idx];
       if (this.tursoClient) {
         this.tursoClient.execute({
-          sql: `UPDATE assignments SET title = ?, description = ?, locationId = ?, locationName = ?, locationAddress = ?, locationLatitude = ?, locationLongitude = ?, assignedBy = ?, assignedByName = ?, teamIds = ?, workerIds = ?, date = ?, startTime = ?, endTime = ?, priority = ?, status = ?, instructions = ?, completionNote = ?, updatedAt = ? WHERE assignmentId = ?`,
-          args: [a.title, a.description || null, a.locationId || null, a.locationName || null, a.locationAddress || null, a.locationLatitude || null, a.locationLongitude || null, a.assignedBy || null, a.assignedByName || null, JSON.stringify(a.teamIds || []), JSON.stringify(a.workerIds || []), a.date, a.startTime || null, a.endTime || null, a.priority || 'HIGH', a.status || 'ASSIGNED', a.instructions || null, a.completionNote || null, a.updatedAt, id],
+          sql: `UPDATE assignments SET title = ?, description = ?, locationId = ?, locationName = ?, locationAddress = ?, locationLatitude = ?, locationLongitude = ?, assignedBy = ?, assignedByName = ?, teamIds = ?, workerIds = ?, date = ?, endDate = ?, startTime = ?, endTime = ?, priority = ?, status = ?, instructions = ?, completionNote = ?, updatedAt = ? WHERE assignmentId = ?`,
+          args: [a.title, a.description || null, a.locationId || null, a.locationName || null, a.locationAddress || null, a.locationLatitude || null, a.locationLongitude || null, a.assignedBy || null, a.assignedByName || null, JSON.stringify(a.teamIds || []), JSON.stringify(a.workerIds || []), a.date, a.endDate || a.date, a.startTime || null, a.endTime || null, a.priority || 'HIGH', a.status || 'ASSIGNED', a.instructions || null, a.completionNote || null, a.updatedAt, id],
         }).catch((e: any) => console.warn('[TURSO] assignment update error:', e.message));
       }
       return this.data.assignments[idx];

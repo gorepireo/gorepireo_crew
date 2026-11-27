@@ -32,6 +32,7 @@ export const AdminAssignments: React.FC = () => {
   const [locationId, setLocationId] = useState('');
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]);
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
   const [startTime, setStartTime] = useState('08:00');
   const [endTime, setEndTime] = useState('17:00');
   const [submitting, setSubmitting] = useState(false);
@@ -42,6 +43,7 @@ export const AdminAssignments: React.FC = () => {
   const [editLocationId, setEditLocationId] = useState('');
   const [editTeamIds, setEditTeamIds] = useState<string[]>([]);
   const [editDate, setEditDate] = useState('');
+  const [editEndDate, setEditEndDate] = useState('');
   const [editStartTime, setEditStartTime] = useState('');
   const [editEndTime, setEditEndTime] = useState('');
   const [editPriority, setEditPriority] = useState<Assignment['priority']>('MEDIUM');
@@ -80,7 +82,11 @@ export const AdminAssignments: React.FC = () => {
       alert('Please select a work location and at least one team.');
       return;
     }
-    if (startTime >= endTime) {
+    if (endDate < date) {
+      alert('End date cannot be before start date.');
+      return;
+    }
+    if (endDate === date && startTime >= endTime) {
       alert('End time must be after start time.');
       return;
     }
@@ -93,6 +99,7 @@ export const AdminAssignments: React.FC = () => {
         teamIds: selectedTeamIds,
         workerIds: [],
         date,
+        endDate,
         startTime,
         endTime,
         priority: 'MEDIUM',
@@ -113,6 +120,7 @@ export const AdminAssignments: React.FC = () => {
     setEditLocationId(asn.locationId);
     setEditTeamIds(asn.teamIds || []);
     setEditDate(asn.date);
+    setEditEndDate(asn.endDate || asn.date);
     setEditStartTime(asn.startTime);
     setEditEndTime(asn.endTime);
     setEditPriority(asn.priority);
@@ -127,7 +135,11 @@ export const AdminAssignments: React.FC = () => {
       alert('Please select a work location and at least one team.');
       return;
     }
-    if (editStartTime >= editEndTime) {
+    if (editEndDate < editDate) {
+      alert('End date cannot be before start date.');
+      return;
+    }
+    if (editEndDate === editDate && editStartTime >= editEndTime) {
       alert('End time must be after start time.');
       return;
     }
@@ -138,6 +150,7 @@ export const AdminAssignments: React.FC = () => {
         locationId: editLocationId,
         teamIds: editTeamIds,
         date: editDate,
+        endDate: editEndDate,
         startTime: editStartTime,
         endTime: editEndTime,
         priority: editPriority,
@@ -247,7 +260,9 @@ export const AdminAssignments: React.FC = () => {
                   </td>
 
                   <td className="px-4 py-3 font-mono text-slate-700 text-2xs">
-                    <div>{asn.date}</div>
+                    <div>
+                      {asn.endDate && asn.endDate !== asn.date ? `${asn.date} → ${asn.endDate}` : asn.date}
+                    </div>
                     <div className="text-slate-400">
                       {asn.startTime} - {asn.endTime}
                     </div>
@@ -323,14 +338,18 @@ export const AdminAssignments: React.FC = () => {
             </select>
           </div>
 
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-2 gap-2.5">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Date *</label>
+              <label className="block font-semibold text-slate-700 mb-1">Start Date *</label>
               <input
                 type="date"
                 required
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  if (endDate === date || endDate < next) setEndDate(next);
+                  setDate(next);
+                }}
                 className="w-full px-2.5 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600"
               />
             </div>
@@ -341,6 +360,20 @@ export const AdminAssignments: React.FC = () => {
                 required
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
+                className="w-full px-2.5 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">End Date *</label>
+              <input
+                type="date"
+                required
+                min={date}
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
                 className="w-full px-2.5 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600"
               />
             </div>
@@ -421,7 +454,7 @@ export const AdminAssignments: React.FC = () => {
                 <strong>Location:</strong> {viewingAssignment.locationName}
               </p>
               <p>
-                <strong>Date & Time:</strong> {viewingAssignment.date} ({viewingAssignment.startTime} - {viewingAssignment.endTime})
+                <strong>Schedule:</strong> {viewingAssignment.date} ({viewingAssignment.startTime}) → {viewingAssignment.endDate || viewingAssignment.date} ({viewingAssignment.endTime})
               </p>
               <p>
                 <strong>Total Assigned Workers:</strong> {viewingAssignment.workerIds.length}
@@ -461,14 +494,18 @@ export const AdminAssignments: React.FC = () => {
             </select>
           </div>
 
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-2 gap-2.5">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Date *</label>
+              <label className="block font-semibold text-slate-700 mb-1">Start Date *</label>
               <input
                 type="date"
                 required
                 value={editDate}
-                onChange={(e) => setEditDate(e.target.value)}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  if (editEndDate === editDate || editEndDate < next) setEditEndDate(next);
+                  setEditDate(next);
+                }}
                 className="w-full px-2.5 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600"
               />
             </div>
@@ -479,6 +516,20 @@ export const AdminAssignments: React.FC = () => {
                 required
                 value={editStartTime}
                 onChange={(e) => setEditStartTime(e.target.value)}
+                className="w-full px-2.5 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">End Date *</label>
+              <input
+                type="date"
+                required
+                min={editDate}
+                value={editEndDate}
+                onChange={(e) => setEditEndDate(e.target.value)}
                 className="w-full px-2.5 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600"
               />
             </div>

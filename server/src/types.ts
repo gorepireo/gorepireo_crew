@@ -106,7 +106,8 @@ export interface Assignment {
   assignedByName?: string;
   teamIds: string[];
   workerIds: string[];
-  date: string; // YYYY-MM-DD
+  date: string; // YYYY-MM-DD (Start Date)
+  endDate?: string; // YYYY-MM-DD (End Date, defaults to date)
   startTime: string; // HH:mm
   endTime: string; // HH:mm
   priority: AssignmentPriority;

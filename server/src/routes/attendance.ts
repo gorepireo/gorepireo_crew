@@ -50,6 +50,17 @@ export function getOrgLocalDateTime(timezone = 'Asia/Kolkata'): {
  * (or its endTime has passed today) and an assigned worker has no attendance record
  * for that date, automatically marks them ABSENT in the database.
  */
+function getDatesBetween(startDate: string, endDate: string): string[] {
+  const dates: string[] = [];
+  const start = new Date(`${startDate}T00:00:00Z`);
+  const end = new Date(`${endDate}T00:00:00Z`);
+  if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) return [startDate];
+  for (let d = new Date(start); d <= end && dates.length < 60; d.setUTCDate(d.getUTCDate() + 1)) {
+    dates.push(d.toISOString().slice(0, 10));
+  }
+  return dates;
+}
+
 export function reconcileMissedAttendance(): number {
   const settings = db.getSettings();
   const { dateStr: today, timeStr: currentHHMM } = getOrgLocalDateTime(settings.timezone || 'Asia/Kolkata');
@@ -60,60 +71,74 @@ export function reconcileMissedAttendance(): number {
     if (a.status === 'CANCELLED' || a.status === 'COMPLETED' || a.status === 'NOT_DONE') continue;
     if (!a.date) continue;
 
-    const isPastDate = a.date < today;
-    const isEndedToday = a.date === today && !!a.endTime && currentHHMM > a.endTime;
-    if (!isPastDate && !isEndedToday) continue;
-
-    const allAttendance = db.getAttendance();
+    const effectiveEndDate = a.endDate && a.endDate >= a.date ? a.endDate : a.date;
+    const allDates = getDatesBetween(a.date, effectiveEndDate);
     const workerIds = new Set<string>(a.workerIds || []);
-    for (const wid of workerIds) {
-      const existing = allAttendance.find((att) => att.workerId === wid && att.date === a.date);
-      if (existing) continue;
 
-      const worker = db.getWorkerById(wid);
-      if (!worker) continue;
+    // Mark ABSENT for any scheduled day that has already passed (or ended today) without attendance
+    for (const d of allDates) {
+      const isDayPast = d < today;
+      const isFinalDayEndedToday = d === today && d === effectiveEndDate && !!a.endTime && currentHHMM > a.endTime;
+      if (!isDayPast && !isFinalDayEndedToday) continue;
 
-      const now = new Date().toISOString();
-      const absRecord: Attendance = {
-        attendanceId: `att-abs-${a.date}-${wid}`,
-        workerId: wid,
-        workerName: worker.name,
-        workerCode: worker.workerId,
-        teamId: worker.primaryTeamId || a.teamIds?.[0],
-        teamName: worker.primaryTeamName,
-        assignmentId: a.assignmentId,
-        assignmentTitle: a.title,
-        date: a.date,
-        status: 'ABSENT',
-        verificationStatus: 'FLAGGED',
-        photoStatus: 'MISSING',
-        remarks: `Auto-marked ABSENT: Missed scheduled work "${a.title}" (${a.date} ${a.startTime || ''}–${a.endTime || ''})`,
-        createdAt: now,
-        updatedAt: now,
-      };
-      db.addAttendance(absRecord);
-      markedCount++;
+      const allAttendance = db.getAttendance();
+      for (const wid of workerIds) {
+        const existing = allAttendance.find((att) => att.workerId === wid && att.date === d);
+        if (existing) continue;
 
-      db.addNotification({
-        notificationId: `notif-abs-${a.date}-${wid}`,
-        recipientId: wid,
-        title: 'Missed Scheduled Work (Absent)',
-        message: `You were marked ABSENT for "${a.title}" on ${a.date} (${a.startTime} - ${a.endTime}) because no check-in was recorded.`,
-        type: 'ATTENDANCE',
-        read: false,
-        relatedEntityId: absRecord.attendanceId,
-        createdAt: now,
-      });
+        const worker = db.getWorkerById(wid);
+        if (!worker) continue;
+
+        const now = new Date().toISOString();
+        const absRecord: Attendance = {
+          attendanceId: `att-abs-${d}-${wid}`,
+          workerId: wid,
+          workerName: worker.name,
+          workerCode: worker.workerId,
+          teamId: worker.primaryTeamId || a.teamIds?.[0],
+          teamName: worker.primaryTeamName,
+          assignmentId: a.assignmentId,
+          assignmentTitle: a.title,
+          date: d,
+          status: 'ABSENT',
+          verificationStatus: 'FLAGGED',
+          photoStatus: 'MISSING',
+          remarks: `Auto-marked ABSENT: Missed scheduled work "${a.title}" (${d} ${a.startTime || ''}–${a.endTime || ''})`,
+          createdAt: now,
+          updatedAt: now,
+        };
+        db.addAttendance(absRecord);
+        markedCount++;
+
+        db.addNotification({
+          notificationId: `notif-abs-${d}-${wid}`,
+          recipientId: wid,
+          title: 'Missed Scheduled Work (Absent)',
+          message: `You were marked ABSENT for "${a.title}" on ${d} (${a.startTime} - ${a.endTime}) because no check-in was recorded.`,
+          type: 'ATTENDANCE',
+          read: false,
+          relatedEntityId: absRecord.attendanceId,
+          createdAt: now,
+        });
+      }
     }
 
-    // Auto-close expired assignment: COMPLETED (Done) only if attendance + Before & After images are all done; otherwise NOT_DONE
+    // Only close the assignment once its full End Date + End Time has passed
+    const isExpired =
+      today > effectiveEndDate ||
+      (today === effectiveEndDate && !!a.endTime && currentHHMM > a.endTime);
+    if (!isExpired) continue;
+
+    // Auto-close expired assignment: COMPLETED (Done) only if every scheduled day has valid attendance + Before & After images are uploaded; otherwise NOT_DONE
     const latestAttendance = db.getAttendance();
-    const hasAttendanceDone = Array.from(workerIds).some((wid) =>
-      latestAttendance.some(
-        (att) =>
-          att.workerId === wid &&
-          att.date === a.date &&
-          (att.status === 'PRESENT' || att.status === 'LATE' || att.status === 'CORRECTED')
+    const hasAllDaysAttendance = allDates.every((d) =>
+      Array.from(workerIds).some((wid) =>
+        latestAttendance.some(
+          (att) =>
+            att.workerId === wid &&
+            att.date === d &&
+            (att.status === 'PRESENT' || att.status === 'LATE' || att.status === 'CORRECTED')
+        )
       )
     );
     const evidenceForJob = db.getWorkEvidence().filter((ev) => ev.assignmentId === a.assignmentId);
@@ -121,7 +146,7 @@ export function reconcileMissedAttendance(): number {
     const hasAfterPhoto = evidenceForJob.some((ev) => ev.category === 'AFTER');
 
     db.updateAssignment(a.assignmentId, {
-      status: hasAttendanceDone && hasBeforePhoto && hasAfterPhoto ? 'COMPLETED' : 'NOT_DONE',
+      status: hasAllDaysAttendance && hasBeforePhoto && hasAfterPhoto ? 'COMPLETED' : 'NOT_DONE',
     });
   }
 
