@@ -1,53 +1,64 @@
+import crypto from 'crypto';
+
+const LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+const DIGITS = '0123456789';
+const ALPHANUM = LETTERS + DIGITS;
+
 /**
- * Shared Go_Repireo branded ID generator (GR-<ROLE>-YYYY-001).
- * Scans both new branded IDs and legacy IDs so sequences never collide.
+ * Shared Go_Repireo branded ID generator (GR-<ROLE>-YYYY-XXX).
+ * Generates a unique 3-character alphanumeric suffix (e.g. A02, H47, U5H)
+ * guaranteed to contain both letters and digits and never collide with existingIds.
  */
 function generateBrandedId(
   roleCode: 'WC' | 'TL' | 'CL',
   existingIds: string[],
-  legacyRegex: RegExp,
   year?: number
 ): string {
   const currentYear = year || new Date().getFullYear();
   const prefix = `GR-${roleCode}-${currentYear}-`;
-  const brandedRegex = new RegExp(`^GR-${roleCode}-${currentYear}-(\\d+)$`);
+  const existingSet = new Set(existingIds.map((id) => id.toUpperCase()));
 
-  let maxSequence = 0;
-  for (const id of existingIds) {
-    const match = id.match(brandedRegex) || id.match(legacyRegex);
-    if (match) {
-      const seq = parseInt(match[1], 10);
-      if (!isNaN(seq) && seq > maxSequence) {
-        maxSequence = seq;
-      }
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const chars = [
+      LETTERS[crypto.randomInt(LETTERS.length)],
+      DIGITS[crypto.randomInt(DIGITS.length)],
+      ALPHANUM[crypto.randomInt(ALPHANUM.length)],
+    ];
+    // Fisher-Yates shuffle so letter/digit positions vary (e.g. A02, H47, U5H)
+    for (let i = chars.length - 1; i > 0; i--) {
+      const j = crypto.randomInt(i + 1);
+      [chars[i], chars[j]] = [chars[j], chars[i]];
+    }
+    const candidate = `${prefix}${chars.join('')}`;
+    if (!existingSet.has(candidate)) {
+      return candidate;
     }
   }
 
-  const nextSeq = (maxSequence + 1).toString().padStart(3, '0');
-  return `${prefix}${nextSeq}`;
+  // Fallback with 4-char alphanumeric suffix if 3-char space is exhausted
+  const fallback = Array.from({ length: 4 }, () => ALPHANUM[crypto.randomInt(ALPHANUM.length)]).join('');
+  return `${prefix}${fallback}`;
 }
 
 /**
- * Worker ID Generator: Format GR-WC-YYYY-001
+ * Worker ID Generator: Format GR-WC-YYYY-XXX (e.g. GR-WC-2026-A02)
  */
 export function generateWorkerId(existingIds: string[], year?: number): string {
-  const currentYear = year || new Date().getFullYear();
-  return generateBrandedId('WC', existingIds, new RegExp(`^WC-${currentYear}-(\\d+)$`), currentYear);
+  return generateBrandedId('WC', existingIds, year);
 }
 
 /**
- * Team Leader ID Generator: Format GR-TL-YYYY-001
+ * Team Leader ID Generator: Format GR-TL-YYYY-XXX (e.g. GR-TL-2026-H47)
  */
 export function generateLeaderId(existingIds: string[], year?: number): string {
-  return generateBrandedId('TL', existingIds, /^TL-(\d+)$/, year);
+  return generateBrandedId('TL', existingIds, year);
 }
 
 /**
- * B2B Client / Organization ID Generator: Format GR-CL-YYYY-001
+ * B2B Client / Organization ID Generator: Format GR-CL-YYYY-XXX (e.g. GR-CL-2026-U5H)
  */
 export function generateClientId(existingIds: string[], year?: number): string {
-  const currentYear = year || new Date().getFullYear();
-  return generateBrandedId('CL', existingIds, new RegExp(`^ORG-${currentYear}-(\\d+)$`), currentYear);
+  return generateBrandedId('CL', existingIds, year);
 }
 
 export function generateAssignmentId(existingIds: string[]): string {
