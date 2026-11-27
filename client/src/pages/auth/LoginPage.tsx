@@ -87,7 +87,8 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await login(phone, password);
+      const loginIdentifier = /[a-zA-Z@]/.test(phone) ? phone.trim() : (toIndianPhoneValue(phone) || phone.trim());
+      const res = await login(loginIdentifier, password);
       if (res.mustChangePassword) {
         setTargetRedirect(res.redirectUrl);
         setShowChangeModal(true);
@@ -307,15 +308,14 @@ export const LoginPage: React.FC = () => {
                   </div>
                   <input
                     type="text"
-                    inputMode={/[a-zA-Z@]/.test(phone) ? 'text' : 'tel'}
                     required
-                    value={/[a-zA-Z@]/.test(phone) ? phone : extractIndianDigits(phone)}
+                    value={phone}
                     onChange={(e) => {
-                      const raw = e.target.value;
-                      if (/[a-zA-Z@]/.test(raw)) {
-                        setPhone(raw);
+                      const val = e.target.value;
+                      if (val.startsWith('+91')) {
+                        setPhone(extractIndianDigits(val));
                       } else {
-                        setPhone(toIndianPhoneValue(raw));
+                        setPhone(val);
                       }
                     }}
                     placeholder="9876543210 or Username"
