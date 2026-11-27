@@ -22,7 +22,6 @@ export const AdminLeaders: React.FC = () => {
   const [status, setStatus] = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE');
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]);
   const [canAddWorkers, setCanAddWorkers] = useState(true);
-  const [canAssignJobs, setCanAssignJobs] = useState(true);
   const [canCorrectAttendance, setCanCorrectAttendance] = useState(true);
   const [canCreateTeams, setCanCreateTeams] = useState(true);
   const [submittingAdd, setSubmittingAdd] = useState(false);
@@ -72,7 +71,7 @@ export const AdminLeaders: React.FC = () => {
         managedTeamIds: selectedTeamIds,
         permissions: {
           canAddWorkers,
-          canAssignJobs,
+          canAssignJobs: false,
           canCorrectAttendance,
           canCreateTeams,
         },
@@ -366,9 +365,6 @@ export const AdminLeaders: React.FC = () => {
                     <span className={leader.permissions.canAddWorkers ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
                       ✓ Register Workers
                     </span>
-                    <span className={leader.permissions.canAssignJobs ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
-                      ✓ Dispatch Jobs
-                    </span>
                     <span className={leader.permissions.canCorrectAttendance ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
                       ✓ Correct Attendance
                     </span>
@@ -467,15 +463,6 @@ export const AdminLeaders: React.FC = () => {
                   className="accent-blue-600"
                 />
                 <span>Can Register Workers</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={canAssignJobs}
-                  onChange={(e) => setCanAssignJobs(e.target.checked)}
-                  className="accent-blue-600"
-                />
-                <span>Can Dispatch Jobs</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
