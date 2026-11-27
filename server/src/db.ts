@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import bcrypt from 'bcryptjs';
 import { createClient, Client } from '@libsql/client/web';
+import { generateWorkerId, generateLeaderId, generateClientId } from './utils/idGenerator';
 import {
   User,
   UserRole,
@@ -1613,6 +1614,7 @@ class DatabaseService {
       this.sanitizeState(this.data);
       this.saveData(this.data);
       console.log(`[TURSO] Successfully hydrated in-memory state directly from Turso relational tables: ${this.data.workers.length} workers, ${this.data.teamLeaders.length} leaders, ${this.data.teams.length} teams, ${this.data.locations.length} locations, ${this.data.assignments.length} assignments, ${this.data.attendance.length} attendance.`);
+      await this.migrateLegacyBrandedIds();
     } catch (err: any) {
       console.warn('[TURSO] Error syncing from relational tables, falling back to backup store:', err.message);
       try {
@@ -1632,6 +1634,177 @@ class DatabaseService {
         console.warn('[TURSO] Sync from cloud store skipped, using local cache:', e.message);
       }
     }
+  }
+
+  private async migrateLegacyBrandedIds(): Promise<void> {
+    const legacyWorkers = this.data.workers.filter((w) => !w.workerId.startsWith('GR-WC-'));
+    const legacyLeaders = this.data.teamLeaders.filter((l) => !l.leaderId.startsWith('GR-TL-'));
+    const legacyOrgs = this.data.organizations.filter((o) => !o.organizationId.startsWith('GR-CL-'));
+
+    if (legacyWorkers.length === 0 && legacyLeaders.length === 0 && legacyOrgs.length === 0) {
+      return;
+    }
+
+    const workerMap = new Map<string, string>();
+    const existingWorkerIds = this.data.workers.map((w) => w.workerId);
+    for (const w of legacyWorkers) {
+      const yr = w.createdAt ? new Date(w.createdAt).getFullYear() : undefined;
+      const newId = generateWorkerId(existingWorkerIds, yr && !isNaN(yr) ? yr : undefined);
+      existingWorkerIds.push(newId);
+      workerMap.set(w.workerId, newId);
+      w.workerId = newId;
+    }
+
+    const leaderMap = new Map<string, string>();
+    const existingLeaderIds = this.data.teamLeaders.map((l) => l.leaderId);
+    for (const l of legacyLeaders) {
+      const yr = l.createdAt ? new Date(l.createdAt).getFullYear() : undefined;
+      const newId = generateLeaderId(existingLeaderIds, yr && !isNaN(yr) ? yr : undefined);
+      existingLeaderIds.push(newId);
+      leaderMap.set(l.leaderId, newId);
+      l.leaderId = newId;
+    }
+
+    const orgMap = new Map<string, string>();
+    const existingOrgIds = this.data.organizations.map((o) => o.organizationId);
+    for (const o of legacyOrgs) {
+      const yr = o.createdAt ? new Date(o.createdAt).getFullYear() : undefined;
+      const newId = generateClientId(existingOrgIds, yr && !isNaN(yr) ? yr : undefined);
+      existingOrgIds.push(newId);
+      orgMap.set(o.organizationId, newId);
+      o.organizationId = newId;
+    }
+
+    // Update in-memory references across collections
+    this.data.teams.forEach((t) => {
+      if (t.memberWorkerIds) {
+        t.memberWorkerIds = t.memberWorkerIds.map((id) => workerMap.get(id) || id);
+      }
+      if (t.leaderIds) {
+        t.leaderIds = t.leaderIds.map((id) => leaderMap.get(id) || id);
+      }
+    });
+
+    this.data.assignments.forEach((a) => {
+      if (a.workerIds) {
+        a.workerIds = a.workerIds.map((id) => workerMap.get(id) || id);
+      }
+      if (a.assignedBy && leaderMap.has(a.assignedBy)) {
+        a.assignedBy = leaderMap.get(a.assignedBy)!;
+      }
+      if (a.organizationId && orgMap.has(a.organizationId)) {
+        a.organizationId = orgMap.get(a.organizationId)!;
+      }
+    });
+
+    this.data.attendance.forEach((att) => {
+      if (workerMap.has(att.workerId)) {
+        att.workerId = workerMap.get(att.workerId)!;
+      }
+      if (att.workerCode && workerMap.has(att.workerCode)) {
+        att.workerCode = workerMap.get(att.workerCode)!;
+      }
+    });
+
+    this.data.workEvidence.forEach((ev) => {
+      if (workerMap.has(ev.workerId)) {
+        ev.workerId = workerMap.get(ev.workerId)!;
+      }
+    });
+
+    this.data.notifications.forEach((n) => {
+      if (workerMap.has(n.recipientId)) {
+        n.recipientId = workerMap.get(n.recipientId)!;
+      } else if (leaderMap.has(n.recipientId)) {
+        n.recipientId = leaderMap.get(n.recipientId)!;
+      }
+    });
+
+    this.data.users.forEach((u) => {
+      if (u.organizationId && orgMap.has(u.organizationId)) {
+        u.organizationId = orgMap.get(u.organizationId)!;
+      }
+    });
+
+    this.data.invoices.forEach((inv) => {
+      if (orgMap.has(inv.organizationId)) {
+        inv.organizationId = orgMap.get(inv.organizationId)!;
+      }
+    });
+
+    this.data.payments.forEach((p) => {
+      if (orgMap.has(p.organizationId)) {
+        p.organizationId = orgMap.get(p.organizationId)!;
+      }
+    });
+
+    this.data.activityLogs.forEach((log) => {
+      if (workerMap.has(log.entityId)) log.entityId = workerMap.get(log.entityId)!;
+      else if (leaderMap.has(log.entityId)) log.entityId = leaderMap.get(log.entityId)!;
+      else if (orgMap.has(log.entityId)) log.entityId = orgMap.get(log.entityId)!;
+    });
+
+    this.saveData(this.data);
+
+    // Persist migrated IDs to Turso SQLite
+    if (this.tursoClient) {
+      const queries: Promise<any>[] = [];
+
+      for (const [oldId, newId] of workerMap.entries()) {
+        queries.push(
+          this.tursoClient.execute({ sql: 'UPDATE workers SET workerId = ? WHERE workerId = ?', args: [newId, oldId] }).catch(() => {}),
+          this.tursoClient.execute({ sql: 'UPDATE attendance SET workerId = ?, workerCode = ? WHERE workerId = ?', args: [newId, newId, oldId] }).catch(() => {}),
+          this.tursoClient.execute({ sql: 'UPDATE workEvidence SET workerId = ? WHERE workerId = ?', args: [newId, oldId] }).catch(() => {}),
+          this.tursoClient.execute({ sql: 'UPDATE notifications SET recipientId = ? WHERE recipientId = ?', args: [newId, oldId] }).catch(() => {}),
+          this.tursoClient.execute({ sql: 'UPDATE activityLogs SET entityId = ? WHERE entityId = ?', args: [newId, oldId] }).catch(() => {})
+        );
+      }
+
+      for (const [oldId, newId] of leaderMap.entries()) {
+        queries.push(
+          this.tursoClient.execute({ sql: 'UPDATE teamLeaders SET leaderId = ? WHERE leaderId = ?', args: [newId, oldId] }).catch(() => {}),
+          this.tursoClient.execute({ sql: 'UPDATE assignments SET assignedBy = ? WHERE assignedBy = ?', args: [newId, oldId] }).catch(() => {}),
+          this.tursoClient.execute({ sql: 'UPDATE notifications SET recipientId = ? WHERE recipientId = ?', args: [newId, oldId] }).catch(() => {}),
+          this.tursoClient.execute({ sql: 'UPDATE activityLogs SET entityId = ? WHERE entityId = ?', args: [newId, oldId] }).catch(() => {})
+        );
+      }
+
+      for (const [oldId, newId] of orgMap.entries()) {
+        queries.push(
+          this.tursoClient.execute({ sql: 'UPDATE organizations SET organizationId = ? WHERE organizationId = ?', args: [newId, oldId] }).catch(() => {}),
+          this.tursoClient.execute({ sql: 'UPDATE users SET organizationId = ? WHERE organizationId = ?', args: [newId, oldId] }).catch(() => {}),
+          this.tursoClient.execute({ sql: 'UPDATE assignments SET organizationId = ? WHERE organizationId = ?', args: [newId, oldId] }).catch(() => {}),
+          this.tursoClient.execute({ sql: 'UPDATE invoices SET organizationId = ? WHERE organizationId = ?', args: [newId, oldId] }).catch(() => {}),
+          this.tursoClient.execute({ sql: 'UPDATE payments SET organizationId = ? WHERE organizationId = ?', args: [newId, oldId] }).catch(() => {}),
+          this.tursoClient.execute({ sql: 'UPDATE activityLogs SET entityId = ? WHERE entityId = ?', args: [newId, oldId] }).catch(() => {})
+        );
+      }
+
+      for (const t of this.data.teams) {
+        queries.push(
+          this.tursoClient.execute({
+            sql: 'UPDATE teams SET memberWorkerIds = ?, leaderIds = ? WHERE teamId = ?',
+            args: [JSON.stringify(t.memberWorkerIds || []), JSON.stringify(t.leaderIds || []), t.teamId],
+          }).catch(() => {})
+        );
+      }
+
+      for (const a of this.data.assignments) {
+        queries.push(
+          this.tursoClient.execute({
+            sql: 'UPDATE assignments SET workerIds = ? WHERE assignmentId = ?',
+            args: [JSON.stringify(a.workerIds || []), a.assignmentId],
+          }).catch(() => {})
+        );
+      }
+
+      await Promise.all(queries);
+      this.lastFetchAt = {};
+    }
+
+    console.log(
+      `[MIGRATION] Migrated legacy IDs -> Workers: ${workerMap.size}, Leaders: ${leaderMap.size}, Clients: ${orgMap.size}`
+    );
   }
 
   private sanitizeState(data: DatabaseSchema) {

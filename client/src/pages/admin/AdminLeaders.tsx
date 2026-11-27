@@ -253,7 +253,7 @@ export const AdminLeaders: React.FC = () => {
                     <div>
                       <h3 className="text-sm font-bold text-slate-900">{leader.name}</h3>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-3xs font-mono font-bold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">
+                        <span className="inline-block whitespace-nowrap text-3xs font-mono font-bold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">
                           {leader.leaderId}
                         </span>
                         <StatusBadge status={leader.status} size="sm" />

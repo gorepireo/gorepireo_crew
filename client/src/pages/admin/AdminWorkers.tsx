@@ -356,7 +356,7 @@ export const AdminWorkers: React.FC = () => {
                             />
                             <div>
                               <div className="font-bold text-slate-900">{w.name}</div>
-                              <span className="text-3xs font-mono font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">
+                              <span className="inline-block whitespace-nowrap text-3xs font-mono font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">
                                 {w.workerId}
                               </span>
                             </div>
