@@ -1636,10 +1636,14 @@ class DatabaseService {
     }
   }
 
+  private isBrandedAlphanumId(id: string, roleCode: 'WC' | 'TL' | 'CL'): boolean {
+    return new RegExp(`^GR-${roleCode}-\\d{4}-(?=[A-Z0-9]*[A-Z])(?=[A-Z0-9]*\\d)[A-Z0-9]{3,}$`).test(id);
+  }
+
   private async migrateLegacyBrandedIds(): Promise<void> {
-    const legacyWorkers = this.data.workers.filter((w) => !w.workerId.startsWith('GR-WC-'));
-    const legacyLeaders = this.data.teamLeaders.filter((l) => !l.leaderId.startsWith('GR-TL-'));
-    const legacyOrgs = this.data.organizations.filter((o) => !o.organizationId.startsWith('GR-CL-'));
+    const legacyWorkers = this.data.workers.filter((w) => !this.isBrandedAlphanumId(w.workerId, 'WC'));
+    const legacyLeaders = this.data.teamLeaders.filter((l) => !this.isBrandedAlphanumId(l.leaderId, 'TL'));
+    const legacyOrgs = this.data.organizations.filter((o) => !this.isBrandedAlphanumId(o.organizationId, 'CL'));
 
     if (legacyWorkers.length === 0 && legacyLeaders.length === 0 && legacyOrgs.length === 0) {
       return;
@@ -2062,6 +2066,9 @@ class DatabaseService {
           createdAt: r.createdAt,
           updatedAt: r.updatedAt,
         }));
+      }
+      if (this.data.workers.some((w) => !this.isBrandedAlphanumId(w.workerId, 'WC'))) {
+        await this.migrateLegacyBrandedIds();
       }
       this.markFetched('workers');
     } catch (e: any) {
