@@ -68,10 +68,10 @@ router.post('/', authMiddleware, requireRole(['ADMIN']), (req: Request, res: Res
     photoURL: newUser.photoURL,
     managedTeamIds: managedTeamIds || [],
     permissions: {
-      canAddWorkers: permissions?.canAddWorkers ?? true,
-      canAssignJobs: permissions?.canAssignJobs ?? true,
+      canAddWorkers: false,
+      canAssignJobs: false,
       canCorrectAttendance: permissions?.canCorrectAttendance ?? true,
-      canCreateTeams: permissions?.canCreateTeams ?? true,
+      canCreateTeams: false,
     },
     status: status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
     createdAt: now,

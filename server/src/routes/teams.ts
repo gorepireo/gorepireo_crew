@@ -70,8 +70,8 @@ router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
   });
 });
 
-// POST /api/teams
-router.post('/', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), (req: Request, res: Response) => {
+// POST /api/teams (Admin only)
+router.post('/', authMiddleware, requireRole(['ADMIN']), (req: Request, res: Response) => {
   const { name, description, leaderIds, memberWorkerIds } = req.body;
   if (!name) return res.status(400).json({ error: 'Team name is required' });
 

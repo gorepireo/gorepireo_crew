@@ -118,8 +118,8 @@ router.get('/:id', authMiddleware, (req: Request, res: Response) => {
   });
 });
 
-// POST /api/workers (Admin and Team Leader Create Worker Account — Team is OPTIONAL)
-router.post('/', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), async (req: Request, res: Response) => {
+// POST /api/workers (Admin only)
+router.post('/', authMiddleware, requireRole(['ADMIN']), async (req: Request, res: Response) => {
   const { name, phone, email, address, primaryTeamId, joiningDate, photoURL, temporaryPassword, password } = req.body;
 
   if (!name || !phone) {

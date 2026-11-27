@@ -223,7 +223,7 @@ export const App: React.FC = () => {
               <Route index element={<Navigate to="/leader/dashboard" replace />} />
               <Route path="dashboard" element={<LeaderDashboard />} />
               <Route path="teams" element={<LeaderTeams />} />
-              <Route path="add-worker" element={<LeaderAddWorker />} />
+              <Route path="add-worker" element={<Navigate to="/leader/teams" replace />} />
               <Route path="assign-work" element={<Navigate to="/leader/attendance" replace />} />
               <Route path="locations" element={<LeaderLocations />} />
               <Route path="attendance" element={<LeaderAttendance />} />

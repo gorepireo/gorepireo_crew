@@ -48,12 +48,6 @@ export const LeaderLayout: React.FC = () => {
 
   const moreMenuItems = [
     {
-      to: '/leader/add-worker',
-      label: 'Register Field Worker',
-      icon: UserPlus,
-      desc: 'Generate Worker ID and assign to crew',
-    },
-    {
       to: '/leader/evidence',
       label: 'Work & Attendance Evidence',
       icon: Camera,

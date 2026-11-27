@@ -344,9 +344,9 @@ router.post('/register-worker', (req: Request, res: Response) => {
       photoURL: newUser.photoURL,
       managedTeamIds: [],
       permissions: {
-        canCreateTeams: true,
-        canAddWorkers: true,
-        canAssignJobs: true,
+        canCreateTeams: false,
+        canAddWorkers: false,
+        canAssignJobs: false,
         canCorrectAttendance: true,
       },
       status: 'ACTIVE',

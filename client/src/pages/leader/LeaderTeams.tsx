@@ -357,17 +357,8 @@ export const LeaderTeams: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. ACTION BUTTONS ROW (Exact Match Image 1) */}
+      {/* 2. ACTION BUTTONS ROW */}
       <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setCreateTeamModalOpen(true)}
-          className="flex-1 py-2 px-2.5 bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-800 rounded-full text-xs font-bold flex items-center justify-center gap-1 shadow-2xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
-        >
-          <Plus className="w-3.5 h-3.5 text-slate-700 stroke-[2.5]" />
-          <span>Create Team</span>
-        </button>
-
         <button
           type="button"
           onClick={() => {

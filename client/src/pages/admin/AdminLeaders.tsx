@@ -21,9 +21,7 @@ export const AdminLeaders: React.FC = () => {
   const [temporaryPassword, setTemporaryPassword] = useState('');
   const [status, setStatus] = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE');
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]);
-  const [canAddWorkers, setCanAddWorkers] = useState(true);
   const [canCorrectAttendance, setCanCorrectAttendance] = useState(true);
-  const [canCreateTeams, setCanCreateTeams] = useState(true);
   const [submittingAdd, setSubmittingAdd] = useState(false);
 
   // Reset Password Modal
@@ -70,10 +68,10 @@ export const AdminLeaders: React.FC = () => {
         status,
         managedTeamIds: selectedTeamIds,
         permissions: {
-          canAddWorkers,
+          canAddWorkers: false,
           canAssignJobs: false,
           canCorrectAttendance,
-          canCreateTeams,
+          canCreateTeams: false,
         },
       } as any);
       setAddModalOpen(false);
@@ -361,15 +359,9 @@ export const AdminLeaders: React.FC = () => {
                   <span className="text-3xs font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
                     Permission Rights
                   </span>
-                  <div className="grid grid-cols-2 gap-1.5 text-3xs">
-                    <span className={leader.permissions.canAddWorkers ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
-                      ✓ Register Workers
-                    </span>
+                  <div className="grid grid-cols-1 gap-1.5 text-3xs">
                     <span className={leader.permissions.canCorrectAttendance ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
                       ✓ Correct Attendance
-                    </span>
-                    <span className={leader.permissions.canCreateTeams ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
-                      ✓ Create Teams
                     </span>
                   </div>
                 </div>
@@ -454,16 +446,7 @@ export const AdminLeaders: React.FC = () => {
 
           <div>
             <label className="block font-semibold text-slate-700 mb-2">Granted Permissions</label>
-            <div className="grid grid-cols-2 gap-2 text-2xs">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={canAddWorkers}
-                  onChange={(e) => setCanAddWorkers(e.target.checked)}
-                  className="accent-blue-600"
-                />
-                <span>Can Register Workers</span>
-              </label>
+            <div className="grid grid-cols-1 gap-2 text-2xs">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -472,15 +455,6 @@ export const AdminLeaders: React.FC = () => {
                   className="accent-blue-600"
                 />
                 <span>Can Correct Attendance</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={canCreateTeams}
-                  onChange={(e) => setCanCreateTeams(e.target.checked)}
-                  className="accent-blue-600"
-                />
-                <span>Can Create Teams</span>
               </label>
             </div>
           </div>

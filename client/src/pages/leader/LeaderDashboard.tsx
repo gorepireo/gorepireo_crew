@@ -354,39 +354,26 @@ export const LeaderDashboard: React.FC = () => {
           </h2>
         </div>
 
-        {/* 3 Action Buttons Grid */}
-        <div className="grid grid-cols-3 gap-2 relative z-10">
-          {/* Action 1: Add Worker (Solid Royal Blue) */}
-          <button
-            type="button"
-            onClick={() => navigate('/leader/add-worker')}
-            className="bg-[#2355ea] hover:bg-blue-700 active:scale-95 text-white rounded-2xl py-3 px-1 flex flex-col items-center justify-center text-center shadow-md shadow-blue-500/25 transition-all cursor-pointer"
-          >
-            <UserPlus className="w-5 h-5 text-white mb-1.5 stroke-[2.2]" />
-            <span className="text-3xs font-bold leading-tight block text-white">Add</span>
-            <span className="text-3xs font-bold leading-tight block text-white">Worker</span>
-          </button>
-
-          {/* Action 2: Take Attendance (Soft Outline - Launches Instant Camera & Auto GPS) */}
+        {/* 2 Action Buttons Grid */}
+        <div className="grid grid-cols-2 gap-2.5 relative z-10">
+          {/* Action 1: Take Attendance (Soft Outline - Launches Instant Camera & Auto GPS) */}
           <button
             type="button"
             onClick={() => setCameraModalOpen(true)}
-            className="bg-[#f8faff] hover:bg-slate-100 active:scale-95 border border-slate-200/80 text-slate-800 rounded-2xl py-3 px-1 flex flex-col items-center justify-center text-center transition-all cursor-pointer shadow-2xs group"
+            className="bg-[#2355ea] hover:bg-blue-700 active:scale-95 text-white rounded-2xl py-3 px-2 flex flex-col items-center justify-center text-center shadow-md shadow-blue-500/25 transition-all cursor-pointer group"
           >
-            <Camera className="w-5 h-5 text-[#2355ea] mb-1.5 stroke-[2] group-hover:scale-110 transition-transform" />
-            <span className="text-3xs font-bold leading-tight block text-slate-800">Take</span>
-            <span className="text-3xs font-bold leading-tight block text-slate-800">Attendance</span>
+            <Camera className="w-5 h-5 text-white mb-1.5 stroke-[2.2] group-hover:scale-110 transition-transform" />
+            <span className="text-3xs font-bold leading-tight block text-white">Take Attendance</span>
           </button>
 
-          {/* Action 3: View Team (Soft Outline) */}
+          {/* Action 2: View Team (Soft Outline) */}
           <button
             type="button"
             onClick={() => navigate('/leader/teams')}
-            className="bg-[#f8faff] hover:bg-slate-100 active:scale-95 border border-slate-200/80 text-slate-800 rounded-2xl py-3 px-1 flex flex-col items-center justify-center text-center transition-all cursor-pointer shadow-2xs"
+            className="bg-[#f8faff] hover:bg-slate-100 active:scale-95 border border-slate-200/80 text-slate-800 rounded-2xl py-3 px-2 flex flex-col items-center justify-center text-center transition-all cursor-pointer shadow-2xs"
           >
             <Users className="w-5 h-5 text-[#2355ea] mb-1.5 stroke-[2]" />
-            <span className="text-3xs font-bold leading-tight block text-slate-800">View</span>
-            <span className="text-3xs font-bold leading-tight block text-slate-800">Team</span>
+            <span className="text-3xs font-bold leading-tight block text-slate-800">View Team</span>
           </button>
         </div>
       </div>
