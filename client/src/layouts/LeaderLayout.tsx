@@ -48,12 +48,6 @@ export const LeaderLayout: React.FC = () => {
 
   const moreMenuItems = [
     {
-      to: '/leader/assign-work',
-      label: 'Assign Work Orders',
-      icon: Briefcase,
-      desc: 'Create and dispatch job orders to teams',
-    },
-    {
       to: '/leader/add-worker',
       label: 'Register Field Worker',
       icon: UserPlus,

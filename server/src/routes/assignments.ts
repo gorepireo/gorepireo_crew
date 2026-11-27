@@ -88,8 +88,8 @@ router.get('/:id', authMiddleware, (req: Request, res: Response) => {
   });
 });
 
-// POST /api/assignments
-router.post('/', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), async (req: Request, res: Response) => {
+// POST /api/assignments (Admin only — Team Leaders can view assignments & take attendance)
+router.post('/', authMiddleware, requireRole(['ADMIN']), async (req: Request, res: Response) => {
   const {
     title,
     description,
@@ -290,8 +290,8 @@ router.post('/:id/complete', authMiddleware, (req: Request, res: Response) => {
   res.json(updated);
 });
 
-// PATCH /api/assignments/:id
-router.patch('/:id', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), (req: Request, res: Response) => {
+// PATCH /api/assignments/:id (Admin only)
+router.patch('/:id', authMiddleware, requireRole(['ADMIN']), (req: Request, res: Response) => {
   const id = req.params.id as string;
   const assignment = db.getAssignmentById(id);
   if (!assignment) return res.status(404).json({ error: 'Assignment not found' });

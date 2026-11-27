@@ -383,11 +383,11 @@ export const LeaderTeams: React.FC = () => {
         </button>
 
         <Link
-          to="/leader/assign-work"
+          to="/leader/attendance"
           className="flex-1 py-2 px-2.5 bg-[#2b44e7] hover:bg-blue-700 active:scale-95 text-white rounded-full text-xs font-bold flex items-center justify-center gap-1 shadow-md shadow-blue-500/25 transition-all cursor-pointer whitespace-nowrap"
         >
           <ClipboardList className="w-3.5 h-3.5 text-white stroke-[2.2]" />
-          <span>Assign Assignment</span>
+          <span>Take Attendance</span>
         </Link>
       </div>
 

@@ -354,8 +354,8 @@ export const LeaderDashboard: React.FC = () => {
           </h2>
         </div>
 
-        {/* 4 Action Buttons Grid */}
-        <div className="grid grid-cols-4 gap-2 relative z-10">
+        {/* 3 Action Buttons Grid */}
+        <div className="grid grid-cols-3 gap-2 relative z-10">
           {/* Action 1: Add Worker (Solid Royal Blue) */}
           <button
             type="button"
@@ -367,18 +367,7 @@ export const LeaderDashboard: React.FC = () => {
             <span className="text-3xs font-bold leading-tight block text-white">Worker</span>
           </button>
 
-          {/* Action 2: Assign Work (Solid Purple) */}
-          <button
-            type="button"
-            onClick={() => navigate('/leader/assign-work')}
-            className="bg-[#7042e6] hover:bg-purple-700 active:scale-95 text-white rounded-2xl py-3 px-1 flex flex-col items-center justify-center text-center shadow-md shadow-purple-500/25 transition-all cursor-pointer"
-          >
-            <ClipboardList className="w-5 h-5 text-white mb-1.5 stroke-[2.2]" />
-            <span className="text-3xs font-bold leading-tight block text-white">Assign</span>
-            <span className="text-3xs font-bold leading-tight block text-white">Work</span>
-          </button>
-
-          {/* Action 3: Take Attendance (Soft Outline - Launches Instant Camera & Auto GPS) */}
+          {/* Action 2: Take Attendance (Soft Outline - Launches Instant Camera & Auto GPS) */}
           <button
             type="button"
             onClick={() => setCameraModalOpen(true)}
@@ -389,7 +378,7 @@ export const LeaderDashboard: React.FC = () => {
             <span className="text-3xs font-bold leading-tight block text-slate-800">Attendance</span>
           </button>
 
-          {/* Action 4: View Team (Soft Outline) */}
+          {/* Action 3: View Team (Soft Outline) */}
           <button
             type="button"
             onClick={() => navigate('/leader/teams')}
@@ -417,7 +406,7 @@ export const LeaderDashboard: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => navigate('/leader/assign-work')}
+            onClick={() => navigate('/leader/attendance')}
             className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-0.5 cursor-pointer transition-colors"
           >
             <span>{liveOrders.length} Orders</span>
@@ -479,7 +468,7 @@ export const LeaderDashboard: React.FC = () => {
               No active orders scheduled
             </h3>
             <p className="text-2xs text-slate-500 font-medium mt-1 max-w-[250px]">
-              Tap &ldquo;Assign Work&rdquo; to dispatch tasks to your crew.
+              Work assignments are dispatched by Admin for your assigned teams.
             </p>
           </div>
         ) : (
@@ -487,7 +476,7 @@ export const LeaderDashboard: React.FC = () => {
             {liveOrders.map((order) => (
               <div
                 key={order.id}
-                onClick={() => navigate('/leader/assign-work')}
+                onClick={() => navigate('/leader/attendance')}
                 className="p-2.5 rounded-2xl border border-slate-100 hover:border-blue-200 bg-slate-50/60 hover:bg-white transition-all cursor-pointer flex items-center justify-between gap-3 group shadow-2xs"
               >
                 <div className="flex items-center gap-3 min-w-0">
