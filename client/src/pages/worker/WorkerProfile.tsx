@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { formatIndianPhone } from '../../utils/phone';
 import { useLanguage } from '../../context/LanguageContext';
 import { api } from '../../services/api';
 import { ImageCropModal } from '../../components/common/ImageCropModal';
@@ -383,7 +384,7 @@ export const WorkerProfile: React.FC = () => {
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-black text-slate-900">
-                {worker?.phone || user?.phone || '—'}
+                {formatIndianPhone(worker?.phone || user?.phone)}
               </span>
               <ChevronRight className="w-4 h-4 text-slate-400" />
             </div>

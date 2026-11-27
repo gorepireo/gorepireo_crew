@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
+import { IndianPhoneInput } from '../../components/common/IndianPhoneInput';
+import { formatIndianPhone } from '../../utils/phone';
 import { useLanguage } from '../../context/LanguageContext';
 import { Team, Worker, Assignment, Attendance } from '../../types';
 import { Modal } from '../../components/ui/Modal';
@@ -610,7 +612,7 @@ export const LeaderTeams: React.FC = () => {
                           {w.workerId}
                         </span>
                         <span className="text-slate-300">·</span>
-                        <span className="text-slate-600 font-semibold">{w.phone}</span>
+                        <span className="text-slate-600 font-semibold">{formatIndianPhone(w.phone)}</span>
                       </div>
                     </div>
                   </div>
@@ -835,12 +837,12 @@ export const LeaderTeams: React.FC = () => {
 
             <div>
               <label className="block font-bold text-slate-700 mb-1 text-2xs">Phone Number</label>
-              <input
-                type="tel"
+              <IndianPhoneInput
+                variant="compact"
                 required
                 value={editPhone}
-                onChange={(e) => setEditPhone(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs"
+                onChange={setEditPhone}
+                placeholder="9876543210"
               />
             </div>
 
@@ -936,7 +938,7 @@ export const LeaderTeams: React.FC = () => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 font-medium">Mobile Number:</span>
-                <span className="font-semibold text-slate-800">{assignModalWorker.phone}</span>
+                <span className="font-semibold text-slate-800">{formatIndianPhone(assignModalWorker.phone)}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 font-medium">Joining Date:</span>
@@ -1094,7 +1096,7 @@ export const LeaderTeams: React.FC = () => {
                       {foundWorker.workerId}
                     </span>
                     <span>·</span>
-                    <span>{foundWorker.phone}</span>
+                    <span>{formatIndianPhone(foundWorker.phone)}</span>
                   </div>
                 </div>
               </div>

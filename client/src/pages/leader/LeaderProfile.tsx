@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { formatIndianPhone } from '../../utils/phone';
 import { useLanguage } from '../../context/LanguageContext';
 import { ImageCropModal } from '../../components/common/ImageCropModal';
 import {
@@ -218,7 +219,7 @@ export const LeaderProfile: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-slate-600 font-bold mt-1">
-              {phone}
+              {formatIndianPhone(phone)}
             </p>
             <div className="flex items-center gap-1.5 text-2xs font-extrabold text-[#4338ca] mt-1">
               <Building2 className="w-3.5 h-3.5 shrink-0" />
@@ -261,7 +262,7 @@ export const LeaderProfile: React.FC = () => {
               <span>Mobile Number</span>
             </div>
             <div className="flex items-center gap-1 text-xs font-black text-slate-900">
-              <span>{phone}</span>
+              <span>{formatIndianPhone(phone)}</span>
               <ChevronRight className="w-4 h-4 text-slate-400" />
             </div>
           </div>

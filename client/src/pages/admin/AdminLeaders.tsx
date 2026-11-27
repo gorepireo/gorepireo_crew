@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
+import { IndianPhoneInput } from '../../components/common/IndianPhoneInput';
+import { formatIndianPhone } from '../../utils/phone';
 import { TeamLeader, Team } from '../../types';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Modal } from '../../components/ui/Modal';
@@ -14,7 +16,7 @@ export const AdminLeaders: React.FC = () => {
   // Add Modal
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('+91 ');
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [temporaryPassword, setTemporaryPassword] = useState('');
   const [status, setStatus] = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE');
@@ -77,7 +79,7 @@ export const AdminLeaders: React.FC = () => {
       } as any);
       setAddModalOpen(false);
       setName('');
-      setPhone('+91 ');
+      setPhone('');
       setEmail('');
       setTemporaryPassword('');
       setSelectedTeamIds([]);
@@ -312,7 +314,7 @@ export const AdminLeaders: React.FC = () => {
 
                 <div className="p-3 bg-slate-50 rounded-xl text-2xs space-y-1.5 border border-slate-100">
                   <p className="text-slate-600">
-                    <strong>Phone:</strong> {leader.phone} · <strong>Email:</strong> {leader.email || '--'}
+                    <strong>Phone:</strong> {formatIndianPhone(leader.phone)} · <strong>Email:</strong> {leader.email || '--'}
                   </p>
                   <div className="pt-1.5 border-t border-slate-200">
                     <div className="flex items-center justify-between mb-1">
@@ -398,13 +400,11 @@ export const AdminLeaders: React.FC = () => {
             </div>
             <div>
               <label className="block font-semibold text-slate-700 mb-1">Phone Number *</label>
-              <input
-                type="tel"
+              <IndianPhoneInput
                 required
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+91 98765 00000"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                onChange={setPhone}
+                placeholder="9876500000"
               />
             </div>
           </div>
@@ -533,12 +533,11 @@ export const AdminLeaders: React.FC = () => {
             </div>
             <div>
               <label className="block font-semibold text-slate-700 mb-1">Phone Number *</label>
-              <input
-                type="tel"
+              <IndianPhoneInput
                 required
                 value={editPhone}
-                onChange={(e) => setEditPhone(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                onChange={setEditPhone}
+                placeholder="9876500000"
               />
             </div>
           </div>

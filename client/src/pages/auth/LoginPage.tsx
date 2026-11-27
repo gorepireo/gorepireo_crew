@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { IndianPhoneInput } from '../../components/common/IndianPhoneInput';
+import { extractIndianDigits, toIndianPhoneValue } from '../../utils/phone';
 import { api } from '../../services/api';
 import {
   Lock,
@@ -295,18 +297,29 @@ export const LoginPage: React.FC = () => {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Mobile Number Pill Input */}
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4.5 flex items-center pointer-events-none text-slate-400">
+                {/* Mobile Number Pill Input (Locked +91 for mobile numbers; supports admin username if letters typed) */}
+                <div className="flex items-center h-[54px] pl-4.5 pr-4 border border-[#e2e8f0] rounded-full focus-within:ring-2 focus-within:ring-[#223ced] focus-within:border-transparent bg-[#f8fafc] focus-within:bg-white transition-all">
+                  <div className="flex items-center gap-2 shrink-0 select-none text-slate-400">
                     <Phone className="w-4.5 h-4.5 stroke-[2]" />
+                    {!/[a-zA-Z@]/.test(phone) && (
+                      <span className="text-sm font-extrabold text-slate-700 pr-2.5 mr-2 border-r border-slate-200">+91</span>
+                    )}
                   </div>
                   <input
                     type="text"
+                    inputMode={/[a-zA-Z@]/.test(phone) ? 'text' : 'tel'}
                     required
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="Mobile Number or Username"
-                    className="w-full h-[54px] pl-12 pr-4 text-sm font-semibold text-slate-800 border border-[#e2e8f0] rounded-full focus:outline-hidden focus:ring-2 focus:ring-[#223ced] focus:border-transparent bg-[#f8fafc] focus:bg-white transition-all placeholder:text-slate-400"
+                    value={/[a-zA-Z@]/.test(phone) ? phone : extractIndianDigits(phone)}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      if (/[a-zA-Z@]/.test(raw)) {
+                        setPhone(raw);
+                      } else {
+                        setPhone(toIndianPhoneValue(raw));
+                      }
+                    }}
+                    placeholder="9876543210 or Username"
+                    className="w-full min-w-0 bg-transparent text-sm font-semibold text-slate-800 focus:outline-hidden placeholder:text-slate-400"
                   />
                 </div>
 
@@ -405,19 +418,14 @@ export const LoginPage: React.FC = () => {
                 </div>
 
                 {/* Mobile Number */}
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4.5 flex items-center pointer-events-none text-slate-400">
-                    <Phone className="w-4.5 h-4.5 stroke-[2]" />
-                  </div>
-                  <input
-                    type="tel"
-                    required
-                    value={regPhone}
-                    onChange={(e) => setRegPhone(e.target.value)}
-                    placeholder="Mobile Number"
-                    className="w-full h-[52px] pl-12 pr-4 text-sm font-semibold text-slate-800 border border-[#e2e8f0] rounded-full focus:outline-hidden focus:ring-2 focus:ring-[#223ced] focus:border-transparent bg-[#f8fafc] focus:bg-white transition-all placeholder:text-slate-400"
-                  />
-                </div>
+                <IndianPhoneInput
+                  variant="pill"
+                  showIcon
+                  required
+                  value={regPhone}
+                  onChange={setRegPhone}
+                  placeholder="10-digit Mobile Number"
+                />
 
                 {/* Password */}
                 <div className="relative">
@@ -624,13 +632,12 @@ export const LoginPage: React.FC = () => {
                   <label className="block text-2xs font-bold text-slate-700 mb-1">
                     Your Registered Mobile Number
                   </label>
-                  <input
-                    type="tel"
+                  <IndianPhoneInput
+                    variant="compact"
                     required
                     value={forgotPhone}
-                    onChange={(e) => setForgotPhone(e.target.value)}
-                    placeholder="Enter registered mobile number"
-                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 font-medium"
+                    onChange={setForgotPhone}
+                    placeholder="Enter 10-digit mobile number"
                   />
                 </div>
 

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
+import { IndianPhoneInput } from '../../components/common/IndianPhoneInput';
+import { formatIndianPhone } from '../../utils/phone';
 import { Worker, Team } from '../../types';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Modal } from '../../components/ui/Modal';
@@ -40,7 +42,7 @@ export const AdminWorkers: React.FC = () => {
   // Add Worker Modal
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [newName, setNewName] = useState('');
-  const [newPhone, setNewPhone] = useState('+91 ');
+  const [newPhone, setNewPhone] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [newAddress, setNewAddress] = useState('');
   const [newTeamId, setNewTeamId] = useState('');
@@ -122,7 +124,7 @@ export const AdminWorkers: React.FC = () => {
       } as any);
       setAddModalOpen(false);
       setNewName('');
-      setNewPhone('+91 ');
+      setNewPhone('');
       setNewEmail('');
       setNewAddress('');
       setNewTemporaryPassword('');
@@ -362,7 +364,7 @@ export const AdminWorkers: React.FC = () => {
                         </td>
 
                         <td className="px-4 py-3 text-slate-600">
-                          <div className="font-semibold text-slate-800">{w.phone}</div>
+                          <div className="font-semibold text-slate-800">{formatIndianPhone(w.phone)}</div>
                           <div className="text-3xs text-slate-400">{w.email || '--'}</div>
                         </td>
 
@@ -484,12 +486,11 @@ export const AdminWorkers: React.FC = () => {
             </div>
             <div>
               <label className="block font-semibold text-slate-700 mb-1">Phone Number *</label>
-              <input
-                type="tel"
+              <IndianPhoneInput
                 required
                 value={newPhone}
-                onChange={(e) => setNewPhone(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                onChange={setNewPhone}
+                placeholder="9876543210"
               />
             </div>
           </div>
@@ -579,12 +580,11 @@ export const AdminWorkers: React.FC = () => {
             </div>
             <div>
               <label className="block font-semibold text-slate-700 mb-1">Phone Number *</label>
-              <input
-                type="tel"
+              <IndianPhoneInput
                 required
                 value={editPhone}
-                onChange={(e) => setEditPhone(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                onChange={setEditPhone}
+                placeholder="9876543210"
               />
             </div>
           </div>
@@ -648,7 +648,7 @@ export const AdminWorkers: React.FC = () => {
                   <StatusBadge status={viewingWorkerDetails.worker.status} size="sm" />
                 </div>
                 <p className="text-2xs text-slate-500 mt-1">
-                  Team: <strong>{viewingWorkerDetails.worker.primaryTeamName || 'Unassigned'}</strong> · Phone: {viewingWorkerDetails.worker.phone}
+                  Team: <strong>{viewingWorkerDetails.worker.primaryTeamName || 'Unassigned'}</strong> · Phone: {formatIndianPhone(viewingWorkerDetails.worker.phone)}
                 </p>
               </div>
             </div>
@@ -759,7 +759,7 @@ export const AdminWorkers: React.FC = () => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 font-medium">Mobile Number:</span>
-                <span className="font-semibold text-slate-800">{assignModalWorker.phone}</span>
+                <span className="font-semibold text-slate-800">{formatIndianPhone(assignModalWorker.phone)}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 font-medium">Current Status:</span>

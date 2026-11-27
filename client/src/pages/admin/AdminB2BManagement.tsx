@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../../services/api';
+import { IndianPhoneInput } from '../../components/common/IndianPhoneInput';
+import { formatIndianPhone } from '../../utils/phone';
 import { Organization, Invoice, Payment, Assignment, Team, WorkLocation } from '../../types';
 import {
   Building2,
@@ -406,7 +408,7 @@ export const AdminB2BManagement: React.FC = () => {
                         Contact: <strong className="text-slate-800">{org.contactPerson || 'N/A'}</strong>
                       </div>
                       <div>
-                        Mobile: <strong className="text-slate-800">{org.phone}</strong>
+                        Mobile: <strong className="text-slate-800">{formatIndianPhone(org.phone)}</strong>
                       </div>
                       {org.email && <div>Email: {org.email}</div>}
                       <div>
@@ -420,7 +422,7 @@ export const AdminB2BManagement: React.FC = () => {
                       {org.eventsCount || 0} event(s) linked
                     </span>
                     <span className="text-blue-600 font-bold">
-                      Login: {org.phone}
+                      Login: {formatIndianPhone(org.phone)}
                     </span>
                   </div>
                 </div>
@@ -588,13 +590,13 @@ export const AdminB2BManagement: React.FC = () => {
                 </div>
                 <div>
                   <label className="text-3xs font-bold text-slate-700 uppercase">Mobile Number (Login) *</label>
-                  <input
-                    type="tel"
+                  <IndianPhoneInput
+                    variant="compact"
                     required
                     value={orgForm.phone}
-                    onChange={(e) => setOrgForm({ ...orgForm, phone: e.target.value })}
-                    placeholder="e.g. 9800615893"
-                    className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold"
+                    onChange={(val) => setOrgForm({ ...orgForm, phone: val })}
+                    placeholder="9800615893"
+                    className="mt-1 bg-slate-50"
                   />
                 </div>
               </div>
@@ -698,7 +700,7 @@ export const AdminB2BManagement: React.FC = () => {
                   <option value="">-- Select B2B Client --</option>
                   {organizations.map((org) => (
                     <option key={org.orgId} value={org.orgId}>
-                      {org.name} ({org.phone})
+                      {org.name} ({formatIndianPhone(org.phone)})
                     </option>
                   ))}
                 </select>

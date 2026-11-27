@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { IndianPhoneInput } from '../../components/common/IndianPhoneInput';
 import { api } from '../../services/api';
 import { Organization } from '../../types';
 import {
@@ -387,16 +388,15 @@ export const ClientProfile: React.FC = () => {
 
               <div className="space-y-1">
                 <label className="text-3xs font-bold text-slate-700">Mobile Number *</label>
-                <div className="relative">
-                  <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:bg-white"
-                    required
-                  />
-                </div>
+                <IndianPhoneInput
+                  variant="compact"
+                  showIcon
+                  required
+                  value={phone}
+                  onChange={setPhone}
+                  placeholder="9800615893"
+                  className="bg-[#f8fafc]"
+                />
               </div>
 
               <div className="space-y-1">
