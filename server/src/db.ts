@@ -1617,6 +1617,7 @@ class DatabaseService {
       this.saveData(this.data);
       console.log(`[TURSO] Successfully hydrated in-memory state directly from Turso relational tables: ${this.data.workers.length} workers, ${this.data.teamLeaders.length} leaders, ${this.data.teams.length} teams, ${this.data.locations.length} locations, ${this.data.assignments.length} assignments, ${this.data.attendance.length} attendance.`);
       await this.migrateLegacyBrandedIds();
+      await this.deduplicateAttendance();
     } catch (err: any) {
       console.warn('[TURSO] Error syncing from relational tables, falling back to backup store:', err.message);
       try {
@@ -2697,14 +2698,70 @@ class DatabaseService {
           updatedAt: r.updatedAt,
         }));
       }
+      await this.deduplicateAttendance();
       this.markFetched('attendance');
     } catch (e: any) {
       console.warn('[TURSO] fetchAttendanceFromTurso error:', e.message);
     }
     return this.data.attendance;
   }
+
+  private async deduplicateAttendance(): Promise<void> {
+    const seen = new Map<string, Attendance>();
+    const duplicateIds: string[] = [];
+
+    const scoreRecord = (a: Attendance) => {
+      let s = 0;
+      if (a.checkInTime) s += 4;
+      if (a.status !== 'ABSENT') s += 2;
+      if (a.checkOutTime) s += 1;
+      return s;
+    };
+
+    for (const record of this.data.attendance) {
+      const key = `${record.workerId}::${record.date}`;
+      const prev = seen.get(key);
+      if (!prev) {
+        seen.set(key, record);
+      } else {
+        const prevScore = scoreRecord(prev);
+        const curScore = scoreRecord(record);
+        const keepCur =
+          curScore > prevScore ||
+          (curScore === prevScore && (record.updatedAt || '') > (prev.updatedAt || ''));
+        if (keepCur) {
+          duplicateIds.push(prev.attendanceId);
+          seen.set(key, record);
+        } else {
+          duplicateIds.push(record.attendanceId);
+        }
+      }
+    }
+
+    if (duplicateIds.length === 0) return;
+
+    this.data.attendance = Array.from(seen.values());
+    this.persist();
+
+    if (this.tursoClient) {
+      await Promise.all(
+        duplicateIds.map((id) =>
+          this.tursoClient!.execute({ sql: 'DELETE FROM attendance WHERE attendanceId = ?', args: [id] }).catch(() => {})
+        )
+      );
+    }
+    console.log(`[ATTENDANCE] Deduplicated ${duplicateIds.length} duplicate attendance record(s).`);
+  }
+
   public addAttendance(record: Attendance) {
     this.invalidateFetch('attendance');
+    const existing = this.data.attendance.find(
+      (a) => a.workerId === record.workerId && a.date === record.date
+    );
+    if (existing) {
+      const { attendanceId: _ignored, ...updates } = record;
+      return this.updateAttendance(existing.attendanceId, updates) || existing;
+    }
     this.data.attendance.unshift(record);
     this.persist();
     if (this.tursoClient) {

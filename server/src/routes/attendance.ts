@@ -301,6 +301,7 @@ router.post('/group-verify', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER'
     // 5. If autoMark is requested, record attendance in database
     const markedRecords: any[] = [];
     if (autoMark) {
+      await db.fetchAttendanceFromTurso();
       for (const pw of verification.presentWorkers) {
         const worker = teamWorkers.find(w => w.workerId === pw.workerId)!;
         let att = db.getAttendance().find(a => a.workerId === pw.workerId && a.date === targetDate);
@@ -386,7 +387,7 @@ router.post('/group-verify', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER'
 });
 
 // POST /api/attendance/check-in (GPS Check-in with live selfie)
-router.post('/check-in', authMiddleware, (req: Request, res: Response) => {
+router.post('/check-in', authMiddleware, async (req: Request, res: Response) => {
   const { assignmentId, latitude, longitude, accuracy, photo, detectedAddress, deviceTimestamp } = req.body;
 
   if (latitude === undefined || longitude === undefined) {
@@ -421,15 +422,16 @@ router.post('/check-in', authMiddleware, (req: Request, res: Response) => {
     return res.status(400).json({ error: 'No associated worker or leader found for this check-in request' });
   }
 
+  await db.fetchAttendanceFromTurso();
   const today = new Date().toISOString().slice(0, 10);
   const now = new Date().toISOString();
 
   // Check duplicate check-in today
   const existingToday = db.getAttendance().find(
-    a => a.workerId === worker.workerId && a.date === today && a.checkInTime
+    a => a.workerId === worker.workerId && a.date === today
   );
 
-  if (existingToday) {
+  if (existingToday && (existingToday.checkInTime || existingToday.status === 'PRESENT' || existingToday.status === 'LATE')) {
     return res.status(409).json({
       error: 'You have already checked in for today',
       attendance: existingToday,
@@ -440,7 +442,7 @@ router.post('/check-in', authMiddleware, (req: Request, res: Response) => {
   let assignment = assignmentId ? db.getAssignmentById(assignmentId) : null;
   if (!assignment) {
     assignment = db.getAssignments().find(
-      a => a.date === today && a.workerIds.includes(worker.workerId) && a.status !== 'CANCELLED'
+      a => a.date <= today && (a.endDate || a.date) >= today && a.workerIds.includes(worker.workerId) && a.status !== 'CANCELLED'
     ) || null;
   }
 
@@ -999,13 +1001,14 @@ router.get('/:id', authMiddleware, (req: Request, res: Response) => {
 });
 
 // POST /api/attendance/manual (Team leader or admin manual attendance)
-router.post('/manual', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), (req: Request, res: Response) => {
+router.post('/manual', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), async (req: Request, res: Response) => {
   const { workerId, assignmentId, date, status, reason } = req.body;
 
   if (!workerId || !status || !reason) {
     return res.status(400).json({ error: 'Worker ID, attendance status, and reason are required for manual attendance' });
   }
 
+  await db.fetchWorkersFromTurso();
   const worker = db.getWorkerById(workerId);
   if (!worker) return res.status(404).json({ error: 'Worker not found' });
 
@@ -1016,6 +1019,7 @@ router.post('/manual', authMiddleware, requireRole(['ADMIN', 'TEAM_LEADER']), (r
     }
   }
 
+  await db.fetchAttendanceFromTurso();
   const targetDate = date || new Date().toISOString().slice(0, 10);
   const now = new Date().toISOString();
 
